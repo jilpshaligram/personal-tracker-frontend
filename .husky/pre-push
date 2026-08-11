@@ -1,0 +1,16 @@
+branch=$(git rev-parse --abbrev-ref HEAD)
+
+if [ "$branch" = "dev" ] || [ "$branch" = "main" ]; then
+    echo ""
+    echo "❌ Direct push to '$branch' is not allowed."
+    echo "Create a feature branch and raise a Pull Request."
+    echo ""
+    exit 1
+fi
+
+echo ""
+echo "🏗 Checking build..."
+npm run build || exit 1
+
+echo ""
+echo "✅ Push checks passed."

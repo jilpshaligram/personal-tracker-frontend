@@ -1,10 +1,6 @@
-function App() {
-  return (
-    <div>
-      <h1>Personal Tracker</h1>
-    </div>
-  );
+import { RouterProvider } from 'react-router-dom';
+import router from './router/routes';
+
+export default function App() {
+  return <RouterProvider router={router} />;
 }
-
-export default App;
-
