@@ -1,0 +1,16 @@
+export const tokens = {
+  navy: '#16274F',
+  navyDeep: '#0E1B38',
+  blue: '#2F5FE0',
+  blueDark: '#2249BE',
+  bg: '#F4F6FB',
+  border: '#E5E9F2',
+  text: '#16274F',
+  muted: '#6B7280',
+  green: '#1FA971',
+  amber: '#F5A623',
+  red: '#E5484D',
+  redBg: '#FDECEC',
+  redBorder: '#F6C9C9',
+  redText: '#9A2E2E',
+};
