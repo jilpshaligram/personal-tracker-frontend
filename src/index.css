@@ -1,9 +1,11 @@
 @import '@fontsource-variable/inter';
-@import 'tailwindcss';
+@import "tailwindcss";
 
-*,
-*::before,
-*::after {
+@theme {
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+}
+
+*, *::before, *::after {
   box-sizing: border-box;
 }
 
