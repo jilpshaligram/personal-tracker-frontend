@@ -27,7 +27,7 @@ A comprehensive personal finance tracking application built with React, TypeScri
 
 ### Prerequisites
 
-- Node.js 18+ 
+- Node.js 18+
 - npm or yarn
 
 ### Installation
