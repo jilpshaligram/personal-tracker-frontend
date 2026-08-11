@@ -1,1 +1,0 @@
-export { DocumentCategoryList } from './DocumentCategoryList';
