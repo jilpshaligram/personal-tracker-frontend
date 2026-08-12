@@ -83,9 +83,7 @@ export function DocumentCard({ document, onClick }: DocumentCardProps) {
 
       {/* Content */}
       <div className="p-4">
-        <h3 className="font-semibold text-slate-800 text-sm mb-2 truncate">
-          {document.name}
-        </h3>
+        <h3 className="font-semibold text-slate-800 text-sm mb-2 truncate">{document.name}</h3>
         <div className="flex items-center gap-2 mb-2">
           <span className="inline-flex items-center px-2 py-0.5 bg-blue-50 text-blue-700 text-xs font-medium rounded">
             {document.category}
@@ -103,7 +101,9 @@ export function DocumentCard({ document, onClick }: DocumentCardProps) {
               hasExpiryWarning ? 'text-red-600 font-semibold' : 'text-slate-500'
             }`}
           >
-            <Calendar className={`w-3.5 h-3.5 ${hasExpiryWarning ? 'text-red-500' : 'text-slate-400'}`} />
+            <Calendar
+              className={`w-3.5 h-3.5 ${hasExpiryWarning ? 'text-red-500' : 'text-slate-400'}`}
+            />
             <span>Expires: {document.expiryDate}</span>
           </div>
         ) : (

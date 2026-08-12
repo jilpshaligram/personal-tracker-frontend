@@ -1,4 +1,4 @@
-import { apiClient } from '../../../../api/client'; 
+import { apiClient } from '../../../../api/client';
 import type {
   DocumentCategory,
   DocumentCategoryCreateData,
@@ -8,31 +8,21 @@ import type {
 
 export const documentCategoryService = {
   getCategories: async (params?: DocumentCategoryQuery) => {
-    const response = await apiClient.get<DocumentCategory[]>(
-      '/document-categories',
-      {
-        params,
-      }
-    );
+    const response = await apiClient.get<DocumentCategory[]>('/document-categories', {
+      params,
+    });
     return response.data;
   },
 
   getCategoryById: async (id: string) => {
-    const response = await apiClient.get<DocumentCategory>(
-      `/document-categories/${id}`
-    );
+    const response = await apiClient.get<DocumentCategory>(`/document-categories/${id}`);
     return response.data;
   },
 
- 
   createCategory: async (data: DocumentCategoryCreateData) => {
-    const response = await apiClient.post<DocumentCategory>(
-      '/document-categories',
-      data
-    );
+    const response = await apiClient.post<DocumentCategory>('/document-categories', data);
     return response.data;
   },
-
 
   updateCategory: async (data: DocumentCategoryUpdateData) => {
     const { _id, ...updateData } = data;
@@ -42,7 +32,6 @@ export const documentCategoryService = {
     );
     return response.data;
   },
-
 
   deleteCategory: async (id: string) => {
     await apiClient.delete(`/document-categories/${id}`);
