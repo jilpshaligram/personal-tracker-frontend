@@ -1,0 +1,21 @@
+echo ""
+echo "📝 Validating commit message..."
+
+npx --no -- commitlint --edit "$1"
+
+if [ $? -ne 0 ]; then
+    echo ""
+    echo "❌ Invalid commit message."
+    echo ""
+    echo "Allowed format:"
+    echo "  feat: add authentication module"
+    echo "  bug: fix login validation"
+    echo "  refactor: simplify auth service"
+    echo "  docs: update swagger documentation"
+    echo ""
+    exit 1
+fi
+
+echo ""
+echo "✅ Commit message is valid."
+echo ""
