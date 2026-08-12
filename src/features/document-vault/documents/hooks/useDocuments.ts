@@ -24,9 +24,20 @@ export const useDocuments = (filters?: DocumentFilters) => {
     }
   };
 
+  const filterString = JSON.stringify(filters);
+
   useEffect(() => {
-    fetchDocuments();
-  }, [JSON.stringify(filters)]);
+    let active = true;
+    Promise.resolve().then(() => {
+      if (active) {
+        fetchDocuments();
+      }
+    });
+    return () => {
+      active = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterString]);
 
   return {
     data,
@@ -36,7 +47,7 @@ export const useDocuments = (filters?: DocumentFilters) => {
   };
 };
 
-export const useDocument = (_id: string) => {
+export const useDocument = () => {
   // TODO: Implement with useQuery
   return {
     data: null,
@@ -148,7 +159,7 @@ export const useDownloadDocument = () => {
   };
 };
 
-export const useDocumentVersions = (_id: string) => {
+export const useDocumentVersions = () => {
   // TODO: Implement with useQuery
   return {
     data: [],

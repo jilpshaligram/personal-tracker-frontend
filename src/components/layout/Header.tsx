@@ -7,7 +7,6 @@ interface HeaderProps {
 export default function Header({ onMenuClick }: HeaderProps) {
   return (
     <header className="sticky top-0 z-10 flex items-center justify-between gap-4 bg-white/95 backdrop-blur-sm border-b border-slate-200 px-4 sm:px-6 py-3.5 shrink-0">
-      {/* Left: Hamburger (mobile only) */}
       <div className="flex items-center">
         <button
           type="button"
@@ -19,9 +18,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
         </button>
       </div>
 
-      {/* Right: Icons + Divider + User */}
       <div className="flex items-center gap-1 shrink-0">
-        {/* Bell icon */}
         <button
           type="button"
           className="flex items-center justify-center w-9 h-9 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors"

@@ -42,11 +42,7 @@ export function DocumentCategoryList({
   }
 
   if (categories.length === 0) {
-    return (
-      <div className="px-3 py-4 text-sm text-slate-500">
-        No categories found.
-      </div>
-    );
+    return <div className="px-3 py-4 text-sm text-slate-500">No categories found.</div>;
   }
 
   return (

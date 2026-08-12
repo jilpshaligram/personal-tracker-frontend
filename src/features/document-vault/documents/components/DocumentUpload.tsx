@@ -1,19 +1,11 @@
 import { useState, useRef } from 'react';
-import {
-  X,
-  UploadCloud,
-  FileText,
-  CheckCircle2,
-  Upload,
-  Hash,
-  AlignLeft,
-} from 'lucide-react';
+import { X, UploadCloud, FileText, CheckCircle2, Upload, Hash, AlignLeft } from 'lucide-react';
 import { useUploadDocument, useUpdateDocument } from '../hooks/useDocuments';
 import { useDocumentCategories } from '../../categories/hooks/useDocumentCategories';
 import type { Document } from '../types/document';
 
 interface DocumentUploadProps {
-  document?: Document; // If passed, we are in Edit/Update mode
+  document?: Document;
   onClose: () => void;
   onUpload?: (data: {
     name: string;
@@ -39,12 +31,7 @@ const parseDateToYYYYMMDD = (dateStr?: string) => {
   }
 };
 
-export function DocumentUpload({
-  document,
-  onClose,
-  onUpload,
-  onUpdate,
-}: DocumentUploadProps) {
+export function DocumentUpload({ document, onClose, onUpload, onUpdate }: DocumentUploadProps) {
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState({
@@ -60,7 +47,11 @@ export function DocumentUpload({
 
   const { mutate: uploadMutate, isLoading: isUploading, error: uploadError } = useUploadDocument();
   const { mutate: updateMutate, isLoading: isUpdating, error: updateError } = useUpdateDocument();
-  const { data: apiCategories, isLoading: isCategoriesLoading, error: categoriesError } = useDocumentCategories();
+  const {
+    data: apiCategories,
+    isLoading: isCategoriesLoading,
+    error: categoriesError,
+  } = useDocumentCategories();
   const [validationError, setValidationError] = useState<string | null>(null);
 
   const categories = apiCategories || [];
@@ -85,8 +76,18 @@ export function DocumentUpload({
     setDragActive(false);
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const selectedFile = e.dataTransfer.files[0];
+      if (selectedFile.size > 10 * 1024 * 1024) {
+        setValidationError('You cannot upload files greater than 10 MB.');
+        setFormData((prev) => ({
+          ...prev,
+          file: null,
+        }));
+        return;
+      }
       setFormData((prev) => {
-        const nextName = prev.name ? prev.name : selectedFile.name.substring(0, selectedFile.name.lastIndexOf('.')) || selectedFile.name;
+        const nextName = prev.name
+          ? prev.name
+          : selectedFile.name.substring(0, selectedFile.name.lastIndexOf('.')) || selectedFile.name;
         return {
           ...prev,
           file: selectedFile,
@@ -101,6 +102,10 @@ export function DocumentUpload({
     e.preventDefault();
     if (!document && !formData.file) {
       setValidationError('Please select a file to upload.');
+      return;
+    }
+    if (formData.file && formData.file.size > 10 * 1024 * 1024) {
+      setValidationError('You cannot upload files greater than 10 MB.');
       return;
     }
     setValidationError(null);
@@ -136,7 +141,7 @@ export function DocumentUpload({
         });
         onUpload?.(formData);
       }
-    } catch (err) {
+    } catch {
       // Handled by mutation hook state
     }
   };
@@ -144,7 +149,6 @@ export function DocumentUpload({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 overflow-hidden">
-        
         <div className="flex items-start justify-between p-6 border-b border-slate-200">
           <div className="flex items-start gap-3">
             <div className="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-full">
@@ -155,7 +159,9 @@ export function DocumentUpload({
                 {document ? 'Update Document' : 'Secure Document Upload'}
               </h2>
               <p className="text-sm text-slate-500 mt-0.5">
-                {document ? 'Update document metadata or replace file' : 'Add a new file to your VaultSaaS repository'}
+                {document
+                  ? 'Update document metadata or replace file'
+                  : 'Add a new file to your VaultSaaS repository'}
               </p>
             </div>
           </div>
@@ -168,16 +174,19 @@ export function DocumentUpload({
           </button>
         </div>
 
-        
         <form onSubmit={handleSubmit} className="p-6">
           {(validationError || error || categoriesError) && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm flex items-start gap-2">
               <span className="font-semibold shrink-0">Error:</span>
-              <span className="break-all">{validationError || error?.message || categoriesError?.message || 'Something went wrong.'}</span>
+              <span className="break-all">
+                {validationError ||
+                  error?.message ||
+                  categoriesError?.message ||
+                  'Something went wrong.'}
+              </span>
             </div>
           )}
           <div className="grid grid-cols-2 gap-6">
-            
             <div
               onDragEnter={handleDrag}
               onDragLeave={handleDrag}
@@ -186,13 +195,14 @@ export function DocumentUpload({
               onClick={() => !isLoading && fileInputRef.current?.click()}
               className={[
                 'col-span-2 md:col-span-1 border-2 border-dashed rounded-xl p-8 text-center transition-colors',
-                isLoading ? 'opacity-60 cursor-not-allowed border-slate-200 bg-slate-100' : 'cursor-pointer',
+                isLoading
+                  ? 'opacity-60 cursor-not-allowed border-slate-200 bg-slate-100'
+                  : 'cursor-pointer',
                 dragActive
                   ? 'border-blue-500 bg-blue-50'
                   : 'border-slate-300 bg-slate-50 hover:border-slate-400',
               ].join(' ')}
             >
-              
               <input
                 ref={fileInputRef}
                 type="file"
@@ -202,8 +212,19 @@ export function DocumentUpload({
                 onChange={(e) => {
                   if (e.target.files && e.target.files[0]) {
                     const selectedFile = e.target.files[0];
+                    if (selectedFile.size > 10 * 1024 * 1024) {
+                      setValidationError('You cannot upload files greater than 10 MB.');
+                      setFormData((prev) => ({
+                        ...prev,
+                        file: null,
+                      }));
+                      return;
+                    }
                     setFormData((prev) => {
-                      const nextName = prev.name ? prev.name : selectedFile.name.substring(0, selectedFile.name.lastIndexOf('.')) || selectedFile.name;
+                      const nextName = prev.name
+                        ? prev.name
+                        : selectedFile.name.substring(0, selectedFile.name.lastIndexOf('.')) ||
+                          selectedFile.name;
                       return {
                         ...prev,
                         file: selectedFile,
@@ -220,10 +241,18 @@ export function DocumentUpload({
                 </div>
                 <div>
                   <p className="text-sm font-medium text-slate-700">
-                    {formData.file ? formData.file.name : (document ? 'Replace current file' : 'Drag and drop file here')}
+                    {formData.file
+                      ? formData.file.name
+                      : document
+                        ? 'Replace current file'
+                        : 'Drag and drop file here'}
                   </p>
                   <p className="text-xs text-slate-500 mt-1">
-                    {formData.file ? `${(formData.file.size / 1024 / 1024).toFixed(2)} MB` : (document ? 'or click to replace (optional)' : 'or click to browse from your computer')}
+                    {formData.file
+                      ? `${(formData.file.size / 1024 / 1024).toFixed(2)} MB`
+                      : document
+                        ? 'or click to replace (optional)'
+                        : 'or click to browse from your computer'}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 mt-2">
@@ -241,14 +270,12 @@ export function DocumentUpload({
                   </div>
                 </div>
                 <p className="text-xs text-slate-400 mt-2">
-                  Maximum file size: 25MB. All uploads are end-to-end encrypted.
+                  Maximum file size: 10MB. All uploads are end-to-end encrypted.
                 </p>
               </div>
             </div>
 
-            
             <div className="col-span-2 md:col-span-1 space-y-4">
-              
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1.5">
                   Document Name <span className="text-red-500">*</span>
@@ -259,9 +286,7 @@ export function DocumentUpload({
                     type="text"
                     placeholder="e.g., 2023 Tax Return"
                     value={formData.name}
-                    onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, name: e.target.value }))
-                    }
+                    onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
                     required
                     disabled={isLoading}
                     className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-slate-50 disabled:text-slate-500"
@@ -269,7 +294,6 @@ export function DocumentUpload({
                 </div>
               </div>
 
-              
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1.5">
                   Category <span className="text-red-500">*</span>
@@ -302,7 +326,6 @@ export function DocumentUpload({
                 </select>
               </div>
 
-              
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1.5">
                   Document Number <span className="text-slate-400">(Optional)</span>
@@ -322,7 +345,6 @@ export function DocumentUpload({
                 </div>
               </div>
 
-              
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1.5">
                   Description <span className="text-slate-400">(Optional)</span>
@@ -342,9 +364,7 @@ export function DocumentUpload({
                 </div>
               </div>
 
-              
               <div className="grid grid-cols-2 gap-2 items-start">
-                
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1.5 whitespace-nowrap">
                     Issue Date <span className="text-slate-400">(Optional)</span>
@@ -363,7 +383,6 @@ export function DocumentUpload({
                   />
                 </div>
 
-                
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1.5 whitespace-nowrap">
                     Expiry Date <span className="text-slate-400">(Optional)</span>
@@ -383,7 +402,6 @@ export function DocumentUpload({
                 </div>
               </div>
 
-              
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1.5">
                   Notes <span className="text-slate-400">(Optional)</span>
@@ -392,9 +410,7 @@ export function DocumentUpload({
                   placeholder="Add any relevant context or tags..."
                   rows={3}
                   value={formData.notes}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, notes: e.target.value }))
-                  }
+                  onChange={(e) => setFormData((prev) => ({ ...prev, notes: e.target.value }))}
                   disabled={isLoading}
                   className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none disabled:bg-slate-50 disabled:text-slate-500"
                 />
@@ -402,16 +418,13 @@ export function DocumentUpload({
             </div>
           </div>
 
-          
           <div className="mt-6 flex items-start gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
             <CheckCircle2 className="w-4 h-4 text-green-600 mt-0.5 shrink-0" />
             <p className="text-xs text-green-700">
-              Your documents are encrypted using AES-256 standard and stored
-              securely in VaultSaaS.
+              Your documents are encrypted using AES-256 standard and stored securely in VaultSaaS.
             </p>
           </div>
 
-          
           <div className="flex items-center justify-end gap-3 mt-6">
             <button
               type="button"
@@ -433,7 +446,13 @@ export function DocumentUpload({
               ) : (
                 <Upload className="w-4 h-4" />
               )}
-              {isLoading ? (document ? 'Updating...' : 'Uploading...') : (document ? 'Save Changes' : 'Secure Upload')}
+              {isLoading
+                ? document
+                  ? 'Updating...'
+                  : 'Uploading...'
+                : document
+                  ? 'Save Changes'
+                  : 'Secure Upload'}
             </button>
           </div>
         </form>

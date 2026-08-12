@@ -43,7 +43,15 @@ export const useDocumentCategories = () => {
   };
 
   useEffect(() => {
-    fetchCategories();
+    let active = true;
+    Promise.resolve().then(() => {
+      if (active) {
+        fetchCategories();
+      }
+    });
+    return () => {
+      active = false;
+    };
   }, []);
 
   return {
@@ -54,8 +62,7 @@ export const useDocumentCategories = () => {
   };
 };
 
-export const useDocumentCategory = (_id: string) => {
- 
+export const useDocumentCategory = () => {
   return {
     data: null,
     isLoading: false,
@@ -64,7 +71,6 @@ export const useDocumentCategory = (_id: string) => {
 };
 
 export const useCreateDocumentCategory = () => {
-  
   return {
     mutate: (data: DocumentCategoryCreateData) => {
       return documentCategoryService.createCategory(data);
@@ -75,7 +81,6 @@ export const useCreateDocumentCategory = () => {
 };
 
 export const useUpdateDocumentCategory = () => {
-
   return {
     mutate: (data: DocumentCategoryUpdateData) => {
       return documentCategoryService.updateCategory(data);
@@ -86,7 +91,6 @@ export const useUpdateDocumentCategory = () => {
 };
 
 export const useDeleteDocumentCategory = () => {
-
   return {
     mutate: (id: string) => {
       return documentCategoryService.deleteCategory(id);

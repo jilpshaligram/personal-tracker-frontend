@@ -12,6 +12,7 @@ export const documentService = {
     const response = await apiClient.get<{
       message: string;
       data: {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         data: any[];
         total: number;
         page: number;
@@ -20,9 +21,10 @@ export const documentService = {
     }>('/documents', {
       params: filters,
     });
-    
+
     // Map backend documents to frontend Document type
     const backendDocs = response.data?.data?.data || [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return backendDocs.map((doc: any): Document => {
       const bytes = doc.file?.size || 0;
       let sizeStr = '0 Bytes';
@@ -33,12 +35,20 @@ export const documentService = {
         sizeStr = parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
       }
 
-      const uploadedDateStr = doc.createdAt 
-        ? new Date(doc.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+      const uploadedDateStr = doc.createdAt
+        ? new Date(doc.createdAt).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+          })
         : '';
-        
+
       const expiryDateStr = doc.expiryDate
-        ? new Date(doc.expiryDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+        ? new Date(doc.expiryDate).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+          })
         : undefined;
 
       // Handle categoryId which might be string or object
@@ -56,7 +66,7 @@ export const documentService = {
         name: doc.name || '',
         category: doc.categoryName || 'Others',
         categoryId: catId,
-        type: (doc.file?.extension?.toUpperCase() || 'OTHER') as any,
+        type: (doc.file?.extension?.toUpperCase() || 'OTHER') as Document['type'],
         size: sizeStr,
         sizeBytes: bytes,
         uploadedDate: uploadedDateStr,
@@ -75,7 +85,7 @@ export const documentService = {
   },
 
   // Get a single document by ID
-  getDocumentById: async (_id: string) => {
+  getDocumentById: async () => {
     // TODO: Implement API call
     // const response = await apiClient.get<Document>(`/documents/${id}`);
     // return response.data;
@@ -123,7 +133,7 @@ export const documentService = {
   },
 
   // Get document versions
-  getDocumentVersions: async (_id: string) => {
+  getDocumentVersions: async () => {
     // TODO: Implement API call
     // const response = await apiClient.get<DocumentVersion[]>(
     //   `/documents/${id}/versions`
