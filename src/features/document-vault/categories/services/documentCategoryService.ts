@@ -8,10 +8,13 @@ import type {
 
 export const documentCategoryService = {
   getCategories: async (params?: DocumentCategoryQuery) => {
-    const response = await apiClient.get<DocumentCategory[]>('/document-categories', {
+    const response = await apiClient.get<{
+      data: DocumentCategory[];
+      meta: unknown;
+    }>('/document-categories', {
       params,
     });
-    return response.data;
+    return response.data.data || [];
   },
 
   getCategoryById: async (id: string) => {
