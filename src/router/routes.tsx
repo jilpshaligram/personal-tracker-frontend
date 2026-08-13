@@ -8,6 +8,7 @@ import AnalyticsPage from '../pages/AnalyticsPage';
 import BillsPage from '../pages/BillsPage';
 import SavingsPage from '../pages/SavingsPage';
 import SettingsPage from '../pages/SettingsPage';
+import ProfilePage from '../pages/ProfilePage';
 
 // Import Auth Pages
 import { Login } from '../pages/auth/Login';
@@ -63,6 +64,7 @@ const router = createBrowserRouter([
       { path: 'bills', element: <BillsPage /> },
       { path: 'savings', element: <SavingsPage /> },
       { path: 'settings', element: <SettingsPage /> },
+      { path: 'profile', element: <ProfilePage /> },
     ],
   },
 
