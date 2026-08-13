@@ -1,4 +1,3 @@
-
 export * from './documents/components';
 export * from './documents/hooks/useDocuments';
 export * from './documents/services/documentService';
@@ -11,7 +10,6 @@ export type {
   DocumentFilters,
   DocumentViewMode,
 } from './documents/types/document';
-
 
 export * from './categories/components';
 export * from './categories/hooks/useDocumentCategories';

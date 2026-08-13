@@ -43,6 +43,7 @@ export const useDocumentCategories = () => {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchCategories();
   }, []);
 
@@ -54,8 +55,8 @@ export const useDocumentCategories = () => {
   };
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const useDocumentCategory = (_id: string) => {
- 
   return {
     data: null,
     isLoading: false,
@@ -64,7 +65,6 @@ export const useDocumentCategory = (_id: string) => {
 };
 
 export const useCreateDocumentCategory = () => {
-  
   return {
     mutate: (data: DocumentCategoryCreateData) => {
       return documentCategoryService.createCategory(data);
@@ -75,7 +75,6 @@ export const useCreateDocumentCategory = () => {
 };
 
 export const useUpdateDocumentCategory = () => {
-
   return {
     mutate: (data: DocumentCategoryUpdateData) => {
       return documentCategoryService.updateCategory(data);
@@ -86,7 +85,6 @@ export const useUpdateDocumentCategory = () => {
 };
 
 export const useDeleteDocumentCategory = () => {
-
   return {
     mutate: (id: string) => {
       return documentCategoryService.deleteCategory(id);

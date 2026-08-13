@@ -6,10 +6,7 @@ interface DocumentTableProps {
   onDocumentClick: (document: Document) => void;
 }
 
-export function DocumentTable({
-  documents,
-  onDocumentClick,
-}: DocumentTableProps) {
+export function DocumentTable({ documents, onDocumentClick }: DocumentTableProps) {
   return (
     <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
       <table className="w-full">
@@ -47,9 +44,7 @@ export function DocumentTable({
                   <div className="flex items-center justify-center w-8 h-8 bg-slate-100 rounded">
                     <FileText className="w-4 h-4 text-slate-400" />
                   </div>
-                  <span className="text-sm font-medium text-slate-700">
-                    {document.name}
-                  </span>
+                  <span className="text-sm font-medium text-slate-700">{document.name}</span>
                 </div>
               </td>
               <td className="px-4 py-3">
@@ -57,15 +52,9 @@ export function DocumentTable({
                   {document.category}
                 </span>
               </td>
-              <td className="px-4 py-3 text-sm text-slate-600">
-                {document.type}
-              </td>
-              <td className="px-4 py-3 text-sm text-slate-600">
-                {document.size}
-              </td>
-              <td className="px-4 py-3 text-sm text-slate-500">
-                {document.uploadedDate}
-              </td>
+              <td className="px-4 py-3 text-sm text-slate-600">{document.type}</td>
+              <td className="px-4 py-3 text-sm text-slate-600">{document.size}</td>
+              <td className="px-4 py-3 text-sm text-slate-500">{document.uploadedDate}</td>
               <td className="px-4 py-3">
                 <button
                   onClick={(e) => {

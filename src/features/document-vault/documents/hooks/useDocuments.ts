@@ -24,9 +24,12 @@ export const useDocuments = (filters?: DocumentFilters) => {
     }
   };
 
+  const filterString = JSON.stringify(filters);
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchDocuments();
-  }, [JSON.stringify(filters)]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterString]);
 
   return {
     data,
@@ -36,6 +39,7 @@ export const useDocuments = (filters?: DocumentFilters) => {
   };
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const useDocument = (_id: string) => {
   // TODO: Implement with useQuery
   return {
@@ -148,6 +152,7 @@ export const useDownloadDocument = () => {
   };
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const useDocumentVersions = (_id: string) => {
   // TODO: Implement with useQuery
   return {

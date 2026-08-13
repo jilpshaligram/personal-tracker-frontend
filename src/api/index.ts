@@ -7,4 +7,4 @@ export {
   getRefreshToken,
   setAccessToken,
   setRefreshToken,
-} from './client';
+} from './client.tsx';
