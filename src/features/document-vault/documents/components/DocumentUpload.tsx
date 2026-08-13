@@ -5,7 +5,7 @@ import { useDocumentCategories } from '../../categories/hooks/useDocumentCategor
 import type { Document } from '../types/document';
 
 interface DocumentUploadProps {
-  document?: Document; // If passed, we are in Edit/Update mode
+  document?: Document;
   onClose: () => void;
   onUpload?: (data: {
     name: string;
@@ -76,6 +76,14 @@ export function DocumentUpload({ document, onClose, onUpload, onUpdate }: Docume
     setDragActive(false);
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const selectedFile = e.dataTransfer.files[0];
+      if (selectedFile.size > 10 * 1024 * 1024) {
+        setValidationError('You cannot upload files greater than 10 MB.');
+        setFormData((prev) => ({
+          ...prev,
+          file: null,
+        }));
+        return;
+      }
       setFormData((prev) => {
         const nextName = prev.name
           ? prev.name
@@ -94,6 +102,10 @@ export function DocumentUpload({ document, onClose, onUpload, onUpdate }: Docume
     e.preventDefault();
     if (!document && !formData.file) {
       setValidationError('Please select a file to upload.');
+      return;
+    }
+    if (formData.file && formData.file.size > 10 * 1024 * 1024) {
+      setValidationError('You cannot upload files greater than 10 MB.');
       return;
     }
     setValidationError(null);
@@ -200,6 +212,14 @@ export function DocumentUpload({ document, onClose, onUpload, onUpdate }: Docume
                 onChange={(e) => {
                   if (e.target.files && e.target.files[0]) {
                     const selectedFile = e.target.files[0];
+                    if (selectedFile.size > 10 * 1024 * 1024) {
+                      setValidationError('You cannot upload files greater than 10 MB.');
+                      setFormData((prev) => ({
+                        ...prev,
+                        file: null,
+                      }));
+                      return;
+                    }
                     setFormData((prev) => {
                       const nextName = prev.name
                         ? prev.name
@@ -250,7 +270,7 @@ export function DocumentUpload({ document, onClose, onUpload, onUpdate }: Docume
                   </div>
                 </div>
                 <p className="text-xs text-slate-400 mt-2">
-                  Maximum file size: 25MB. All uploads are end-to-end encrypted.
+                  Maximum file size: 10MB. All uploads are end-to-end encrypted.
                 </p>
               </div>
             </div>

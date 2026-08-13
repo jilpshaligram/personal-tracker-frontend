@@ -43,8 +43,15 @@ export const useDocumentCategories = () => {
   };
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchCategories();
+    let active = true;
+    Promise.resolve().then(() => {
+      if (active) {
+        fetchCategories();
+      }
+    });
+    return () => {
+      active = false;
+    };
   }, []);
 
   return {
@@ -55,8 +62,7 @@ export const useDocumentCategories = () => {
   };
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const useDocumentCategory = (_id: string) => {
+export const useDocumentCategory = () => {
   return {
     data: null,
     isLoading: false,

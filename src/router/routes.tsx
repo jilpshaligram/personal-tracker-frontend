@@ -9,7 +9,47 @@ import BillsPage from '../pages/BillsPage';
 import SavingsPage from '../pages/SavingsPage';
 import SettingsPage from '../pages/SettingsPage';
 
+// Import Auth Pages
+import { Login } from '../pages/auth/Login';
+import { Register } from '../pages/auth/Register';
+import { VerifyOTP } from '../pages/auth/VerifyOTP';
+import { PINSetup } from '../pages/auth/PINSetup';
+import { VerifyPIN } from '../pages/auth/VerifyPIN';
+import { ForgotPassword } from '../pages/auth/ForgotPassword';
+import { ResetPassword } from '../pages/auth/ResetPassword';
+
 const router = createBrowserRouter([
+  // Auth/Public Routes
+  {
+    path: '/login',
+    element: <Login />,
+  },
+  {
+    path: '/register',
+    element: <Register />,
+  },
+  {
+    path: '/verify-otp',
+    element: <VerifyOTP />,
+  },
+  {
+    path: '/pin-setup',
+    element: <PINSetup />,
+  },
+  {
+    path: '/verify-pin',
+    element: <VerifyPIN />,
+  },
+  {
+    path: '/forgot-password',
+    element: <ForgotPassword />,
+  },
+  {
+    path: '/reset-password',
+    element: <ResetPassword />,
+  },
+
+  // Authenticated Dashboard Routes
   {
     path: '/',
     element: <AppLayout />,
@@ -24,6 +64,12 @@ const router = createBrowserRouter([
       { path: 'savings', element: <SavingsPage /> },
       { path: 'settings', element: <SettingsPage /> },
     ],
+  },
+
+  // Fallback redirect (e.g. to login if page doesn't exist)
+  {
+    path: '*',
+    element: <Navigate to="/login" replace />,
   },
 ]);
 
