@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
+import { NotificationList } from '../../features/notifications';
+import { SupportCenter } from '../../features/help-center';
 
 export default function AppLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -11,10 +13,8 @@ export default function AppLayout() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50">
-      {/* Sidebar */}
       <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} />
 
-      {/* Right side: Header + scrollable main content */}
       <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
         <Header onMenuClick={openSidebar} />
 
@@ -22,6 +22,9 @@ export default function AppLayout() {
           <Outlet />
         </main>
       </div>
+
+      <NotificationList />
+      <SupportCenter />
     </div>
   );
 }
