@@ -37,7 +37,7 @@ export default function DocumentVault() {
   });
 
   // Fetch categories to get the selected category's name as a fallback for the [object Object] categoryId bug
-  const { data: apiCategories } = useDocumentCategories();
+  const { data: apiCategories, refetch: refetchCategories } = useDocumentCategories();
   const selectedCategory = apiCategories?.find((cat) => (cat._id || cat.id) === selectedCategoryId);
   const selectedCategoryName = selectedCategory?.name;
 
@@ -68,6 +68,7 @@ export default function DocumentVault() {
   }) => {
     console.log('Upload document:', data);
     refetch(); // Refetch documents list after a successful upload
+    refetchCategories?.(); // Refetch categories to update counts
     setShowUploadModal(false);
   };
 
@@ -136,6 +137,7 @@ export default function DocumentVault() {
       setShowDocumentDetails(false);
       setSelectedDocument(null);
       refetch(); // Reload document list
+      refetchCategories?.(); // Reload categories to update counts
     } catch (error) {
       const errMsg = error instanceof Error ? error.message : 'Unknown error';
       alert(`Failed to delete document: ${errMsg}`);
@@ -146,6 +148,7 @@ export default function DocumentVault() {
     <div className="flex h-full overflow-hidden bg-slate-50">
       {/* Categories Sidebar */}
       <DocumentCategoryList
+        categories={apiCategories}
         selectedCategoryId={selectedCategoryId}
         onSelectCategory={setSelectedCategoryId}
       />
@@ -214,8 +217,9 @@ export default function DocumentVault() {
           onUpdate={async () => {
             setShowEditModal(false);
             const updatedDocs = await refetch();
+            refetchCategories?.(); // Reload categories list on update
             if (updatedDocs) {
-              const updatedDoc = updatedDocs.find((d) => d.id === selectedDocument.id);
+              const updatedDoc = updatedDocs.find((d: Document) => d.id === selectedDocument.id);
               if (updatedDoc) {
                 setSelectedDocument(updatedDoc);
               }

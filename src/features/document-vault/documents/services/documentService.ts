@@ -4,28 +4,63 @@ import type {
   DocumentUploadData,
   DocumentFilters,
   DocumentVersion,
+  DocumentType,
+  DocumentStatus,
 } from '../types/document';
 
-export const documentService = {
-  // Get all documents with optional filters
-  getDocuments: async (filters?: DocumentFilters) => {
-    const response = await apiClient.get<{
-      message: string;
-      data: {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        data: any[];
+interface BackendFile {
+  size?: number;
+  extension?: string;
+  url?: string;
+}
+
+interface BackendCategoryObject {
+  _id?: string;
+  id?: string;
+}
+
+interface BackendDocument {
+  _id?: string;
+  name?: string;
+  categoryName?: string;
+  categoryId?: string | BackendCategoryObject;
+  createdAt?: string;
+  expiryDate?: string;
+  file?: BackendFile;
+  status?: string;
+  notes?: string;
+  tags?: string[];
+  version?: string;
+  isEncrypted?: boolean;
+  documentNumber?: string;
+  description?: string;
+  issueDate?: string;
+}
+
+interface BackendDocumentsResponse {
+  message: string;
+  data:
+    | BackendDocument[]
+    | {
+        data: BackendDocument[];
         total: number;
         page: number;
         limit: number;
       };
-    }>('/documents', {
+}
+
+export const documentService = {
+  // Get all documents with optional filters
+  getDocuments: async (filters?: DocumentFilters): Promise<Document[]> => {
+    const response = await apiClient.get<BackendDocumentsResponse>('/documents', {
       params: filters,
     });
 
     // Map backend documents to frontend Document type
-    const backendDocs = response.data?.data?.data || [];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return backendDocs.map((doc: any): Document => {
+    const backendDocs = Array.isArray(response.data?.data)
+      ? response.data.data
+      : response.data?.data?.data || [];
+    return backendDocs.map((doc: BackendDocument): Document => {
       const bytes = doc.file?.size || 0;
       let sizeStr = '0 Bytes';
       if (bytes > 0) {
@@ -66,12 +101,12 @@ export const documentService = {
         name: doc.name || '',
         category: doc.categoryName || 'Others',
         categoryId: catId,
-        type: (doc.file?.extension?.toUpperCase() || 'OTHER') as Document['type'],
+        type: (doc.file?.extension?.toUpperCase() || 'OTHER') as DocumentType,
         size: sizeStr,
         sizeBytes: bytes,
         uploadedDate: uploadedDateStr,
         expiryDate: expiryDateStr,
-        status: doc.status === 'ACTIVE' ? 'normal' : doc.status || 'normal',
+        status: doc.status === 'ACTIVE' ? 'normal' : (doc.status as DocumentStatus) || 'normal',
         url: doc.file?.url || '',
         notes: doc.notes || '',
         tags: doc.tags || [],
@@ -85,7 +120,8 @@ export const documentService = {
   },
 
   // Get a single document by ID
-  getDocumentById: async () => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  getDocumentById: async (_id: string) => {
     // TODO: Implement API call
     // const response = await apiClient.get<Document>(`/documents/${id}`);
     // return response.data;
@@ -133,7 +169,8 @@ export const documentService = {
   },
 
   // Get document versions
-  getDocumentVersions: async () => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  getDocumentVersions: async (_id: string) => {
     // TODO: Implement API call
     // const response = await apiClient.get<DocumentVersion[]>(
     //   `/documents/${id}/versions`

@@ -5,20 +5,30 @@ interface DocumentCategoryListProps {
   categories?: DocumentCategory[];
   selectedCategoryId: string;
   onSelectCategory: (categoryId: string) => void;
+  isLoading?: boolean;
+  error?: Error | null;
 }
 
 export function DocumentCategoryList({
+  categories: passedCategories,
   selectedCategoryId,
   onSelectCategory,
+  isLoading: passedIsLoading,
+  error: passedError,
 }: DocumentCategoryListProps) {
-  const { data = [], isLoading: loading, error } = useDocumentCategories();
+  const hasProps = passedCategories !== undefined;
+  const { data = [], isLoading: loading, error: hookError } = useDocumentCategories();
+
+  const dataToUse = hasProps ? passedCategories : data;
+  const isLoading = hasProps ? passedIsLoading : loading;
+  const error = hasProps ? passedError : hookError;
 
   const categories = (() => {
-    if (!data || data.length === 0) return [];
+    if (!dataToUse || dataToUse.length === 0) return [];
 
-    const hasAll = data.some((cat) => cat._id === 'all' || cat.id === 'all');
+    const hasAll = dataToUse.some((cat) => cat._id === 'all' || cat.id === 'all');
     if (!hasAll) {
-      const totalCount = data.reduce((acc, cat) => acc + (cat.count || 0), 0);
+      const totalCount = dataToUse.reduce((acc, cat) => acc + (cat.count || 0), 0);
       const allCategory: DocumentCategory = {
         id: 'all',
         _id: 'all',
@@ -28,12 +38,12 @@ export function DocumentCategoryList({
         updatedAt: '',
         count: totalCount,
       };
-      return [allCategory, ...data];
+      return [allCategory, ...dataToUse];
     }
-    return data;
+    return dataToUse;
   })();
 
-  if (loading) {
+  if (isLoading) {
     return <div>Loading...</div>;
   }
 
