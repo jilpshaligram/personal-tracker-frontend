@@ -6,6 +6,7 @@ import { PINSetup } from '../pages/auth/PINSetup';
 import { VerifyPIN } from '../pages/auth/VerifyPIN';
 import { ForgotPassword } from '../pages/auth/ForgotPassword';
 import { ResetPassword } from '../pages/auth/ResetPassword';
+import { VerifyPinGuard } from '../components/guards/AuthGuard';
 
 export const router = createBrowserRouter([
   {
@@ -30,7 +31,11 @@ export const router = createBrowserRouter([
   },
   {
     path: '/verify-pin',
-    element: <VerifyPIN />,
+    element: (
+      <VerifyPinGuard>
+        <VerifyPIN />
+      </VerifyPinGuard>
+    ),
   },
   {
     path: '/forgot-password',

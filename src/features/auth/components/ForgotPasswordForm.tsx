@@ -32,8 +32,6 @@ export const ForgotPasswordForm: React.FC = () => {
       setIsSubmitting(true);
       setError('');
       await forgotPassword(email);
-
-      // Navigate to OTP verification page
       navigate('/verify-otp', { state: { flow: 'forgot-password', email } });
     } catch (submitError) {
       setError(

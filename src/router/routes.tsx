@@ -10,7 +10,6 @@ import SavingsPage from '../pages/SavingsPage';
 import SettingsPage from '../pages/SettingsPage';
 import ProfilePage from '../pages/ProfilePage';
 
-// Import Auth Pages
 import { Login } from '../pages/auth/Login';
 import { Register } from '../pages/auth/Register';
 import { VerifyOTP } from '../pages/auth/VerifyOTP';
@@ -19,8 +18,9 @@ import { VerifyPIN } from '../pages/auth/VerifyPIN';
 import { ForgotPassword } from '../pages/auth/ForgotPassword';
 import { ResetPassword } from '../pages/auth/ResetPassword';
 
+import AuthGuard, { VerifyPinGuard } from '../components/guards/AuthGuard';
+
 const router = createBrowserRouter([
-  // Auth/Public Routes
   {
     path: '/login',
     element: <Login />,
@@ -39,7 +39,11 @@ const router = createBrowserRouter([
   },
   {
     path: '/verify-pin',
-    element: <VerifyPIN />,
+    element: (
+      <VerifyPinGuard>
+        <VerifyPIN />
+      </VerifyPinGuard>
+    ),
   },
   {
     path: '/forgot-password',
@@ -49,11 +53,13 @@ const router = createBrowserRouter([
     path: '/reset-password',
     element: <ResetPassword />,
   },
-
-  // Authenticated Dashboard Routes
   {
     path: '/',
-    element: <AppLayout />,
+    element: (
+      <AuthGuard>
+        <AppLayout />
+      </AuthGuard>
+    ),
     children: [
       { index: true, element: <Navigate to="/dashboard" replace /> },
       { path: 'dashboard', element: <DashboardPage /> },
@@ -67,8 +73,6 @@ const router = createBrowserRouter([
       { path: 'profile', element: <ProfilePage /> },
     ],
   },
-
-  // Fallback redirect (e.g. to login if page doesn't exist)
   {
     path: '*',
     element: <Navigate to="/login" replace />,

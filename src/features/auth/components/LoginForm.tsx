@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { getAccessToken, login } from '../services/authService';
+import { login } from '../services/authService';
 import { GoogleIcon } from './GoogleIcon';
 import {
   authEyebrowClass,
@@ -35,16 +35,9 @@ export const LoginForm: React.FC = () => {
     try {
       setIsSubmitting(true);
       setError('');
-      const response = await login({ email, password });
-      const accessToken = getAccessToken(response);
-
-      // Store token in localStorage or your preferred storage
-      if (accessToken) {
-        localStorage.setItem('accessToken', accessToken);
-      }
-
-      // Navigate to PIN verification or dashboard
-      navigate('/verify-pin', { state: { email } });
+      await login({ email, password });
+      sessionStorage.setItem('verifyPinAccess', 'true');
+      navigate('/verify-pin', { state: { email, flow: 'login' } });
     } catch (submitError) {
       setError(
         submitError instanceof Error ? submitError.message : 'Unable to sign in. Please try again.'

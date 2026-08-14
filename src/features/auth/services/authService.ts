@@ -13,6 +13,7 @@ import {
   verifyPasswordOtpApi,
   verifyPinApi,
   verifyPinOtpApi,
+  verifyTokenApi,
 } from '../../../api';
 import type {
   CreatePinPayload,
@@ -153,21 +154,6 @@ export async function verifyPin(payload: VerifyPinPayload): Promise<VerifyPinRes
     throw new Error(message);
   }
 
-  // Store access token in localStorage
-  const accessToken = data.accessToken || data.token || data.data?.accessToken || data.data?.token;
-  if (accessToken && typeof accessToken === 'string') {
-    localStorage.setItem('accessToken', accessToken);
-  }
-
-  // Refresh token should be automatically set in cookies by the server
-  // with credentials: 'include' in the fetch request
-  // But if it's in the response body, we can manually set it
-  const refreshToken = data.refreshToken || data.data?.refreshToken;
-  if (refreshToken && typeof refreshToken === 'string') {
-    // Set refresh token in cookie (secure, httpOnly should be set by server ideally)
-    document.cookie = `refreshToken=${refreshToken}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Strict`;
-  }
-
   return data;
 }
 
@@ -277,6 +263,40 @@ export async function resetPin(payload: ResetPinPayload): Promise<ResetPinRespon
         ? data.message
         : 'Unable to reset PIN. Please try again.';
 
+    throw new Error(message);
+  }
+
+  return data;
+}
+
+export async function verifyToken(token?: string | null): Promise<{
+  success: boolean;
+  message?: string;
+  data?: {
+    user: {
+      id: string;
+      sub: string;
+      role: string;
+      sessionId: string;
+    };
+  };
+}> {
+  const response = await verifyTokenApi(token);
+  const data = (await response.json().catch(() => ({}))) as {
+    success: boolean;
+    message?: string;
+    data?: {
+      user: {
+        id: string;
+        sub: string;
+        role: string;
+        sessionId: string;
+      };
+    };
+  };
+
+  if (!response.ok) {
+    const message = typeof data.message === 'string' ? data.message : 'Token verification failed';
     throw new Error(message);
   }
 
