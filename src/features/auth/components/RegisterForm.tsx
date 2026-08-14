@@ -26,11 +26,12 @@ type RegisterFormFields = {
   dob: string;
   gender: string;
   password: string;
+  agreeToTerms: boolean;
 };
 
 type RegisterFormErrors = Partial<Record<keyof RegisterFormFields, string>>;
 
-const requiredFields: Array<keyof RegisterFormFields> = [
+const requiredFields: Array<keyof Omit<RegisterFormFields, 'agreeToTerms'>> = [
   'firstName',
   'lastName',
   'email',
@@ -48,6 +49,7 @@ const fieldLabels: Record<keyof RegisterFormFields, string> = {
   dob: 'Date of birth',
   gender: 'Gender',
   password: 'Password',
+  agreeToTerms: 'Terms and Privacy Policy',
 };
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -62,6 +64,7 @@ export const RegisterForm: React.FC = () => {
     dob: '',
     gender: '',
     password: '',
+    agreeToTerms: false,
   });
   const [showPw, setShowPw] = useState(false);
   const [dobFocused, setDobFocused] = useState(false);
@@ -71,7 +74,7 @@ export const RegisterForm: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const update =
-    (key: keyof RegisterFormFields) =>
+    (key: keyof Omit<RegisterFormFields, 'agreeToTerms'>) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
       setForm((f) => ({ ...f, [key]: e.target.value }));
       setErrors((current) => {
@@ -82,6 +85,17 @@ export const RegisterForm: React.FC = () => {
       });
       setApiError('');
     };
+
+  const toggleAgreeToTerms = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setForm((f) => ({ ...f, agreeToTerms: e.target.checked }));
+    setErrors((current) => {
+      if (!current.agreeToTerms) return current;
+      const next = { ...current };
+      delete next.agreeToTerms;
+      return next;
+    });
+    setApiError('');
+  };
 
   const score = scorePassword(form.password);
   const meta = strengthMeta(form.password, score);
@@ -101,6 +115,10 @@ export const RegisterForm: React.FC = () => {
 
     if (form.password.trim() && form.password.length < 8) {
       nextErrors.password = 'Password must be at least 8 characters.';
+    }
+
+    if (!form.agreeToTerms) {
+      nextErrors.agreeToTerms = 'You must agree to the Terms and Privacy Policy to proceed.';
     }
 
     setErrors(nextErrors);
@@ -288,13 +306,23 @@ export const RegisterForm: React.FC = () => {
             <div className={strengthTextClass(score, form.password.length > 0)}>{meta.label}</div>
           </div>
 
-          <label className="mb-5 flex cursor-pointer items-start gap-2 text-[#6B7280]">
-            <input type="checkbox" className="mt-0.5 h-[15px] w-[15px] accent-[#2F5FE0]" />
-            <span className="text-[12.5px]">
-              I agree to the <span className={authLinkClass}>Terms</span> and{' '}
-              <span className={authLinkClass}>Privacy Policy</span>
-            </span>
-          </label>
+          <div className="mb-5">
+            <label className="flex cursor-pointer items-start gap-2 text-[#6B7280]">
+              <input
+                type="checkbox"
+                checked={form.agreeToTerms}
+                onChange={toggleAgreeToTerms}
+                className="mt-0.5 h-[15px] w-[15px] accent-[#2F5FE0]"
+              />
+              <span className="text-[12.5px]">
+                I agree to the <span className={authLinkClass}>Terms</span> and{' '}
+                <span className={authLinkClass}>Privacy Policy</span>
+              </span>
+            </label>
+            {errors.agreeToTerms && (
+              <p className="mt-1 text-xs text-[#E5484D]">{errors.agreeToTerms}</p>
+            )}
+          </div>
 
           <button
             type="submit"

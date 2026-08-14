@@ -126,7 +126,6 @@ export const OTPForm: React.FC<OTPFormProps> = ({
       setIsResending(true);
       setError('');
 
-      // Use different resend API based on flow
       if (flow === 'forgot-password') {
         await resendPasswordOtp(displayEmail);
       } else if (flow === 'forgot-pin') {
@@ -160,10 +159,9 @@ export const OTPForm: React.FC<OTPFormProps> = ({
           setIsSubmitting(true);
           setError('');
 
-          // Handle different flows
           if (flow === 'forgot-password') {
-            // Verify password reset OTP
             await verifyPasswordOtp({ email: displayEmail, otp });
+            sessionStorage.setItem('verifyPinAccess', 'true');
 
             navigate(targetNextRoute, {
               state: {
@@ -172,8 +170,8 @@ export const OTPForm: React.FC<OTPFormProps> = ({
               },
             });
           } else if (flow === 'forgot-pin') {
-            // Verify PIN reset OTP
             await verifyPinOtp({ email: displayEmail, otp });
+            sessionStorage.setItem('verifyPinAccess', 'true');
 
             navigate(targetNextRoute, {
               state: {
@@ -182,8 +180,8 @@ export const OTPForm: React.FC<OTPFormProps> = ({
               },
             });
           } else {
-            // Default: email verification flow
             const verification = await verifyEmail({ email: displayEmail, otp });
+            sessionStorage.setItem('verifyPinAccess', 'true');
             navigate(targetNextRoute, {
               state: {
                 email: displayEmail,

@@ -26,22 +26,19 @@ export default function DocumentVault() {
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Fetch documents from the API using our hook
   const {
     data: documents,
     isLoading,
-    error,
+    error: documentsError,
     refetch,
   } = useDocuments({
     categoryId: selectedCategoryId !== 'all' ? selectedCategoryId : undefined,
   });
 
-  // Fetch categories to get the selected category's name as a fallback for the [object Object] categoryId bug
   const { data: apiCategories, refetch: refetchCategories } = useDocumentCategories();
   const selectedCategory = apiCategories?.find((cat) => (cat._id || cat.id) === selectedCategoryId);
   const selectedCategoryName = selectedCategory?.name;
 
-  // Filter documents based on selected category and search query
   const filteredDocuments = (documents || []).filter((doc) => {
     const matchesCategory =
       selectedCategoryId === 'all' ||
@@ -56,19 +53,9 @@ export default function DocumentVault() {
     setShowDocumentDetails(true);
   };
 
-  const handleUpload = (data: {
-    name: string;
-    categoryId: string;
-    file: File | null;
-    documentNumber?: string;
-    description?: string;
-    issueDate?: string;
-    expiryDate?: string;
-    notes?: string;
-  }) => {
-    console.log('Upload document:', data);
-    refetch(); // Refetch documents list after a successful upload
-    refetchCategories?.(); // Refetch categories to update counts
+  const handleUpload = () => {
+    refetch();
+    refetchCategories?.();
     setShowUploadModal(false);
   };
 
@@ -77,7 +64,6 @@ export default function DocumentVault() {
   const { mutate: deleteDocument } = useDeleteDocument();
 
   const handleDownload = async (id: string) => {
-    console.log('Download document:', id);
     try {
       const blob = await downloadDocument(id);
       const doc = documents.find((d) => d.id === id);
@@ -91,8 +77,7 @@ export default function DocumentVault() {
       a.click();
       window.URL.revokeObjectURL(url);
       a.remove();
-    } catch (error) {
-      console.error('API download failed, falling back to direct URL download:', error);
+    } catch {
       const doc = documents.find((d) => d.id === id);
       if (doc && doc.url) {
         window.open(doc.url, '_blank');
@@ -101,7 +86,6 @@ export default function DocumentVault() {
   };
 
   const handleShare = async (id: string) => {
-    console.log('Share document:', id);
     const emailInput = window.prompt(
       'Enter email addresses to share this document with (separated by commas):'
     );
@@ -123,7 +107,6 @@ export default function DocumentVault() {
   };
 
   const handleDelete = async (id: string) => {
-    console.log('Delete document:', id);
     if (
       !window.confirm(
         'Are you sure you want to delete this document? This action cannot be undone.'
@@ -136,8 +119,8 @@ export default function DocumentVault() {
       await deleteDocument(id);
       setShowDocumentDetails(false);
       setSelectedDocument(null);
-      refetch(); // Reload document list
-      refetchCategories?.(); // Reload categories to update counts
+      refetch();
+      refetchCategories?.();
     } catch (error) {
       const errMsg = error instanceof Error ? error.message : 'Unknown error';
       alert(`Failed to delete document: ${errMsg}`);
@@ -146,16 +129,13 @@ export default function DocumentVault() {
 
   return (
     <div className="flex h-full overflow-hidden bg-slate-50">
-      {/* Categories Sidebar */}
       <DocumentCategoryList
         categories={apiCategories}
         selectedCategoryId={selectedCategoryId}
         onSelectCategory={setSelectedCategoryId}
       />
 
-      {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Filters and Search */}
         <DocumentFilters
           searchQuery={searchQuery}
           viewMode={viewMode}
@@ -169,9 +149,9 @@ export default function DocumentVault() {
             <div className="flex items-center justify-center h-full">
               <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
             </div>
-          ) : error ? (
+          ) : documentsError ? (
             <div className="flex items-center justify-center h-full text-center">
-              <p className="text-red-500">Error loading documents: {error.message}</p>
+              <p className="text-red-500">Error loading documents: {documentsError.message}</p>
             </div>
           ) : filteredDocuments.length === 0 ? (
             <div className="flex items-center justify-center h-full">
@@ -189,12 +169,10 @@ export default function DocumentVault() {
         </div>
       </div>
 
-      {/* Upload Modal */}
       {showUploadModal && (
         <DocumentUpload onClose={() => setShowUploadModal(false)} onUpload={handleUpload} />
       )}
 
-      {/* Document Details Viewer */}
       {showDocumentDetails && selectedDocument && (
         <DocumentDetails
           document={selectedDocument}
@@ -209,7 +187,6 @@ export default function DocumentVault() {
         />
       )}
 
-      {/* Edit Modal */}
       {showEditModal && selectedDocument && (
         <DocumentUpload
           document={selectedDocument}
@@ -217,7 +194,7 @@ export default function DocumentVault() {
           onUpdate={async () => {
             setShowEditModal(false);
             const updatedDocs = await refetch();
-            refetchCategories?.(); // Reload categories list on update
+            refetchCategories?.();
             if (updatedDocs) {
               const updatedDoc = updatedDocs.find((d: Document) => d.id === selectedDocument.id);
               if (updatedDoc) {

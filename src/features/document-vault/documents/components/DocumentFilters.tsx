@@ -21,7 +21,6 @@ export function DocumentFilters({
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold text-slate-800">Document Vault</h1>
         <div className="flex items-center gap-2">
-          {/* View Toggle */}
           <div className="flex items-center bg-slate-100 rounded-lg p-1">
             <button
               onClick={() => onViewModeChange('grid')}
@@ -48,7 +47,6 @@ export function DocumentFilters({
               <List className="w-4 h-4" />
             </button>
           </div>
-          {/* Upload Button */}
           <button
             onClick={onUploadClick}
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors"
@@ -59,7 +57,6 @@ export function DocumentFilters({
         </div>
       </div>
 
-      {/* Search Bar */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
         <input

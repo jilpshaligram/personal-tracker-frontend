@@ -54,8 +54,6 @@ async function refreshAccessToken(): Promise<string> {
 
   if (!accessToken) throw new Error('Unable to refresh session');
 
-  setAccessToken(accessToken);
-
   const newRefreshToken = data.refreshToken ?? data.data?.refreshToken;
   if (newRefreshToken) setRefreshToken(newRefreshToken);
 
@@ -68,8 +66,6 @@ export const apiClient = axios.create({
 });
 
 apiClient.interceptors.request.use((config) => {
-  const token = getAccessToken();
-  if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
@@ -94,8 +90,7 @@ apiClient.interceptors.response.use(
         refreshPromise = null;
       });
 
-      const token = await refreshPromise;
-      config.headers.Authorization = `Bearer ${token}`;
+      await refreshPromise;
       return apiClient(config);
     } catch {
       logout();
