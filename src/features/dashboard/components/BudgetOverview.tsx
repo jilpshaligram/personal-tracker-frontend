@@ -28,6 +28,36 @@ export function BudgetOverview({ data, loading }: BudgetOverviewProps) {
       maximumFractionDigits: 0,
     }).format(val);
 
+  const periodLabel = data.period.charAt(0).toUpperCase() + data.period.slice(1);
+
+  if (!data.hasBudget) {
+    return (
+      <Card className="h-full flex flex-col">
+        <CardHeader>
+          <CardTitle>Budget Overview</CardTitle>
+        </CardHeader>
+        <CardContent className="flex-1 flex flex-col justify-center">
+          <div className="mb-6">
+            <p className="text-sm font-medium text-slate-500 mb-1">{periodLabel} Spending</p>
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-bold text-slate-900">
+                {formatCurrency(data.totalSpent)}
+              </span>
+            </div>
+          </div>
+          <div className="flex-1 flex items-center justify-center min-h-[100px] border border-dashed border-slate-200 rounded-lg bg-slate-50">
+            <div className="text-slate-500 text-sm font-medium text-center px-4">
+              No {data.period} budget configured. <br />
+              <span className="font-normal text-xs opacity-80">
+                Create one in the Budget tab to track limits.
+              </span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   const option = {
     tooltip: {
       formatter: '{b}: {c}',
@@ -82,7 +112,9 @@ export function BudgetOverview({ data, loading }: BudgetOverviewProps) {
       </CardHeader>
       <CardContent className="flex-1 flex flex-col justify-center">
         <div className="mb-6">
-          <p className="text-sm font-medium text-slate-500 mb-1">Spending vs. Allocation</p>
+          <p className="text-sm font-medium text-slate-500 mb-1">
+            {periodLabel} Spending vs. Allocation
+          </p>
           <div className="flex items-baseline gap-2">
             <span className="text-3xl font-bold text-slate-900">
               {formatCurrency(data.totalSpent)}

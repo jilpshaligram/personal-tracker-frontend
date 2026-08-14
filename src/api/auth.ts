@@ -12,20 +12,20 @@ import type {
   VerifyPinPayload,
 } from '../features/auth/types/auth';
 
-const SIGNUP_URL = 'http://192.168.4.58:3005/api/v1/auth/signup';
-const VERIFY_EMAIL_URL = 'http://192.168.4.58:3005/api/v1/auth/verify-email';
-const CREATE_PIN_URL = 'http://192.168.4.58:3005/api/v1/auth/create-pin';
-const RESEND_EMAIL_OTP_URL = 'http://192.168.4.58:3005/api/v1/auth/resend-email-otp';
-const LOGIN_URL = 'http://192.168.4.58:3005/api/v1/auth/login';
-const VERIFY_PIN_URL = 'http://192.168.4.58:3005/api/v1/auth/verify-pin';
-const FORGOT_PASSWORD_URL = 'http://192.168.4.58:3005/api/v1/auth/forgot-password';
-const VERIFY_PASSWORD_OTP_URL = 'http://192.168.4.58:3005/api/v1/auth/verify-password-otp';
-const RESET_PASSWORD_URL = 'http://192.168.4.58:3005/api/v1/auth/reset-password';
-const RESEND_PASSWORD_OTP_URL = 'http://192.168.4.58:3005/api/v1/auth/forgot-password';
-const FORGOT_PIN_URL = 'http://192.168.4.58:3005/api/v1/auth/forgot-pin';
-const VERIFY_PIN_OTP_URL = 'http://192.168.4.58:3005/api/v1/auth/verify-pin-otp';
-const RESET_PIN_URL = 'http://192.168.4.58:3005/api/v1/auth/reset-pin';
-const RESEND_PIN_OTP_URL = 'http://192.168.4.58:3005/api/v1/auth/forgot-pin';
+const SIGNUP_URL = 'http://192.168.4.36:3005/api/v1/auth/signup';
+const VERIFY_EMAIL_URL = 'http://192.168.4.36:3005/api/v1/auth/verify-email';
+const CREATE_PIN_URL = 'http://192.168.4.36:3005/api/v1/auth/create-pin';
+const RESEND_EMAIL_OTP_URL = 'http://192.168.4.36:3005/api/v1/auth/resend-email-otp';
+const LOGIN_URL = 'http://192.168.4.36:3005/api/v1/auth/login';
+const VERIFY_PIN_URL = 'http://192.168.4.36:3005/api/v1/auth/verify-pin';
+const FORGOT_PASSWORD_URL = 'http://192.168.4.36:3005/api/v1/auth/forgot-password';
+const VERIFY_PASSWORD_OTP_URL = 'http://192.168.4.36:3005/api/v1/auth/verify-password-otp';
+const RESET_PASSWORD_URL = 'http://192.168.4.36:3005/api/v1/auth/reset-password';
+const RESEND_PASSWORD_OTP_URL = 'http://192.168.4.36:3005/api/v1/auth/forgot-password';
+const FORGOT_PIN_URL = 'http://192.168.4.36:3005/api/v1/auth/forgot-pin';
+const VERIFY_PIN_OTP_URL = 'http://192.168.4.36:3005/api/v1/auth/verify-pin-otp';
+const RESET_PIN_URL = 'http://192.168.4.36:3005/api/v1/auth/reset-pin';
+const RESEND_PIN_OTP_URL = 'http://192.168.4.36:3005/api/v1/auth/forgot-pin';
 
 export function signupApi(payload: SignupPayload): Promise<Response> {
   return fetch(SIGNUP_URL, {

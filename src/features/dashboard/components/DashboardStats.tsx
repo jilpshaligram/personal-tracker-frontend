@@ -1,16 +1,19 @@
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
-import type { DashboardStats as DashboardStatsType } from '../types';
+import type { DashboardStats as DashboardStatsType, Period } from '../types';
 
 interface DashboardStatsProps {
   stats: DashboardStatsType | null;
   loading: boolean;
+  period: Period;
 }
 
-export function DashboardStats({ stats, loading }: DashboardStatsProps) {
+export function DashboardStats({ stats, loading, period }: DashboardStatsProps) {
   // We keep them pending/empty as instructed, but we lay them out.
 
   const formatCurrency = (val: number) =>
     new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(val);
+
+  const periodLabel = period.charAt(0).toUpperCase() + period.slice(1);
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -40,14 +43,14 @@ export function DashboardStats({ stats, loading }: DashboardStatsProps) {
           <div className="text-2xl font-bold">
             {loading ? '---' : stats ? formatCurrency(stats.currentBalance) : '₹0.00'}
           </div>
-          <p className="text-xs text-slate-500 mt-1">Pending implementation</p>
+          <p className="text-xs text-slate-500 mt-1">Total across all wallets</p>
         </CardContent>
       </Card>
 
-      {/* 2. Monthly Income */}
+      {/* 2. Dynamic Income */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Monthly Income</CardTitle>
+          <CardTitle className="text-sm font-medium">{periodLabel} Income</CardTitle>
           <span className="text-emerald-500">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -70,14 +73,14 @@ export function DashboardStats({ stats, loading }: DashboardStatsProps) {
           <div className="text-2xl font-bold">
             {loading ? '---' : stats ? formatCurrency(stats.monthlyIncome) : '₹0.00'}
           </div>
-          <p className="text-xs text-slate-500 mt-1">Pending implementation</p>
+          <p className="text-xs text-slate-500 mt-1">Based on transactions</p>
         </CardContent>
       </Card>
 
-      {/* 3. Monthly Expense */}
+      {/* 3. Dynamic Expense */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Monthly Expense</CardTitle>
+          <CardTitle className="text-sm font-medium">{periodLabel} Expense</CardTitle>
           <span className="text-red-500">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -100,7 +103,7 @@ export function DashboardStats({ stats, loading }: DashboardStatsProps) {
           <div className="text-2xl font-bold">
             {loading ? '---' : stats ? formatCurrency(stats.monthlyExpense) : '₹0.00'}
           </div>
-          <p className="text-xs text-slate-500 mt-1">Pending implementation</p>
+          <p className="text-xs text-slate-500 mt-1">Based on transactions</p>
         </CardContent>
       </Card>
 
@@ -132,7 +135,7 @@ export function DashboardStats({ stats, loading }: DashboardStatsProps) {
           <div className="text-2xl font-bold">
             {loading ? '---' : stats ? formatCurrency(stats.totalSavings) : '₹0.00'}
           </div>
-          <p className="text-xs text-slate-500 mt-1">Pending implementation</p>
+          <p className="text-xs text-slate-500 mt-1">From saving goals</p>
         </CardContent>
       </Card>
     </div>

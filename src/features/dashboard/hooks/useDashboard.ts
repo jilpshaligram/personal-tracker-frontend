@@ -9,6 +9,7 @@ import type {
   DashboardStats,
 } from '../types';
 import { dashboardService } from '../services/dashboard.service';
+import { getDateRange } from '../utils/date.utils';
 
 export function useDashboard() {
   const [period, setPeriod] = useState<Period>('monthly');
@@ -26,14 +27,28 @@ export function useDashboard() {
     setLoading(true);
     setError(null);
     try {
-      // In a real application, these would be Promise.all to fetch concurrently.
-      const [statsData, budgetData, categoryData, docsData, billsData, txData] = await Promise.all([
-        dashboardService.getStats(),
-        dashboardService.getBudgetOverview(period),
-        dashboardService.getCategoryBreakdown(period),
+      const { startDate, endDate } = getDateRange(period);
+
+      // 1. Fetch all parallel independent data (transactions, docs, bills)
+      const [transactions, docsData, billsData] = await Promise.all([
+        dashboardService.getTransactionsForPeriod(startDate, endDate),
         dashboardService.getDocumentAlerts(),
         dashboardService.getUpcomingBills(),
-        dashboardService.getRecentTransactions(),
+      ]);
+
+      // 2. Calculate Income and Expense
+      let income = 0;
+      let expense = 0;
+      transactions.forEach((tx) => {
+        if (tx.type === 'INCOME') income += tx.amount;
+        if (tx.type === 'EXPENSE') expense += tx.amount;
+      });
+
+      // 3. Fetch dependent data
+      const [statsData, budgetData, categoryData] = await Promise.all([
+        dashboardService.getStats(income, expense),
+        dashboardService.getBudgetOverview(period, expense),
+        dashboardService.getCategoryBreakdown(period, transactions, expense),
       ]);
 
       setStats(statsData);
@@ -41,7 +56,7 @@ export function useDashboard() {
       setCategoryBreakdown(categoryData);
       setDocumentAlerts(docsData);
       setUpcomingBills(billsData);
-      setRecentTransactions(txData);
+      setRecentTransactions(dashboardService.mapRecentTransactions(transactions));
     } catch (err) {
       setError('Failed to load dashboard data.');
       console.error(err);

@@ -1,3 +1,4 @@
+import { apiClient } from '../../../api/client';
 import type {
   Period,
   BudgetOverview,
@@ -9,188 +10,224 @@ import type {
   DashboardStats,
 } from '../types';
 
-/**
- * Mock data simulation delay
- */
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+interface ApiSuccessResponse<T> {
+  success: boolean;
+  message: string;
+  data: T;
+}
+
+interface SavingGoalDto {
+  savedAmount?: number;
+}
+
+interface BudgetDto {
+  period?: string;
+  isActive?: boolean;
+  amount: number;
+}
+
+interface CategoryDto {
+  _id?: string;
+  id?: string;
+  name: string;
+}
+
+interface DocumentAlertDto {
+  id?: string;
+  _id?: string;
+  title: string;
+  status: 'SAFE' | 'WARNING' | 'EXPIRED' | string;
+  expiryDate: string;
+  daysRemaining?: number;
+}
+
+interface UpcomingBillDto {
+  id?: string;
+  _id?: string;
+  title?: string;
+  name?: string;
+  dueDate: string;
+  amount: number;
+}
+
+interface TransactionDto {
+  id?: string;
+  _id?: string;
+  type: 'INCOME' | 'EXPENSE';
+  amount: number;
+  categoryId?: string;
+  description?: string;
+  transactionDate?: string;
+  createdAt?: string;
+}
 
 export const dashboardService = {
-  getStats: async (): Promise<DashboardStats> => {
-    await delay(300);
-    return {
-      currentBalance: 12450.0,
-      monthlyIncome: 8500.0,
-      monthlyExpense: 4312.18,
-      totalSavings: 4187.82,
-    };
+  // We'll pass the calculated income and expense from transactions
+  getStats: async (income: number, expense: number): Promise<DashboardStats> => {
+    try {
+      const [balanceRes, savingsRes] = await Promise.all([
+        apiClient.get<ApiSuccessResponse<{ availableBalance: number; currentBalance: number }>>(
+          '/wallets/balance'
+        ),
+        apiClient.get<ApiSuccessResponse<SavingGoalDto[]>>('/saving-goals'),
+      ]);
+
+      const currentBalance = balanceRes.data?.data?.currentBalance || 0;
+      const savingsGoals = savingsRes.data?.data || [];
+      const totalSavings = savingsGoals.reduce((sum, goal) => sum + (goal.savedAmount || 0), 0);
+
+      return {
+        currentBalance,
+        monthlyIncome: income,
+        monthlyExpense: expense,
+        totalSavings,
+      };
+    } catch (e) {
+      console.error('Error fetching stats', e);
+      return {
+        currentBalance: 0,
+        monthlyIncome: income,
+        monthlyExpense: expense,
+        totalSavings: 0,
+      };
+    }
   },
 
-  getBudgetOverview: async (period: Period): Promise<BudgetOverview> => {
-    await delay(400);
-    const mockData: Record<Period, BudgetOverview> = {
-      daily: {
-        period: 'daily',
-        totalBudget: 200,
-        totalSpent: 120,
-        remainingAmount: 80,
-        percentageConsumed: 60,
-      },
-      weekly: {
-        period: 'weekly',
-        totalBudget: 1500,
-        totalSpent: 1100,
-        remainingAmount: 400,
-        percentageConsumed: 73,
-      },
-      monthly: {
-        period: 'monthly',
-        totalBudget: 5500,
-        totalSpent: 4312.18,
-        remainingAmount: 1187.82,
-        percentageConsumed: 78,
-      },
-      yearly: {
-        period: 'yearly',
-        totalBudget: 60000,
-        totalSpent: 45000,
-        remainingAmount: 15000,
-        percentageConsumed: 75,
-      },
-    };
-    return mockData[period];
+  getBudgetOverview: async (period: Period, totalSpent: number): Promise<BudgetOverview | null> => {
+    try {
+      const res = await apiClient.get<ApiSuccessResponse<BudgetDto[]>>('/budgets');
+      const budgets = res.data?.data || [];
+      const matchingBudget = budgets.find(
+        (b: BudgetDto) => b.period === period.toUpperCase() && b.isActive
+      );
+
+      if (!matchingBudget) {
+        return {
+          period,
+          hasBudget: false,
+          totalBudget: 0,
+          totalSpent,
+          remainingAmount: 0,
+          percentageConsumed: 0,
+        };
+      }
+
+      const totalBudget = matchingBudget.amount;
+      const remainingAmount = totalBudget - totalSpent;
+      const percentageConsumed = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
+
+      return {
+        period,
+        hasBudget: true,
+        totalBudget,
+        totalSpent,
+        remainingAmount: remainingAmount > 0 ? remainingAmount : 0,
+        percentageConsumed: Number(percentageConsumed.toFixed(2)),
+      };
+    } catch (e) {
+      console.error('Error fetching budget overview', e);
+      return null;
+    }
   },
 
-  getCategoryBreakdown: async (period: Period): Promise<CategoryBreakdown> => {
-    await delay(400);
+  getCategoryBreakdown: async (
+    period: Period,
+    transactions: TransactionDto[],
+    totalSpent: number
+  ): Promise<CategoryBreakdown> => {
+    try {
+      const res = await apiClient.get<ApiSuccessResponse<CategoryDto[]>>('/transaction-categories');
+      const categoriesData = res.data?.data || [];
+      const categoryMap = new Map(categoriesData.map((c) => [c._id || c.id, c.name]));
 
-    // Using different mock data based on period to show interaction
-    const categoryMocks: Record<Period, CategoryBreakdownItem[]> = {
-      daily: [
-        { categoryId: 'c1', categoryName: 'Food', amount: 45, percentage: 37.5 },
-        { categoryId: 'c4', categoryName: 'Fuel', amount: 30, percentage: 25 },
-        { categoryId: 'c6', categoryName: 'Other', amount: 45, percentage: 37.5 },
-      ],
-      weekly: [
-        { categoryId: 'c1', categoryName: 'Food', amount: 350, percentage: 31.8 },
-        { categoryId: 'c3', categoryName: 'Grocery', amount: 250, percentage: 22.7 },
-        { categoryId: 'c2', categoryName: 'Shopping', amount: 200, percentage: 18.1 },
-        { categoryId: 'c4', categoryName: 'Fuel', amount: 150, percentage: 13.6 },
-        { categoryId: 'c6', categoryName: 'Other', amount: 150, percentage: 13.6 },
-      ],
-      monthly: [
-        { categoryId: 'c1', categoryName: 'Food', amount: 1423.01, percentage: 33 },
-        { categoryId: 'c2', categoryName: 'Shopping', amount: 905.55, percentage: 21 },
-        { categoryId: 'c3', categoryName: 'Grocery', amount: 776.19, percentage: 18 },
-        { categoryId: 'c4', categoryName: 'Fuel', amount: 517.46, percentage: 12 },
-        { categoryId: 'c5', categoryName: 'Bills', amount: 431.21, percentage: 10 },
-        { categoryId: 'c6', categoryName: 'Other', amount: 258.76, percentage: 6 },
-      ],
-      yearly: [
-        { categoryId: 'c1', categoryName: 'Food', amount: 15000, percentage: 33.3 },
-        { categoryId: 'c5', categoryName: 'Bills', amount: 12000, percentage: 26.6 },
-        { categoryId: 'c3', categoryName: 'Grocery', amount: 8000, percentage: 17.7 },
-        { categoryId: 'c2', categoryName: 'Shopping', amount: 5000, percentage: 11.1 },
-        { categoryId: 'c4', categoryName: 'Fuel', amount: 3000, percentage: 6.6 },
-        { categoryId: 'c7', categoryName: 'Travel', amount: 2000, percentage: 4.4 },
-      ],
-    };
+      const expenseTx = transactions.filter((t) => t.type === 'EXPENSE');
+      const categoryTotals: Record<string, number> = {};
 
-    const totalSpentMocks: Record<Period, number> = {
-      daily: 120,
-      weekly: 1100,
-      monthly: 4312.18,
-      yearly: 45000,
-    };
+      expenseTx.forEach((tx) => {
+        const catId = tx.categoryId || 'unknown';
+        categoryTotals[catId] = (categoryTotals[catId] || 0) + tx.amount;
+      });
 
-    return {
-      period,
-      totalSpent: totalSpentMocks[period],
-      categories: categoryMocks[period],
-    };
+      const categories: CategoryBreakdownItem[] = Object.keys(categoryTotals)
+        .map((catId) => {
+          const amount = categoryTotals[catId];
+          return {
+            categoryId: catId,
+            categoryName: categoryMap.get(catId) || 'Uncategorized',
+            amount,
+            percentage: totalSpent > 0 ? Number(((amount / totalSpent) * 100).toFixed(2)) : 0,
+          };
+        })
+        .sort((a, b) => b.amount - a.amount);
+
+      return {
+        period,
+        totalSpent,
+        categories,
+      };
+    } catch (e) {
+      console.error('Error calculating category breakdown', e);
+      return {
+        period,
+        totalSpent,
+        categories: [],
+      };
+    }
   },
 
   getDocumentAlerts: async (): Promise<DocumentAlert[]> => {
-    await delay(300);
-    return [
-      {
-        id: 'doc-1',
-        title: 'Passport Renewal',
-        status: 'EXPIRED',
-        expiryDate: '2023-12-01',
-        daysRemaining: -45,
-      },
-      {
-        id: 'doc-2',
-        title: "Driver's License",
-        status: 'NEARING_EXPIRY',
-        expiryDate: '2024-11-15',
-        daysRemaining: 45,
-      },
-    ];
+    try {
+      const res =
+        await apiClient.get<ApiSuccessResponse<DocumentAlertDto[]>>('/documents/expiring');
+      return (res.data?.data || []).map((doc: DocumentAlertDto) => ({
+        id: (doc.id || doc._id) as string,
+        title: doc.title,
+        status: doc.status as DocumentAlert['status'],
+        expiryDate: doc.expiryDate,
+        daysRemaining: doc.daysRemaining || 0,
+      }));
+    } catch (e) {
+      console.error('Error fetching document alerts', e);
+      return [];
+    }
   },
 
   getUpcomingBills: async (): Promise<UpcomingBill[]> => {
-    await delay(300);
-    return [
-      {
-        id: 'bill-1',
-        title: 'Netflix Premium',
-        dueDate: '2024-10-28',
-        amount: 19.99,
+    try {
+      const res = await apiClient.get<ApiSuccessResponse<UpcomingBillDto[]>>('/bills/upcoming');
+      return (res.data?.data || []).map((bill: UpcomingBillDto) => ({
+        id: (bill.id || bill._id) as string,
+        title: (bill.title || bill.name) as string,
+        dueDate: bill.dueDate,
+        amount: bill.amount,
         status: 'PENDING',
-      },
-      {
-        id: 'bill-2',
-        title: 'Electricity Bill',
-        dueDate: '2024-11-01',
-        amount: 85.5,
-        status: 'PENDING',
-      },
-      {
-        id: 'bill-3',
-        title: 'Internet Provider',
-        dueDate: '2024-11-05',
-        amount: 50.0,
-        status: 'PENDING',
-      },
-    ];
+      }));
+    } catch (e) {
+      console.error('Error fetching upcoming bills', e);
+      return [];
+    }
   },
 
-  getRecentTransactions: async (): Promise<RecentTransaction[]> => {
-    await delay(300);
-    return [
-      {
-        id: 'txn-1',
-        entity: 'Whole Foods Market',
-        category: 'Grocery',
-        date: '2024-10-24T14:20:00Z',
-        amount: 120.45,
-        type: 'EXPENSE',
-      },
-      {
-        id: 'txn-2',
-        entity: 'Shell Station',
-        category: 'Fuel',
-        date: '2024-10-22T08:15:00Z',
-        amount: 45.0,
-        type: 'EXPENSE',
-      },
-      {
-        id: 'txn-3',
-        entity: 'Tech Corp Inc.',
-        category: 'Salary',
-        date: '2024-10-20T10:00:00Z',
-        amount: 4200.0,
-        type: 'INCOME',
-      },
-      {
-        id: 'txn-4',
-        entity: 'Amazon.com',
-        category: 'Shopping',
-        date: '2024-10-18T16:45:00Z',
-        amount: 78.99,
-        type: 'EXPENSE',
-      },
-    ];
+  getTransactionsForPeriod: async (startDate: Date, endDate: Date): Promise<TransactionDto[]> => {
+    try {
+      const res = await apiClient.get<ApiSuccessResponse<TransactionDto[]>>(
+        `/transactions?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}&limit=100`
+      );
+      return res.data?.data || [];
+    } catch (e) {
+      console.error('Error fetching transactions', e);
+      return [];
+    }
+  },
+
+  mapRecentTransactions: (transactions: TransactionDto[]): RecentTransaction[] => {
+    return transactions.slice(0, 5).map((tx) => ({
+      id: (tx.id || tx._id) as string,
+      entity: tx.description || 'Transaction',
+      category: tx.categoryId || 'General', // We ideally map this to name but for recent it's okay or we can map it later
+      date: (tx.transactionDate || tx.createdAt) as string,
+      amount: tx.amount,
+      type: tx.type,
+    }));
   },
 };

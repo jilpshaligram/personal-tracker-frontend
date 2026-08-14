@@ -48,7 +48,7 @@ export default function DashboardPage() {
 
       <div className="space-y-6">
         {/* Top Summary Cards (Pending Implementation) */}
-        <DashboardStats stats={stats} loading={loading} />
+        <DashboardStats stats={stats} loading={loading} period={period} />
 
         {/* Middle Section: Budget & Document Alerts */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">

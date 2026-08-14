@@ -2,6 +2,7 @@ export type Period = 'daily' | 'weekly' | 'monthly' | 'yearly';
 
 export interface BudgetOverview {
   period: Period;
+  hasBudget: boolean;
   totalBudget: number;
   totalSpent: number;
   remainingAmount: number;
