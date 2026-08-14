@@ -112,7 +112,6 @@ export function DocumentUpload({ document, onClose, onUpload, onUpdate }: Docume
 
     try {
       if (document) {
-        // Edit mode: construct FormData for PATCH
         const updateData = new FormData();
         updateData.append('name', formData.name);
         updateData.append('categoryId', formData.categoryId);
@@ -128,7 +127,6 @@ export function DocumentUpload({ document, onClose, onUpload, onUpdate }: Docume
         await updateMutate({ id: document.id, formData: updateData });
         onUpdate?.();
       } else {
-        // Upload mode: construct parameters for POST
         await uploadMutate({
           name: formData.name,
           categoryId: formData.categoryId,

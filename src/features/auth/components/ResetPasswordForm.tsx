@@ -65,7 +65,6 @@ export const ResetPasswordForm: React.FC = () => {
         confirmPassword,
       });
 
-      // Navigate to login with success message
       alert('Password reset successfully! Please sign in with your new password.');
       navigate('/login');
     } catch (submitError) {
