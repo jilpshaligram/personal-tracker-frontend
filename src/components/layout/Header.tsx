@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Bell, HelpCircle, Menu, User, LogOut } from 'lucide-react';
-import { clearAuthTokens } from '../../api';
-import { useNotificationStore, useHelpStore } from '../../store';
+import { HelpCircle, Menu, User, LogOut } from 'lucide-react';
+import { useHelpStore } from '../../store';
+import { NotificationBell } from '../../features/notifications';
+import { useAuth } from '../../context/AuthContext';
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -10,16 +11,41 @@ interface HeaderProps {
 
 export default function Header({ onMenuClick }: HeaderProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const { notifications, setIsOpen: setIsNotificationOpen } = useNotificationStore();
   const setIsHelpOpen = useHelpStore((state) => state.setIsOpen);
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const handleLogout = () => {
-    clearAuthTokens();
-    navigate('/login');
+  const getInitials = () => {
+    if (!user) return 'U';
+    const first = user.firstName?.[0] || '';
+    const last = user.lastName?.[0] || '';
+    return (first + last).toUpperCase() || 'U';
   };
 
-  const unreadCount = notifications.filter((n) => !n.read).length;
+  const displayName = user
+    ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email || 'User'
+    : 'User';
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    if (isDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isDropdownOpen]);
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
 
   return (
     <header className="sticky top-0 z-10 flex items-center justify-between gap-4 bg-white/95 backdrop-blur-sm border-b border-slate-200 px-4 sm:px-6 py-3.5 shrink-0">
@@ -35,20 +61,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
       </div>
 
       <div className="flex items-center gap-1 shrink-0">
-        <button
-          type="button"
-          onClick={() => setIsNotificationOpen(true)}
-          className="relative flex items-center justify-center w-9 h-9 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-          aria-label="View notifications"
-        >
-          <Bell className="w-4.5 h-4.5" strokeWidth={1.75} />
-          {unreadCount > 0 && (
-            <span className="absolute top-2 right-2 flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
-            </span>
-          )}
-        </button>
+        <NotificationBell />
 
         <button
           type="button"
@@ -61,11 +74,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
 
         <div className="mx-2 h-5 w-px bg-slate-200" aria-hidden="true" />
 
-        <div
-          className="relative"
-          onMouseEnter={() => setIsDropdownOpen(true)}
-          onMouseLeave={() => setIsDropdownOpen(false)}
-        >
+        <div className="relative" ref={dropdownRef}>
           <button
             type="button"
             className="flex items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-slate-50 transition-colors"
@@ -77,9 +86,11 @@ export default function Header({ onMenuClick }: HeaderProps) {
               className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-600 text-white text-xs font-semibold shrink-0 select-none"
               aria-hidden="true"
             >
-              AR
+              {getInitials()}
             </span>
-            <span className="hidden sm:block text-sm font-medium text-slate-700">Alex Rivera</span>
+            <span className="hidden sm:block text-sm font-medium text-slate-700">
+              {displayName}
+            </span>
           </button>
 
           {isDropdownOpen && (

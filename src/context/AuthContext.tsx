@@ -1,5 +1,6 @@
-﻿import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import { clearAuthTokens } from '../api/client';
 
 export interface User {
   id: string;
@@ -46,14 +47,48 @@ async function verifyToken(): Promise<User | null> {
 
     const json = response.data as {
       success?: boolean;
-      data?: { user?: unknown };
+      data?: {
+        user?: {
+          id: string;
+          sub: string;
+          role: string;
+          sessionId: string;
+        };
+      };
     };
 
     if (!json.success || !json.data?.user) {
       return null;
     }
 
-    return json.data.user as User;
+    const verifiedUser = json.data.user;
+
+    try {
+      const profileResponse = await axios.get('/api/v1/users/me', {
+        withCredentials: true,
+        timeout: 5000,
+      });
+      const profileJson = profileResponse.data as {
+        success?: boolean;
+        data?: {
+          firstName?: string;
+          lastName?: string;
+          email?: string;
+        };
+      };
+      if (profileJson.success && profileJson.data) {
+        return {
+          ...verifiedUser,
+          firstName: profileJson.data.firstName,
+          lastName: profileJson.data.lastName,
+          email: profileJson.data.email,
+        } as User;
+      }
+    } catch (err) {
+      console.warn('Failed to fetch full user profile:', err);
+    }
+
+    return verifiedUser as User;
   } catch {
     return null;
   }
@@ -110,6 +145,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = useCallback(async () => {
     await logoutApi();
+    clearAuthTokens();
     setUserState(null);
     setIsAuthenticated(false);
     setError(null);
@@ -126,9 +162,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const checkAuth = async () => {
       if (shouldSkipAuthCheck()) {
+        if (
+          typeof window !== 'undefined' &&
+          ['/login', '/register'].includes(window.location.pathname)
+        ) {
+          try {
+            await logoutApi();
+          } catch (err) {
+            console.warn('Logout api failed:', err);
+          }
+          clearAuthTokens();
+          setUserState(null);
+          setIsAuthenticated(false);
+        }
         setIsLoading(false);
-        setUserState(null);
-        setIsAuthenticated(false);
         return;
       }
 
