@@ -30,7 +30,7 @@ function PinDial() {
   });
 
   return (
-    <svg width="220" height="220" viewBox="0 0 150 150">
+    <svg className="h-[170px] w-[170px] xl:h-[220px] xl:w-[220px] shrink-0" viewBox="0 0 150 150">
       <circle cx="75" cy="75" r="64" fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="2" />
       <circle
         cx="75"

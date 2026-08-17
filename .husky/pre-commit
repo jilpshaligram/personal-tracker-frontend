@@ -42,7 +42,7 @@ fi
 echo ""
 echo "📦 Running lint-staged..."
 
-npx lint-staged
+npx lint-staged --no-stash
 
 if [ $? -ne 0 ]; then
   echo ""

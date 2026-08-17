@@ -1,5 +1,5 @@
-﻿import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { apiClient, clearAuthTokens } from '../api/client';
 
 export interface User {
   id: string;
@@ -21,14 +21,6 @@ interface AuthContextType {
   verifyAuth: () => Promise<boolean>;
 }
 
-const API_BASE_URL = '/api/v1/auth';
-
-const authClient = axios.create({
-  baseURL: API_BASE_URL,
-  withCredentials: true,
-  timeout: 10000,
-});
-
 const PUBLIC_AUTH_PATHS = new Set([
   '/login',
   '/register',
@@ -37,23 +29,33 @@ const PUBLIC_AUTH_PATHS = new Set([
   '/verify-pin',
   '/forgot-password',
   '/reset-password',
-  '/',
 ]);
 
 async function verifyToken(): Promise<User | null> {
   try {
-    const response = await authClient.get('/verify-token');
+    const response = await apiClient.get('/auth/verify-token');
 
     const json = response.data as {
       success?: boolean;
       data?: { user?: unknown };
+      user?: unknown;
     };
 
-    if (!json.success || !json.data?.user) {
-      return null;
+    const userData = (json.data?.user || json.user || json.data || response.data) as
+      User | undefined;
+    if (
+      userData &&
+      typeof userData === 'object' &&
+      ('id' in userData || 'sub' in userData || 'email' in userData)
+    ) {
+      return userData;
     }
 
-    return json.data.user as User;
+    if (json.success && json.data) {
+      return json.data as unknown as User;
+    }
+
+    return null;
   } catch {
     return null;
   }
@@ -61,7 +63,7 @@ async function verifyToken(): Promise<User | null> {
 
 async function logoutApi(): Promise<void> {
   try {
-    await authClient.post('/logout');
+    await apiClient.post('/auth/logout');
   } catch {
     return;
   }
@@ -79,6 +81,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     setError(null);
 
+    // 1. Check if PIN verification has been completed for this session
+    const isPinVerified = sessionStorage.getItem('pinVerified') === 'true';
+    if (!isPinVerified) {
+      setUserState(null);
+      setIsAuthenticated(false);
+      setIsLoading(false);
+      return false;
+    }
+
+    // 2. User has verified PIN -> verify session with backend endpoint /auth/verify-token
     try {
       const verifiedUser = await verifyToken();
 
@@ -103,6 +115,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = useCallback((newUser: User) => {
+    sessionStorage.setItem('pinVerified', 'true');
     setUserState(newUser);
     setIsAuthenticated(true);
     setError(null);
@@ -110,6 +123,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = useCallback(async () => {
     await logoutApi();
+    clearAuthTokens();
     setUserState(null);
     setIsAuthenticated(false);
     setError(null);
@@ -127,8 +141,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const checkAuth = async () => {
       if (shouldSkipAuthCheck()) {
         setIsLoading(false);
-        setUserState(null);
-        setIsAuthenticated(false);
         return;
       }
 

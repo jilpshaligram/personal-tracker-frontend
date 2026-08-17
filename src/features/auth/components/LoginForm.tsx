@@ -10,6 +10,8 @@ import {
   authInputClass,
   authLabelClass,
   authLinkClass,
+  authMobileBrandClass,
+  authMobileMarkClass,
   authPrimaryButtonClass,
   authSubtitleClass,
   authTitleClass,
@@ -50,6 +52,12 @@ export const LoginForm: React.FC = () => {
   return (
     <div className={authFormPaneClass}>
       <div className={authFormInnerClass}>
+        {/* Mobile-only brand badge */}
+        <div className={authMobileBrandClass}>
+          <div className={authMobileMarkClass}>V</div>
+          VaultSaaS
+        </div>
+
         <div className={authEyebrowClass}>Personal finance</div>
         <h1 className={authTitleClass}>Sign in to VaultSaaS</h1>
         <p className={authSubtitleClass}>

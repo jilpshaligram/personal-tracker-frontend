@@ -7,6 +7,8 @@ import {
   authFormPaneClass,
   authInputClass,
   authLabelClass,
+  authMobileBrandClass,
+  authMobileMarkClass,
   authMutedLinkClass,
   authPrimaryButtonClass,
   authSubtitleClass,
@@ -47,6 +49,12 @@ export const ForgotPasswordForm: React.FC = () => {
   return (
     <div className={authFormPaneClass}>
       <div className={authFormInnerClass}>
+        {/* Mobile-only brand badge */}
+        <div className={authMobileBrandClass}>
+          <div className={authMobileMarkClass}>V</div>
+          VaultSaaS
+        </div>
+
         <div className={authEyebrowClass}>Account recovery</div>
         <h1 className={authTitleClass}>Forgot password?</h1>
         <p className={authSubtitleClass}>

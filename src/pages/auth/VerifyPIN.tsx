@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { verifyPin } from '../../features/auth/services/authService';
 import { VaultPINBrandPanel } from '../../features/auth/components/VaultPINBrandPanel';
@@ -6,21 +6,32 @@ import { PINForm } from '../../features/auth/components/PINForm';
 import { authPageClass, authShellClass } from '../../features/auth/components/authTailwind';
 import { useAuth } from '../../context/AuthContext';
 import type { User } from '../../context/AuthContext';
+import {
+  clearAuthTokens,
+  decodeJwtPayload,
+  getAccessToken,
+  getRefreshToken,
+} from '../../api/client';
 
 export const VerifyPIN: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, verifyAuth } = useAuth();
-  const locationState = (location.state as { email?: string } | null) || {};
+  const { user, login, verifyAuth } = useAuth();
+  const locationState = (location.state as { email?: string; flow?: string } | null) || {};
 
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handlePinEntered = async (pin: string) => {
-    const email = locationState.email;
+  const resolvedEmail =
+    locationState.email ||
+    user?.email ||
+    decodeJwtPayload(getRefreshToken())?.email ||
+    decodeJwtPayload(getAccessToken())?.email ||
+    '';
 
-    if (!email) {
-      setError('Email not found. Please login again.');
+  const handlePinEntered = async (pin: string) => {
+    if (!resolvedEmail) {
+      setError('Email not found. Please log in again.');
       return;
     }
 
@@ -28,26 +39,36 @@ export const VerifyPIN: React.FC = () => {
       setIsSubmitting(true);
       setError('');
 
-      const response = await verifyPin({ email, pin });
+      // 1. Verify PIN with backend
+      const response = await verifyPin({ email: resolvedEmail, pin });
 
-      const userData = response.data?.user || (response as { user?: unknown }).user;
+      // 2. Set pinVerified flag so verifyAuth allows token verification
+      sessionStorage.setItem('pinVerified', 'true');
 
-      if (userData && typeof userData === 'object') {
-        login(userData as User);
-        await verifyAuth();
-      } else {
-        const authenticated = await verifyAuth();
-        if (!authenticated) {
-          throw new Error('Session could not be established. Please try again.');
+      // 3. Call verify-token (via verifyAuth)
+      const isTokenValid = await verifyAuth();
+
+      // 4. If verify-token is successful, move to dashboard; if not, go to login
+      if (isTokenValid) {
+        const userData = (response.data?.user || (response as { user?: unknown }).user) as
+          User | undefined;
+
+        if (userData && typeof userData === 'object') {
+          login(userData);
         }
-      }
 
-      navigate('/');
+        navigate('/', { replace: true });
+      } else {
+        clearAuthTokens();
+        setError('Token verification failed. Please login again.');
+        navigate('/login', { replace: true });
+      }
     } catch (submitError) {
+      // If PIN fails: do NOT refresh token, do NOT grant access, keep user on PIN screen
       setError(
         submitError instanceof Error
           ? submitError.message
-          : 'Unable to verify PIN. Please try again.'
+          : 'Unable to verify PIN. Please check your PIN and try again.'
       );
       setIsSubmitting(false);
     }

@@ -15,6 +15,7 @@ import {
   verifyPinOtpApi,
   verifyTokenApi,
 } from '../../../api';
+import { setAccessToken, setRefreshToken } from '../../../api/client';
 import type {
   CreatePinPayload,
   CreatePinResponse,
@@ -133,6 +134,16 @@ export async function login(payload: LoginPayload): Promise<LoginResponse> {
     throw new Error(message);
   }
 
+  const accessToken = data.accessToken || data.token || data.data?.accessToken || data.data?.token;
+  if (typeof accessToken === 'string' && accessToken) {
+    setAccessToken(accessToken);
+  }
+
+  const refreshToken = data.refreshToken || (data.data as { refreshToken?: string })?.refreshToken;
+  if (typeof refreshToken === 'string' && refreshToken) {
+    setRefreshToken(refreshToken);
+  }
+
   return data;
 }
 
@@ -152,6 +163,16 @@ export async function verifyPin(payload: VerifyPinPayload): Promise<VerifyPinRes
         : 'Unable to verify PIN. Please check your PIN and try again.';
 
     throw new Error(message);
+  }
+
+  const accessToken = data.accessToken || data.token || data.data?.accessToken || data.data?.token;
+  if (typeof accessToken === 'string' && accessToken) {
+    setAccessToken(accessToken);
+  }
+
+  const refreshToken = data.refreshToken || data.data?.refreshToken;
+  if (typeof refreshToken === 'string' && refreshToken) {
+    setRefreshToken(refreshToken);
   }
 
   return data;

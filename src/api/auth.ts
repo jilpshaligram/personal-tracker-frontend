@@ -11,28 +11,31 @@ import type {
   VerifyPinOtpPayload,
   VerifyPinPayload,
 } from '../features/auth/types/auth';
+const API_BASE_URL = '/api/v1/auth';
 
-const SIGNUP_URL = 'http://192.168.4.58:3005/api/v1/auth/signup';
-const VERIFY_EMAIL_URL = 'http://192.168.4.58:3005/api/v1/auth/verify-email';
-const CREATE_PIN_URL = 'http://192.168.4.58:3005/api/v1/auth/create-pin';
-const RESEND_EMAIL_OTP_URL = 'http://192.168.4.58:3005/api/v1/auth/resend-email-otp';
-const LOGIN_URL = 'http://192.168.4.58:3005/api/v1/auth/login';
-const VERIFY_PIN_URL = 'http://192.168.4.58:3005/api/v1/auth/verify-pin';
-const FORGOT_PASSWORD_URL = 'http://192.168.4.58:3005/api/v1/auth/forgot-password';
-const VERIFY_PASSWORD_OTP_URL = 'http://192.168.4.58:3005/api/v1/auth/verify-password-otp';
-const RESET_PASSWORD_URL = 'http://192.168.4.58:3005/api/v1/auth/reset-password';
-const RESEND_PASSWORD_OTP_URL = 'http://192.168.4.58:3005/api/v1/auth/forgot-password';
-const FORGOT_PIN_URL = 'http://192.168.4.58:3005/api/v1/auth/forgot-pin';
-const VERIFY_PIN_OTP_URL = 'http://192.168.4.58:3005/api/v1/auth/verify-pin-otp';
-const RESET_PIN_URL = 'http://192.168.4.58:3005/api/v1/auth/reset-pin';
-const RESEND_PIN_OTP_URL = 'http://192.168.4.58:3005/api/v1/auth/forgot-pin';
-const VERIFY_TOKEN_URL = 'http://192.168.4.58:3005/api/v1/auth/verify-token';
+const SIGNUP_URL = `${API_BASE_URL}/signup`;
+const VERIFY_EMAIL_URL = `${API_BASE_URL}/verify-email`;
+const CREATE_PIN_URL = `${API_BASE_URL}/create-pin`;
+const RESEND_EMAIL_OTP_URL = `${API_BASE_URL}/resend-email-otp`;
+const LOGIN_URL = `${API_BASE_URL}/login`;
+const VERIFY_PIN_URL = `${API_BASE_URL}/verify-pin`;
+const FORGOT_PASSWORD_URL = `${API_BASE_URL}/forgot-password`;
+const VERIFY_PASSWORD_OTP_URL = `${API_BASE_URL}/verify-password-otp`;
+const RESET_PASSWORD_URL = `${API_BASE_URL}/reset-password`;
+const FORGOT_PIN_URL = `${API_BASE_URL}/forgot-pin`;
+const VERIFY_PIN_OTP_URL = `${API_BASE_URL}/verify-pin-otp`;
+const RESET_PIN_URL = `${API_BASE_URL}/reset-pin`;
+const VERIFY_TOKEN_URL = `${API_BASE_URL}/verify-token`;
+const RESEND_PASSWORD_OTP_URL = `${API_BASE_URL}/resend-password-otp`;
+const RESEND_PIN_OTP_URL = `${API_BASE_URL}/resend-pin-otp`;
 
 export function verifyTokenApi(token?: string | null): Promise<Response> {
   const headers: Record<string, string> = {};
+
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
+
   return fetch(VERIFY_TOKEN_URL, {
     method: 'GET',
     headers,

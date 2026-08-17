@@ -7,6 +7,8 @@ import {
   authFormInnerClass,
   authFormPaneClass,
   authLinkClass,
+  authMobileBrandClass,
+  authMobileMarkClass,
   authPrimaryButtonClass,
   authSubtitleClass,
   authTitleClass,
@@ -112,6 +114,12 @@ export const PINForm: React.FC<PINFormProps> = ({
   return (
     <div className={authFormPaneClass}>
       <div className={authFormInnerClass}>
+        {/* Mobile-only brand badge */}
+        <div className={authMobileBrandClass}>
+          <div className={authMobileMarkClass}>V</div>
+          VaultSaaS
+        </div>
+
         <div className={authEyebrowClass}>Security verification</div>
         <h1 className={authTitleClass}>{title}</h1>
         <p className={authSubtitleClass}>{subtitle}</p>
@@ -119,7 +127,7 @@ export const PINForm: React.FC<PINFormProps> = ({
         {displayError && <div className={`${authAlertClass} mb-6`}>{displayError}</div>}
 
         <form onSubmit={handleSubmit}>
-          <div className="mb-4 flex justify-center gap-3.5" onPaste={handlePaste}>
+          <div className="mb-4 flex justify-center gap-2.5 sm:gap-3.5" onPaste={handlePaste}>
             {digits.map((d, i) => (
               <input
                 key={i}
@@ -133,7 +141,7 @@ export const PINForm: React.FC<PINFormProps> = ({
                 onChange={(e) => handleChange(i, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(i, e)}
                 className={[
-                  "h-[58px] w-[52px] rounded-xl border-[1.5px] text-center font-['JetBrains_Mono',monospace] text-[22px] font-semibold text-[#16274F] outline-none transition-[border-color,box-shadow,background-color]",
+                  "h-14 w-12 sm:h-[58px] sm:w-[52px] rounded-xl border-[1.5px] text-center font-['JetBrains_Mono',monospace] text-xl sm:text-[22px] font-semibold text-[#16274F] outline-none transition-[border-color,box-shadow,background-color]",
                   d
                     ? 'border-[#2F5FE0] bg-white shadow-[0_0_0_3px_rgba(47,95,224,0.12)]'
                     : 'border-[#E5E9F2] bg-[#FBFCFE]',

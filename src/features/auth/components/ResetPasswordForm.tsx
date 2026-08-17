@@ -10,6 +10,8 @@ import {
   authFormPaneClass,
   authInputClass,
   authLabelClass,
+  authMobileBrandClass,
+  authMobileMarkClass,
   authMutedLinkClass,
   authPrimaryButtonClass,
   authSubtitleClass,
@@ -81,6 +83,12 @@ export const ResetPasswordForm: React.FC = () => {
   return (
     <div className={authFormPaneClass}>
       <div className={authFormInnerClass}>
+        {/* Mobile-only brand badge */}
+        <div className={authMobileBrandClass}>
+          <div className={authMobileMarkClass}>V</div>
+          VaultSaaS
+        </div>
+
         <div className={authEyebrowClass}>Security</div>
         <h1 className={authTitleClass}>Set new password</h1>
         <p className={`${authSubtitleClass} mb-6`}>

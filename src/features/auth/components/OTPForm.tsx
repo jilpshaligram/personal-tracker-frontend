@@ -13,6 +13,8 @@ import {
   authEyebrowClass,
   authFormInnerClass,
   authFormPaneClass,
+  authMobileBrandClass,
+  authMobileMarkClass,
   authMutedLinkClass,
   authPrimaryButtonClass,
   authSubtitleClass,
@@ -208,12 +210,18 @@ export const OTPForm: React.FC<OTPFormProps> = ({
   return (
     <div className={authFormPaneClass}>
       <div className={authFormInnerClass}>
+        {/* Mobile-only brand badge */}
+        <div className={authMobileBrandClass}>
+          <div className={authMobileMarkClass}>V</div>
+          VaultSaaS
+        </div>
+
         <div className={authEyebrowClass}>{currentEyebrow}</div>
         <h1 className={authTitleClass}>{currentTitle}</h1>
         <p className={authSubtitleClass}>
           We sent a 6-digit code to{' '}
-          <strong className="font-semibold text-[#16274F]">{displayEmail}</strong>. Enter it below
-          to continue.
+          <strong className="font-semibold text-[#16274F] break-all">{displayEmail}</strong>. Enter
+          it below to continue.
         </p>
 
         {error && (
@@ -223,7 +231,10 @@ export const OTPForm: React.FC<OTPFormProps> = ({
         )}
 
         <form onSubmit={handleSubmit}>
-          <div className="mb-2 flex gap-2.5" onPaste={handlePaste}>
+          <div
+            className="mb-2 flex items-center justify-between sm:justify-start gap-1.5 sm:gap-2.5 max-w-full"
+            onPaste={handlePaste}
+          >
             {digits.map((d, i) => (
               <input
                 key={i}
@@ -236,7 +247,7 @@ export const OTPForm: React.FC<OTPFormProps> = ({
                 onChange={(e) => handleChange(i, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(i, e)}
                 className={[
-                  "h-[52px] w-[46px] rounded-[10px] border text-center font-['JetBrains_Mono',monospace] text-xl font-semibold text-[#16274F] outline-none transition-[border-color,box-shadow,background-color]",
+                  "h-12 w-10 sm:h-[52px] sm:w-[46px] flex-1 sm:flex-initial max-w-[48px] rounded-[10px] border text-center font-['JetBrains_Mono',monospace] text-lg sm:text-xl font-semibold text-[#16274F] outline-none transition-[border-color,box-shadow,background-color]",
                   d
                     ? 'border-[#2F5FE0] bg-white shadow-[0_0_0_3px_rgba(47,95,224,0.12)]'
                     : 'border-[#E5E9F2] bg-[#FBFCFE]',

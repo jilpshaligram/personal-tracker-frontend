@@ -11,6 +11,8 @@ import {
   authInputClass,
   authLabelClass,
   authLinkClass,
+  authMobileBrandClass,
+  authMobileMarkClass,
   authPrimaryButtonClass,
   authSubtitleClass,
   authTitleClass,
@@ -157,6 +159,12 @@ export const RegisterForm: React.FC = () => {
   return (
     <div className={authFormPaneClass}>
       <div className={authFormInnerClass}>
+        {/* Mobile-only brand badge */}
+        <div className={authMobileBrandClass}>
+          <div className={authMobileMarkClass}>V</div>
+          VaultSaaS
+        </div>
+
         <div className={authEyebrowClass}>Get started</div>
         <h1 className={authTitleClass}>Create your account</h1>
         <p className={authSubtitleClass}>
@@ -170,7 +178,7 @@ export const RegisterForm: React.FC = () => {
         )}
 
         <form onSubmit={handleSubmit}>
-          <div className="mb-4 grid grid-cols-2 gap-3">
+          <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
               <label className={authLabelClass}>First name</label>
               <input
@@ -233,13 +241,13 @@ export const RegisterForm: React.FC = () => {
             {errors.phone && <p className="mt-1 text-xs text-[#E5484D]">{errors.phone}</p>}
           </div>
 
-          <div className="mb-4 grid grid-cols-2 gap-3">
+          <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
               <label className={authLabelClass}>Date of birth</label>
               <input
                 className={authInputClass(focused === 'dob')}
                 type={dobFocused || form.dob ? 'date' : 'text'}
-                placeholder="DD / MM / YYYY"
+                placeholder="YYYY-MM-DD"
                 value={form.dob}
                 onChange={update('dob')}
                 onFocus={() => {
