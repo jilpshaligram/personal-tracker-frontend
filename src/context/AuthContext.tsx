@@ -10,6 +10,9 @@ export interface User {
   email?: string;
   firstName?: string;
   lastName?: string;
+  phone?: string;
+  isEmailVerified?: boolean;
+  isPinCreated?: boolean;
 }
 
 interface AuthContextType {
@@ -61,7 +64,12 @@ async function verifyToken(): Promise<User | null> {
       return null;
     }
 
-    const verifiedUser = json.data.user;
+    const verifiedUser: User = {
+      id: json.data.user.id,
+      sub: json.data.user.sub,
+      role: json.data.user.role,
+      sessionId: json.data.user.sessionId,
+    };
 
     try {
       const profileResponse = await axios.get('/api/v1/users/me', {
@@ -74,6 +82,9 @@ async function verifyToken(): Promise<User | null> {
           firstName?: string;
           lastName?: string;
           email?: string;
+          phone?: string;
+          isEmailVerified?: boolean;
+          isPinCreated?: boolean;
         };
       };
       if (profileJson.success && profileJson.data) {
@@ -82,6 +93,9 @@ async function verifyToken(): Promise<User | null> {
           firstName: profileJson.data.firstName,
           lastName: profileJson.data.lastName,
           email: profileJson.data.email,
+          phone: profileJson.data.phone,
+          isEmailVerified: profileJson.data.isEmailVerified,
+          isPinCreated: profileJson.data.isPinCreated,
         } as User;
       }
     } catch (err) {
