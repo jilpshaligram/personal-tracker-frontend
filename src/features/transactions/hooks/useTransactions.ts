@@ -97,6 +97,16 @@ export function useTransactions() {
     }
   };
 
+  const createTransactionCategory = async (data: Partial<TransactionCategory>) => {
+    try {
+      const newCategory = await transactionService.createTransactionCategory(data);
+      await fetchDependencies(); // refresh categories list globally
+      return newCategory;
+    } catch (err: any) {
+      throw new Error(err?.response?.data?.message || 'Failed to create custom category');
+    }
+  };
+
   return {
     transactions,
     categories,
@@ -109,6 +119,7 @@ export function useTransactions() {
     createTransaction,
     updateTransaction,
     deleteTransaction,
+    createTransactionCategory,
     refetch: fetchTransactions,
   };
 }

@@ -10,6 +10,12 @@ interface ApiSuccessResponse<T> {
   success: boolean;
   message: string;
   data: T;
+  meta?: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
 }
 
 export const transactionService = {
@@ -27,22 +33,17 @@ export const transactionService = {
     if (filters.startDate) params.append('startDate', filters.startDate);
     if (filters.endDate) params.append('endDate', filters.endDate);
 
-    const { data } = await apiClient.get<
-      ApiSuccessResponse<PaginatedResponse<Transaction> | Transaction[]>
-    >('/transactions?' + params.toString());
-    const resData = data.data;
+    const { data } = await apiClient.get<ApiSuccessResponse<Transaction[]>>(
+      '/transactions?' + params.toString()
+    );
 
-    if (Array.isArray(resData)) {
-      return {
-        data: resData,
-        total: resData.length,
-        page: 1,
-        limit: resData.length,
-        totalPages: 1,
-      };
-    }
-
-    return resData;
+    return {
+      data: data.data || [],
+      total: data.meta?.total || (Array.isArray(data.data) ? data.data.length : 0),
+      page: data.meta?.page || 1,
+      limit: data.meta?.limit || (Array.isArray(data.data) ? data.data.length : 10),
+      totalPages: data.meta?.totalPages || 1,
+    };
   },
 
   getTransaction: async (id: string): Promise<Transaction> => {
@@ -75,5 +76,15 @@ export const transactionService = {
       ApiSuccessResponse<TransactionCategory[] | { data: TransactionCategory[] }>
     >('/transaction-categories?limit=100');
     return Array.isArray(data.data) ? data.data : data.data.data || [];
+  },
+
+  createTransactionCategory: async (
+    payload: Partial<TransactionCategory>
+  ): Promise<TransactionCategory> => {
+    const { data } = await apiClient.post<ApiSuccessResponse<TransactionCategory>>(
+      '/transaction-categories',
+      payload
+    );
+    return data.data;
   },
 };

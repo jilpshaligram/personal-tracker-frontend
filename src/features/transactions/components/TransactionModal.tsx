@@ -21,6 +21,7 @@ interface TransactionModalProps {
   onSubmit: (data: Partial<Transaction>) => Promise<boolean>;
   initialData?: Transaction | null;
   categories: TransactionCategory[];
+  onCreateCategory: (data: Partial<TransactionCategory>) => Promise<TransactionCategory>;
 }
 
 export function TransactionModal({
@@ -29,6 +30,7 @@ export function TransactionModal({
   onSubmit,
   initialData,
   categories,
+  onCreateCategory,
 }: TransactionModalProps) {
   const [type, setType] = useState<TransactionType>('EXPENSE');
   const [amount, setAmount] = useState<string>('');
@@ -38,6 +40,10 @@ export function TransactionModal({
   const [description, setDescription] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // Custom Category State
+  const [customCategoryName, setCustomCategoryName] = useState<string>('');
+  const [temporaryCategory, setTemporaryCategory] = useState<TransactionCategory | null>(null);
 
   useEffect(() => {
     if (open) {
@@ -71,12 +77,41 @@ export function TransactionModal({
         setDescription('');
       }
       setError(null);
+      setCustomCategoryName('');
+      setTemporaryCategory(null);
     }
   }, [open, initialData]);
 
   const handleTypeChange = (val: string) => {
     setType(val as TransactionType);
     setCategoryId('');
+    setCustomCategoryName('');
+    setTemporaryCategory(null);
+  };
+
+  const handleCustomCategoryConfirm = (e?: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e && e.key !== 'Enter') return;
+    if (e) e.preventDefault();
+
+    const trimmedName = customCategoryName.trim();
+    if (!trimmedName) return;
+
+    const existingCategory = categories.find(
+      (c) => c.name.toLowerCase() === trimmedName.toLowerCase() && c.type === type
+    );
+
+    if (existingCategory) {
+      setError(`Category "${existingCategory.name}" already exists.`);
+      return;
+    }
+
+    setError(null);
+    setTemporaryCategory({
+      id: 'temp-custom-id',
+      name: trimmedName,
+      type: type,
+    });
+    setCategoryId('temp-custom-id');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -92,10 +127,44 @@ export function TransactionModal({
     if (!transactionDate) return setError('Transaction date is required');
 
     setLoading(true);
+
+    let finalCategoryId = categoryId;
+    const trimmedCustomName = customCategoryName.trim();
+
+    // Handle Custom Category Creation
+    if (categoryId === 'temp-custom-id' || (categoryId === 'other' && trimmedCustomName)) {
+      // Prevent duplicates locally first
+      const existingCategory = categories.find(
+        (c) => c.name.toLowerCase() === trimmedCustomName.toLowerCase() && c.type === type
+      );
+
+      if (existingCategory) {
+        setLoading(false);
+        setError(
+          `Category "${existingCategory.name}" already exists. Please select it from the list.`
+        );
+        setCategoryId('other');
+        return;
+      }
+
+      try {
+        const newCat = await onCreateCategory({
+          name: trimmedCustomName,
+          type: type,
+        });
+        finalCategoryId = newCat.id || newCat._id || '';
+      } catch (err: any) {
+        setLoading(false);
+        setError(err.message || 'Failed to create custom category');
+        setCategoryId('other'); // Keep it open for them to fix
+        return;
+      }
+    }
+
     const success = await onSubmit({
       type,
       amount: amountNum,
-      categoryId,
+      categoryId: finalCategoryId,
       paymentMethod,
       description,
       transactionDate: new Date(transactionDate).toISOString(),
@@ -108,10 +177,16 @@ export function TransactionModal({
   };
 
   const filteredCategories = categories.filter((c) => c.type === type);
+  if (temporaryCategory && temporaryCategory.type === type) {
+    // Only add if it doesn't already exist somehow
+    if (!filteredCategories.find((c) => c.id === temporaryCategory.id)) {
+      filteredCategories.push(temporaryCategory);
+    }
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>{initialData ? 'Edit Transaction' : 'Add Transaction'}</DialogTitle>
         </DialogHeader>
@@ -158,8 +233,23 @@ export function TransactionModal({
                       {c.name}
                     </SelectItem>
                   ))}
+                  <SelectItem value="other" className="font-semibold text-blue-600">
+                    + Other (Add Custom)
+                  </SelectItem>
                 </SelectContent>
               </Select>
+              {categoryId === 'other' && (
+                <div className="mt-2 animate-in fade-in zoom-in-95 duration-200">
+                  <Input
+                    placeholder="Type category and press Enter..."
+                    value={customCategoryName}
+                    onChange={(e) => setCustomCategoryName(e.target.value)}
+                    onKeyDown={handleCustomCategoryConfirm}
+                    onBlur={() => handleCustomCategoryConfirm()}
+                    autoFocus
+                  />
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">

@@ -43,11 +43,4 @@ export interface PaginatedResponse<T> {
   totalPages: number;
 }
 
-export const PAYMENT_METHODS = [
-  'CASH',
-  'CREDIT_CARD',
-  'DEBIT_CARD',
-  'UPI',
-  'BANK_TRANSFER',
-  'OTHER',
-];
+export const PAYMENT_METHODS = ['CASH', 'UPI', 'CARD', 'BANK_TRANSFER'];

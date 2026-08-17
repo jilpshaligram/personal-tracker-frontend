@@ -5,6 +5,7 @@ import {
   stockFeatures,
   type ColumnDef,
 } from '@tanstack/react-table';
+import { ArrowDownCircle, ArrowUpCircle, ArrowRightLeft } from 'lucide-react';
 import { Button } from '../../../components/ui/button';
 import { Badge } from '../../../components/ui/badge';
 import {
@@ -60,22 +61,29 @@ export function TransactionTable({
           categoryName = found ? found.name : String(val);
         }
 
-        const isSaving = !categoryName || categoryName.trim() === '';
-        const displayValue = isSaving ? 'Saving' : categoryName;
-        const colorClass = isSaving ? 'text-blue-600 font-medium' : 'text-slate-700';
-
-        return <span className={colorClass}>{displayValue}</span>;
+        const displayValue =
+          !categoryName || categoryName.trim() === '' ? 'Uncategorized' : categoryName;
+        return <span className="text-slate-600">{displayValue}</span>;
       },
     }),
     columnHelper.accessor('type', {
       header: 'Type',
       cell: (info) => {
         const type = info.getValue();
+        let Icon = ArrowRightLeft;
+        let colorClass = 'bg-slate-100 text-slate-700';
+
+        if (type === 'INCOME') {
+          Icon = ArrowDownCircle;
+          colorClass = 'bg-green-100 text-green-700';
+        } else if (type === 'EXPENSE') {
+          Icon = ArrowUpCircle;
+          colorClass = 'bg-red-100 text-red-700';
+        }
+
         return (
-          <Badge
-            variant={type === 'INCOME' ? 'outline' : 'secondary'}
-            className={type === 'INCOME' ? 'text-green-600' : 'text-red-500'}
-          >
+          <Badge variant="secondary" className={`flex w-fit items-center gap-1.5 ${colorClass}`}>
+            <Icon className="h-3.5 w-3.5" />
             {type}
           </Badge>
         );
@@ -93,31 +101,20 @@ export function TransactionTable({
       cell: (info) => {
         const amount = info.getValue();
         const type = info.row.original.type;
-        const categoryVal = info.row.original.categoryId;
 
-        let categoryName = '';
-        if (typeof categoryVal === 'object' && categoryVal !== null) {
-          categoryName = categoryVal.name;
-        } else if (categoryVal) {
-          const found = categories.find((c) => c.id === categoryVal || c._id === categoryVal);
-          categoryName = found ? found.name : String(categoryVal);
-        }
+        let colorClass = 'text-slate-600';
+        let sign = '';
 
-        const isSaving = !categoryName || categoryName.trim() === '';
-
-        let colorClass;
-        let sign;
-
-        if (isSaving) {
-          colorClass = 'text-blue-600';
-          sign = '';
-        } else {
-          colorClass = type === 'INCOME' ? 'text-green-600' : 'text-red-600';
-          sign = type === 'INCOME' ? '+' : '-';
+        if (type === 'INCOME') {
+          colorClass = 'text-green-600';
+          sign = '+';
+        } else if (type === 'EXPENSE') {
+          colorClass = 'text-red-600';
+          sign = '-';
         }
 
         return (
-          <span className={`font-medium ${colorClass}`}>
+          <span className={`font-semibold ${colorClass} text-right block pr-4`}>
             {sign}₹{amount.toFixed(2)}
           </span>
         );
@@ -139,11 +136,14 @@ export function TransactionTable({
     <div className="space-y-4">
       <div className="rounded-md border bg-white overflow-x-auto">
         <Table>
-          <TableHeader>
+          <TableHeader className="bg-slate-50/50">
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
+              <TableRow key={headerGroup.id} className="hover:bg-transparent">
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id} className="whitespace-nowrap">
+                  <TableHead
+                    key={header.id}
+                    className="whitespace-nowrap uppercase tracking-wider text-slate-500 text-xs font-semibold"
+                  >
                     {flexRender(header.column.columnDef.header, header.getContext())}
                   </TableHead>
                 ))}
@@ -165,9 +165,9 @@ export function TransactionTable({
               </TableRow>
             ) : (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id}>
+                <TableRow key={row.id} className="hover:bg-slate-50/50 transition-colors">
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="whitespace-nowrap">
+                    <TableCell key={cell.id} className="whitespace-nowrap py-4">
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}
