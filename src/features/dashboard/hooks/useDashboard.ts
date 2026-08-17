@@ -47,7 +47,7 @@ export function useDashboard() {
       // 3. Fetch dependent data
       const [statsData, budgetData, categoryData] = await Promise.all([
         dashboardService.getStats(income, expense),
-        dashboardService.getBudgetOverview(period, expense),
+        dashboardService.getBudgetOverview(),
         dashboardService.getCategoryBreakdown(period, transactions, expense),
       ]);
 

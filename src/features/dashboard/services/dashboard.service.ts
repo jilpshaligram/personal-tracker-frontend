@@ -16,13 +16,15 @@ interface ApiSuccessResponse<T> {
   data: T;
 }
 
+import { getDateRange } from '../utils/date.utils';
+
 interface SavingGoalDto {
   savedAmount?: number;
 }
 
 interface BudgetDto {
-  period?: string;
-  isActive?: boolean;
+  isActive: boolean;
+  period: string;
   amount: number;
 }
 
@@ -32,16 +34,16 @@ interface CategoryDto {
   name: string;
 }
 
-interface DocumentAlertDto {
+interface DocumentDto {
   id?: string;
   _id?: string;
   title: string;
-  status: 'SAFE' | 'WARNING' | 'EXPIRED' | string;
+  status: 'active' | 'expiring' | 'expired';
   expiryDate: string;
   daysRemaining?: number;
 }
 
-interface UpcomingBillDto {
+interface BillDto {
   id?: string;
   _id?: string;
   title?: string;
@@ -93,31 +95,38 @@ export const dashboardService = {
     }
   },
 
-  getBudgetOverview: async (period: Period, totalSpent: number): Promise<BudgetOverview | null> => {
+  getBudgetOverview: async (): Promise<BudgetOverview | null> => {
     try {
       const res = await apiClient.get<ApiSuccessResponse<BudgetDto[]>>('/budgets');
       const budgets = res.data?.data || [];
-      const matchingBudget = budgets.find(
-        (b: BudgetDto) => b.period === period.toUpperCase() && b.isActive
-      );
+      const activeBudget = budgets.find((b: BudgetDto) => b.isActive);
 
-      if (!matchingBudget) {
+      if (!activeBudget) {
         return {
-          period,
+          period: 'monthly',
           hasBudget: false,
           totalBudget: 0,
-          totalSpent,
+          totalSpent: 0,
           remainingAmount: 0,
           percentageConsumed: 0,
         };
       }
 
-      const totalBudget = matchingBudget.amount;
+      const budgetPeriod = activeBudget.period.toLowerCase() as Period;
+      const { startDate, endDate } = getDateRange(budgetPeriod);
+
+      const transactions = await dashboardService.getTransactionsForPeriod(startDate, endDate);
+      let totalSpent = 0;
+      transactions.forEach((tx) => {
+        if (tx.type === 'EXPENSE') totalSpent += tx.amount;
+      });
+
+      const totalBudget = activeBudget.amount;
       const remainingAmount = totalBudget - totalSpent;
       const percentageConsumed = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
 
       return {
-        period,
+        period: budgetPeriod,
         hasBudget: true,
         totalBudget,
         totalSpent,
@@ -177,12 +186,11 @@ export const dashboardService = {
 
   getDocumentAlerts: async (): Promise<DocumentAlert[]> => {
     try {
-      const res =
-        await apiClient.get<ApiSuccessResponse<DocumentAlertDto[]>>('/documents/expiring');
-      return (res.data?.data || []).map((doc: DocumentAlertDto) => ({
+      const res = await apiClient.get<ApiSuccessResponse<DocumentDto[]>>('/documents/expiring');
+      return (res.data?.data || []).map((doc: DocumentDto) => ({
         id: (doc.id || doc._id) as string,
         title: doc.title,
-        status: doc.status as DocumentAlert['status'],
+        status: doc.status === 'expired' ? 'EXPIRED' : 'NEARING_EXPIRY',
         expiryDate: doc.expiryDate,
         daysRemaining: doc.daysRemaining || 0,
       }));
@@ -194,8 +202,8 @@ export const dashboardService = {
 
   getUpcomingBills: async (): Promise<UpcomingBill[]> => {
     try {
-      const res = await apiClient.get<ApiSuccessResponse<UpcomingBillDto[]>>('/bills/upcoming');
-      return (res.data?.data || []).map((bill: UpcomingBillDto) => ({
+      const res = await apiClient.get<ApiSuccessResponse<BillDto[]>>('/bills/upcoming');
+      return (res.data?.data || []).map((bill: BillDto) => ({
         id: (bill.id || bill._id) as string,
         title: (bill.title || bill.name) as string,
         dueDate: bill.dueDate,
