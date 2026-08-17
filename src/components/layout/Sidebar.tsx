@@ -1,10 +1,9 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, Link } from 'react-router-dom';
 import {
   LayoutDashboard,
   FileText,
   ArrowLeftRight,
   WalletCards,
-  BarChart3,
   Receipt,
   PiggyBank,
   Settings,
@@ -23,7 +22,7 @@ const navItems: NavItem[] = [
   { path: '/documents', label: 'Documents', icon: FileText },
   { path: '/transactions', label: 'Transactions', icon: ArrowLeftRight },
   { path: '/budgets', label: 'Budgets', icon: WalletCards },
-  { path: '/analytics', label: 'Analytics', icon: BarChart3 },
+  // { path: '/analytics', label: 'Analytics', icon: BarChart3 },
   { path: '/bills', label: 'Bills', icon: Receipt },
   { path: '/savings', label: 'Savings', icon: PiggyBank },
   { path: '/settings', label: 'Settings', icon: Settings },
@@ -55,14 +54,23 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         aria-label="Main navigation"
       >
         <div className="flex items-center justify-between px-5 py-5 border-b border-slate-100">
-          <div>
-            <span className="block text-lg font-bold text-blue-600 leading-tight tracking-tight">
-              VaultSaaS
+          <Link
+            to="/dashboard"
+            onClick={onClose}
+            className="flex items-center gap-3 hover:opacity-90 transition-opacity cursor-pointer group"
+          >
+            <span className="flex items-center justify-center w-8.5 h-8.5 rounded-lg bg-blue-600 text-white font-bold text-base select-none shrink-0 group-hover:scale-[1.02] transition-transform">
+              V
             </span>
-            <span className="block text-xs text-slate-400 font-medium mt-0.5">
-              Personal Finance
-            </span>
-          </div>
+            <div>
+              <span className="block text-base font-bold text-slate-800 leading-tight tracking-tight">
+                VaultSaaS
+              </span>
+              <span className="block text-[10px] text-slate-400 font-medium mt-0.5">
+                Personal Finance
+              </span>
+            </div>
+          </Link>
 
           <button
             type="button"
