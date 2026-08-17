@@ -59,7 +59,6 @@ export function DocumentTable({ documents, onDocumentClick }: DocumentTableProps
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    // Handle more actions
                   }}
                   className="p-1 hover:bg-slate-100 rounded transition-colors"
                 >

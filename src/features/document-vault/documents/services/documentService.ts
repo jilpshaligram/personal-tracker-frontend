@@ -50,13 +50,11 @@ interface BackendDocumentsResponse {
 }
 
 export const documentService = {
-  // Get all documents with optional filters
   getDocuments: async (filters?: DocumentFilters): Promise<Document[]> => {
     const response = await apiClient.get<BackendDocumentsResponse>('/documents', {
       params: filters,
     });
 
-    // Map backend documents to frontend Document type
     const backendDocs = Array.isArray(response.data?.data)
       ? response.data.data
       : response.data?.data?.data || [];
@@ -86,7 +84,6 @@ export const documentService = {
           })
         : undefined;
 
-      // Handle categoryId which might be string or object
       let catId = '';
       if (doc.categoryId) {
         if (typeof doc.categoryId === 'object') {
@@ -119,16 +116,11 @@ export const documentService = {
     });
   },
 
-  // Get a single document by ID
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   getDocumentById: async (_id: string) => {
-    // TODO: Implement API call
-    // const response = await apiClient.get<Document>(`/documents/${id}`);
-    // return response.data;
+    void _id;
     return null as unknown as Document;
   },
 
-  // Upload a new document
   uploadDocument: async (data: DocumentUploadData) => {
     const formData = new FormData();
     formData.append('file', data.file);
@@ -147,7 +139,6 @@ export const documentService = {
     return response.data;
   },
 
-  // Update document metadata
   updateDocument: async (id: string, formData: FormData) => {
     const response = await apiClient.patch<Document>(`/documents/${id}`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
@@ -155,12 +146,10 @@ export const documentService = {
     return response.data;
   },
 
-  // Delete a document
   deleteDocument: async (id: string) => {
     await apiClient.delete(`/documents/${id}`);
   },
 
-  // Download a document
   downloadDocument: async (id: string) => {
     const response = await apiClient.get(`/documents/${id}/download`, {
       responseType: 'blob',
@@ -168,18 +157,11 @@ export const documentService = {
     return response.data;
   },
 
-  // Get document versions
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   getDocumentVersions: async (_id: string) => {
-    // TODO: Implement API call
-    // const response = await apiClient.get<DocumentVersion[]>(
-    //   `/documents/${id}/versions`
-    // );
-    // return response.data;
+    void _id;
     return [] as DocumentVersion[];
   },
 
-  // Share document
   shareDocument: async (id: string, emails: string[]) => {
     const response = await apiClient.post(`/documents/${id}/share`, { emails });
     return response.data;

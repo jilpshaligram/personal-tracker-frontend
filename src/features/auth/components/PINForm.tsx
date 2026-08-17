@@ -29,7 +29,7 @@ export const PINForm: React.FC<PINFormProps> = ({
   showForgotPin = false,
   isSubmitting = false,
   onForgotPin,
-  onComplete = (pin) => console.log('PIN set:', pin),
+  onComplete,
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -52,11 +52,6 @@ export const PINForm: React.FC<PINFormProps> = ({
     if (v && i < 3) {
       inputsRef.current[i + 1]?.focus();
     }
-
-    const pinStr = next.join('');
-    if (!isSubmitting && pinStr.length === 4 && next.every((d) => d !== '')) {
-      setTimeout(() => onComplete(pinStr), 200);
-    }
   };
 
   const handleKeyDown = (i: number, e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -77,17 +72,13 @@ export const PINForm: React.FC<PINFormProps> = ({
     setDigits(next);
     const lastIndex = Math.min(text.length, 4) - 1;
     if (lastIndex >= 0) inputsRef.current[lastIndex]?.focus();
-
-    if (!isSubmitting && text.length === 4) {
-      setTimeout(() => onComplete(text), 200);
-    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const pinStr = digits.join('');
     if (!isSubmitting && pinStr.length === 4) {
-      onComplete(pinStr);
+      onComplete?.(pinStr);
     }
   };
 
@@ -104,10 +95,7 @@ export const PINForm: React.FC<PINFormProps> = ({
 
       try {
         setForgotPinError('');
-        // Call forgot PIN API to send OTP
         await forgotPin(email);
-
-        // Navigate to OTP verification
         navigate('/verify-otp', { state: { flow: 'forgot-pin', email } });
       } catch (err) {
         setForgotPinError(

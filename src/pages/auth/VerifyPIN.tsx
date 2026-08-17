@@ -1,13 +1,16 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { verifyPin } from '../../features/auth/services/authService';
 import { VaultPINBrandPanel } from '../../features/auth/components/VaultPINBrandPanel';
 import { PINForm } from '../../features/auth/components/PINForm';
 import { authPageClass, authShellClass } from '../../features/auth/components/authTailwind';
+import { useAuth } from '../../context/AuthContext';
+import type { User } from '../../context/AuthContext';
 
 export const VerifyPIN: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { login, verifyAuth } = useAuth();
   const locationState = (location.state as { email?: string } | null) || {};
 
   const [error, setError] = useState('');
@@ -25,9 +28,20 @@ export const VerifyPIN: React.FC = () => {
       setIsSubmitting(true);
       setError('');
 
-      await verifyPin({ email, pin });
+      const response = await verifyPin({ email, pin });
 
-      // Navigate to dashboard on success
+      const userData = response.data?.user || (response as { user?: unknown }).user;
+
+      if (userData && typeof userData === 'object') {
+        login(userData as User);
+        await verifyAuth();
+      } else {
+        const authenticated = await verifyAuth();
+        if (!authenticated) {
+          throw new Error('Session could not be established. Please try again.');
+        }
+      }
+
       navigate('/');
     } catch (submitError) {
       setError(

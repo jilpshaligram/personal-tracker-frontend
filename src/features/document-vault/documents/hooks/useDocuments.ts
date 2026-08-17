@@ -1,16 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { documentService } from '../services/documentService';
 import type { DocumentUploadData, DocumentFilters, Document } from '../types/document';
-
-// Placeholder hooks - these will be implemented when React Query is added
-// to the project dependencies
 
 export const useDocuments = (filters?: DocumentFilters) => {
   const [data, setData] = useState<Document[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const fetchDocuments = async () => {
+  const filterString = JSON.stringify(filters);
+
+  const fetchDocuments = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
@@ -22,9 +21,8 @@ export const useDocuments = (filters?: DocumentFilters) => {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const filterString = JSON.stringify(filters);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterString]);
 
   useEffect(() => {
     let active = true;
@@ -36,8 +34,7 @@ export const useDocuments = (filters?: DocumentFilters) => {
     return () => {
       active = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filterString]);
+  }, [fetchDocuments]);
 
   return {
     data,
@@ -48,7 +45,6 @@ export const useDocuments = (filters?: DocumentFilters) => {
 };
 
 export const useDocument = () => {
-  // TODO: Implement with useQuery
   return {
     data: null,
     isLoading: false,
@@ -160,7 +156,6 @@ export const useDownloadDocument = () => {
 };
 
 export const useDocumentVersions = () => {
-  // TODO: Implement with useQuery
   return {
     data: [],
     isLoading: false,

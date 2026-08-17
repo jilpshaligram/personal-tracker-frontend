@@ -32,7 +32,6 @@ export const PINSetup: React.FC = () => {
         setError('');
 
         if (isForgotPinFlow) {
-          // Reset PIN flow - no onboarding token needed
           const email = locationState.email;
 
           if (!email) {
@@ -51,7 +50,6 @@ export const PINSetup: React.FC = () => {
           alert('PIN reset successfully!');
           navigate('/login');
         } else {
-          // First-time PIN creation - requires onboarding token
           const onboardingToken = locationState.onboardingToken;
 
           if (!onboardingToken) {
