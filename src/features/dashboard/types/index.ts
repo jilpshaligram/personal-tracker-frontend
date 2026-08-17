@@ -44,7 +44,7 @@ export interface RecentTransaction {
   category: string;
   date: string;
   amount: number;
-  type: 'INCOME' | 'EXPENSE';
+  type: 'INCOME' | 'EXPENSE' | 'TRANSFER_TO_SAVING' | 'TRANSFER_FROM_SAVING' | 'OPENING_BALANCE';
 }
 
 export interface DashboardStats {
@@ -52,4 +52,19 @@ export interface DashboardStats {
   monthlyIncome: number;
   monthlyExpense: number;
   totalSavings: number;
+  totalTargetSavings: number;
+}
+
+export interface DashboardSummaryData {
+  period: string;
+  startDate: string;
+  endDate: string;
+  stats: DashboardStats;
+  budgetOverview: BudgetOverview;
+  categoryBreakdown: {
+    categories: CategoryBreakdownItem[];
+  };
+  documentAlerts: DocumentAlert[];
+  upcomingBills: UpcomingBill[];
+  recentTransactions: RecentTransaction[];
 }

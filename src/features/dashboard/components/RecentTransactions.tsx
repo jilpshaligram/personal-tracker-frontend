@@ -17,11 +17,25 @@ interface RecentTransactionsProps {
 }
 
 export function RecentTransactions({ transactions, loading }: RecentTransactionsProps) {
-  const formatCurrency = (val: number, type: 'INCOME' | 'EXPENSE') => {
+  const getTransactionStyles = (type: string) => {
+    switch (type) {
+      case 'INCOME':
+      case 'OPENING_BALANCE':
+      case 'TRANSFER_FROM_SAVING':
+        return { sign: '+', colorClass: 'text-emerald-600' };
+      case 'TRANSFER_TO_SAVING':
+        return { sign: '-', colorClass: 'text-blue-600' };
+      case 'EXPENSE':
+      default:
+        return { sign: '-', colorClass: 'text-red-500' };
+    }
+  };
+
+  const formatCurrency = (val: number, sign: string) => {
     const formatted = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(
       val
     );
-    return type === 'INCOME' ? `+${formatted}` : `-${formatted}`;
+    return `${sign}${formatted}`;
   };
 
   const formatDate = (dateStr: string) => {
@@ -41,7 +55,7 @@ export function RecentTransactions({ transactions, loading }: RecentTransactions
           View All
         </Link>
       </CardHeader>
-      <CardContent className="flex-1">
+      <CardContent className="flex-1 overflow-x-auto">
         {loading ? (
           <div className="flex items-center justify-center min-h-[200px] text-slate-400">
             Loading recent transactions...
@@ -54,26 +68,30 @@ export function RecentTransactions({ transactions, loading }: RecentTransactions
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Entity / Description</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
+                <TableHead className="whitespace-nowrap">Entity / Description</TableHead>
+                <TableHead className="whitespace-nowrap">Category</TableHead>
+                <TableHead className="whitespace-nowrap">Date</TableHead>
+                <TableHead className="text-right whitespace-nowrap">Amount</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {transactions.map((txn) => (
                 <TableRow key={txn.id}>
-                  <TableCell className="font-medium text-slate-900">{txn.entity}</TableCell>
-                  <TableCell>
+                  <TableCell className="font-medium text-slate-900 whitespace-nowrap">
+                    {txn.entity}
+                  </TableCell>
+                  <TableCell className="whitespace-nowrap">
                     <Badge variant="secondary" className="font-normal">
                       {txn.category}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-slate-500">{formatDate(txn.date)}</TableCell>
+                  <TableCell className="text-slate-500 whitespace-nowrap">
+                    {formatDate(txn.date)}
+                  </TableCell>
                   <TableCell
-                    className={`text-right font-semibold ${txn.type === 'INCOME' ? 'text-emerald-600' : 'text-slate-900'}`}
+                    className={`text-right font-semibold whitespace-nowrap ${getTransactionStyles(txn.type).colorClass}`}
                   >
-                    {formatCurrency(txn.amount, txn.type)}
+                    {formatCurrency(txn.amount, getTransactionStyles(txn.type).sign)}
                   </TableCell>
                 </TableRow>
               ))}

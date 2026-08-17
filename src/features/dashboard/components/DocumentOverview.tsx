@@ -26,7 +26,7 @@ export function DocumentOverview({ alerts, loading }: DocumentOverviewProps) {
       <CardHeader>
         <CardTitle>Document Vault Alerts</CardTitle>
       </CardHeader>
-      <CardContent className="flex-1">
+      <CardContent className="flex-1 overflow-x-auto">
         {alerts.length === 0 ? (
           <div className="flex items-center justify-center h-full min-h-[150px] text-sm text-slate-500">
             No document expiry alerts
@@ -36,7 +36,7 @@ export function DocumentOverview({ alerts, loading }: DocumentOverviewProps) {
             {alerts.map((alert) => (
               <div
                 key={alert.id}
-                className="flex items-start justify-between border-b border-slate-100 last:border-0 pb-3 last:pb-0"
+                className="flex items-start justify-between border-b border-slate-100 last:border-0 pb-3 last:pb-0 min-w-max gap-4"
               >
                 <div>
                   <p className="font-medium text-slate-900">{alert.title}</p>

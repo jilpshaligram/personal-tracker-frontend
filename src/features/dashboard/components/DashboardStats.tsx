@@ -132,10 +132,15 @@ export function DashboardStats({ stats, loading, period }: DashboardStatsProps) 
           </span>
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">
-            {loading ? '---' : stats ? formatCurrency(stats.totalSavings) : '₹0.00'}
+          <div className="flex items-baseline gap-2">
+            <span className="text-2xl font-bold">
+              {loading ? '---' : stats ? formatCurrency(stats.totalSavings) : '₹0.00'}
+            </span>
+            <span className="text-sm text-slate-500 font-medium">
+              / {loading ? '---' : stats ? formatCurrency(stats.totalTargetSavings) : '₹0.00'}
+            </span>
           </div>
-          <p className="text-xs text-slate-500 mt-1">From saving goals</p>
+          <p className="text-xs text-slate-500 mt-1">Saved / Target for active goals</p>
         </CardContent>
       </Card>
     </div>

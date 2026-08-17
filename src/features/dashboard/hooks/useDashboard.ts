@@ -9,7 +9,6 @@ import type {
   DashboardStats,
 } from '../types';
 import { dashboardService } from '../services/dashboard.service';
-import { getDateRange } from '../utils/date.utils';
 
 export function useDashboard() {
   const [period, setPeriod] = useState<Period>('monthly');
@@ -27,36 +26,24 @@ export function useDashboard() {
     setLoading(true);
     setError(null);
     try {
-      const { startDate, endDate } = getDateRange(period);
+      const data = await dashboardService.getDashboardSummary(period);
 
-      // 1. Fetch all parallel independent data (transactions, docs, bills)
-      const [transactions, docsData, billsData] = await Promise.all([
-        dashboardService.getTransactionsForPeriod(startDate, endDate),
-        dashboardService.getDocumentAlerts(),
-        dashboardService.getUpcomingBills(),
-      ]);
+      setStats(data.stats);
 
-      // 2. Calculate Income and Expense
-      let income = 0;
-      let expense = 0;
-      transactions.forEach((tx) => {
-        if (tx.type === 'INCOME') income += tx.amount;
-        if (tx.type === 'EXPENSE') expense += tx.amount;
+      setBudgetOverview({
+        ...data.budgetOverview,
+        period: data.budgetOverview.period.toLowerCase() as Period,
       });
 
-      // 3. Fetch dependent data
-      const [statsData, budgetData, categoryData] = await Promise.all([
-        dashboardService.getStats(income, expense),
-        dashboardService.getBudgetOverview(),
-        dashboardService.getCategoryBreakdown(period, transactions, expense),
-      ]);
+      setCategoryBreakdown({
+        period: (data.period || period).toLowerCase() as Period,
+        totalSpent: data.budgetOverview?.totalSpent || 0,
+        categories: data.categoryBreakdown?.categories || [],
+      });
 
-      setStats(statsData);
-      setBudgetOverview(budgetData);
-      setCategoryBreakdown(categoryData);
-      setDocumentAlerts(docsData);
-      setUpcomingBills(billsData);
-      setRecentTransactions(dashboardService.mapRecentTransactions(transactions));
+      setDocumentAlerts(data.documentAlerts || []);
+      setUpcomingBills(data.upcomingBills || []);
+      setRecentTransactions(data.recentTransactions || []);
     } catch (err) {
       setError('Failed to load dashboard data.');
       console.error(err);

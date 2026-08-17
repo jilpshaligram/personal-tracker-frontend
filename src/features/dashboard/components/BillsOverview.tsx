@@ -33,7 +33,7 @@ export function BillsOverview({ bills, loading }: BillsOverviewProps) {
       <CardHeader>
         <CardTitle>Upcoming Bills</CardTitle>
       </CardHeader>
-      <CardContent className="flex-1">
+      <CardContent className="flex-1 overflow-x-auto">
         {bills.length === 0 ? (
           <div className="flex items-center justify-center h-full min-h-[200px] text-sm text-slate-500">
             No upcoming bills
@@ -43,7 +43,7 @@ export function BillsOverview({ bills, loading }: BillsOverviewProps) {
             {bills.map((bill) => (
               <div
                 key={bill.id}
-                className="flex items-center justify-between border-b border-slate-100 last:border-0 pb-3 last:pb-0"
+                className="flex items-center justify-between border-b border-slate-100 last:border-0 pb-3 last:pb-0 min-w-max gap-4"
               >
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-500">
