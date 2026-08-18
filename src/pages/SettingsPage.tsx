@@ -130,7 +130,7 @@ export default function SettingsPage() {
 
             <div className="h-px bg-slate-100" />
 
-            <form onSubmit={handlePinUpdate} className="space-y-4">
+            <form onSubmit={handlePinUpdate} noValidate className="space-y-4">
               <h3 className="text-sm font-bold text-slate-800">Change PIN</h3>
 
               <div className="grid grid-cols-2 gap-4">

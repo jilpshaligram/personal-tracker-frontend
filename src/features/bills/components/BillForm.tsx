@@ -106,7 +106,11 @@ export const BillForm: React.FC<BillFormProps> = ({
         )}
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
+        <form
+          onSubmit={handleSubmit}
+          noValidate
+          className="p-6 space-y-4 max-h-[80vh] overflow-y-auto"
+        >
           {/* Title */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1">

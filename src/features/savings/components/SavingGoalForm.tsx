@@ -70,7 +70,7 @@ export default function SavingGoalForm({ isOpen, onClose, onSubmit, goal }: Savi
         <DialogHeader>
           <DialogTitle>{goal ? 'Edit Savings Goal' : 'Create New Savings Goal'}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} noValidate className="space-y-4">
           <div>
             <label htmlFor="goal-title" className="block text-sm font-medium text-slate-700 mb-1">
               Goal Name

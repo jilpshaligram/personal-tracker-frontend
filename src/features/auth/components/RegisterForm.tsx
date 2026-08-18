@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { signup } from '../services/authService';
 import type { SignupPayload } from '../types/auth';
 import { scorePassword, strengthMeta } from '../utils/passwordStrength';
+import { AuthLoadingOverlay } from './AuthLoadingOverlay';
 import {
   authEyebrowClass,
   authFormInnerClass,
@@ -26,6 +27,7 @@ type RegisterFormFields = {
   dob: string;
   gender: string;
   password: string;
+  confirmPassword: string;
   agreeToTerms: boolean;
 };
 
@@ -39,6 +41,7 @@ const requiredFields: Array<keyof Omit<RegisterFormFields, 'agreeToTerms'>> = [
   'dob',
   'gender',
   'password',
+  'confirmPassword',
 ];
 
 const fieldLabels: Record<keyof RegisterFormFields, string> = {
@@ -49,6 +52,7 @@ const fieldLabels: Record<keyof RegisterFormFields, string> = {
   dob: 'Date of birth',
   gender: 'Gender',
   password: 'Password',
+  confirmPassword: 'Confirm password',
   agreeToTerms: 'Terms and Privacy Policy',
 };
 
@@ -64,9 +68,11 @@ export const RegisterForm: React.FC = () => {
     dob: '',
     gender: '',
     password: '',
+    confirmPassword: '',
     agreeToTerms: false,
   });
   const [showPw, setShowPw] = useState(false);
+  const [showConfirmPw, setShowConfirmPw] = useState(false);
   const [dobFocused, setDobFocused] = useState(false);
   const [focused, setFocused] = useState<string | null>(null);
   const [errors, setErrors] = useState<RegisterFormErrors>({});
@@ -86,6 +92,18 @@ export const RegisterForm: React.FC = () => {
       setApiError('');
     };
 
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const sanitized = e.target.value.replace(/\D/g, '').slice(0, 10);
+    setForm((f) => ({ ...f, phone: sanitized }));
+    setErrors((current) => {
+      if (!current.phone) return current;
+      const next = { ...current };
+      delete next.phone;
+      return next;
+    });
+    setApiError('');
+  };
+
   const toggleAgreeToTerms = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm((f) => ({ ...f, agreeToTerms: e.target.checked }));
     setErrors((current) => {
@@ -100,6 +118,10 @@ export const RegisterForm: React.FC = () => {
   const score = scorePassword(form.password);
   const meta = strengthMeta(form.password, score);
 
+  const today = new Date();
+  const maxDobDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
+  const maxDobStr = maxDobDate.toISOString().split('T')[0];
+
   const validate = () => {
     const nextErrors: RegisterFormErrors = {};
 
@@ -113,8 +135,27 @@ export const RegisterForm: React.FC = () => {
       nextErrors.email = 'Enter a valid email address.';
     }
 
+    if (form.phone.trim()) {
+      const phoneDigits = form.phone.trim().replace(/\D/g, '');
+      if (phoneDigits.length !== 10) {
+        nextErrors.phone = 'Phone number must be exactly 10 digits.';
+      }
+    }
+
+    if (form.dob) {
+      if (form.dob > maxDobStr) {
+        nextErrors.dob = 'You must be at least 18 years old to register.';
+      }
+    }
+
     if (form.password.trim() && form.password.length < 8) {
       nextErrors.password = 'Password must be at least 8 characters.';
+    }
+
+    if (!form.confirmPassword) {
+      nextErrors.confirmPassword = 'Please confirm your password.';
+    } else if (form.password && form.password !== form.confirmPassword) {
+      nextErrors.confirmPassword = 'Passwords do not match.';
     }
 
     if (!form.agreeToTerms) {
@@ -155,8 +196,23 @@ export const RegisterForm: React.FC = () => {
   };
 
   return (
-    <div className={authFormPaneClass}>
+    <div className={`${authFormPaneClass} relative min-h-[420px]`}>
+      {isSubmitting && (
+        <AuthLoadingOverlay
+          title="Creating your account..."
+          message="Preparing your secure vault & sending verification code"
+        />
+      )}
       <div className={authFormInnerClass}>
+        <div className="mb-6 flex items-center justify-center gap-2 lg:hidden">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-linear-to-br from-[#2F5FE0] to-[#5B8CF5] text-sm font-bold text-white shadow-sm">
+            V
+          </div>
+          <span className="font-['Sora',sans-serif] text-lg font-bold text-[#16274F]">
+            VaultSaaS
+          </span>
+        </div>
+
         <div className={authEyebrowClass}>Get started</div>
         <h1 className={authTitleClass}>Create your account</h1>
         <p className={authSubtitleClass}>
@@ -169,12 +225,14 @@ export const RegisterForm: React.FC = () => {
           </div>
         )}
 
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4 grid grid-cols-2 gap-3">
+        <form onSubmit={handleSubmit} noValidate>
+          <div className="mb-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className={authLabelClass}>First name</label>
+              <label className={authLabelClass}>
+                First name <span className="text-[#E5484D]">*</span>
+              </label>
               <input
-                className={authInputClass(focused === 'firstName')}
+                className={authInputClass(focused === 'firstName', Boolean(errors.firstName))}
                 type="text"
                 placeholder="John"
                 value={form.firstName}
@@ -188,9 +246,11 @@ export const RegisterForm: React.FC = () => {
               )}
             </div>
             <div>
-              <label className={authLabelClass}>Last name</label>
+              <label className={authLabelClass}>
+                Last name <span className="text-[#E5484D]">*</span>
+              </label>
               <input
-                className={authInputClass(focused === 'lastName')}
+                className={authInputClass(focused === 'lastName', Boolean(errors.lastName))}
                 type="text"
                 placeholder="Doe"
                 value={form.lastName}
@@ -204,9 +264,11 @@ export const RegisterForm: React.FC = () => {
           </div>
 
           <div className="mb-4">
-            <label className={authLabelClass}>Email address</label>
+            <label className={authLabelClass}>
+              Email address <span className="text-[#E5484D]">*</span>
+            </label>
             <input
-              className={authInputClass(focused === 'email')}
+              className={authInputClass(focused === 'email', Boolean(errors.email))}
               type="email"
               placeholder="john@example.com"
               value={form.email}
@@ -219,13 +281,17 @@ export const RegisterForm: React.FC = () => {
           </div>
 
           <div className="mb-4">
-            <label className={authLabelClass}>Phone number</label>
+            <label className={authLabelClass}>
+              Phone number <span className="text-[#E5484D]">*</span>
+            </label>
             <input
-              className={authInputClass(focused === 'phone')}
+              className={authInputClass(focused === 'phone', Boolean(errors.phone))}
               type="tel"
-              placeholder="+91 98765 43210"
+              inputMode="numeric"
+              maxLength={10}
+              placeholder="9876543210"
               value={form.phone}
-              onChange={update('phone')}
+              onChange={handlePhoneChange}
               onFocus={() => setFocused('phone')}
               onBlur={() => setFocused(null)}
               aria-invalid={Boolean(errors.phone)}
@@ -233,13 +299,16 @@ export const RegisterForm: React.FC = () => {
             {errors.phone && <p className="mt-1 text-xs text-[#E5484D]">{errors.phone}</p>}
           </div>
 
-          <div className="mb-4 grid grid-cols-2 gap-3">
+          <div className="mb-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className={authLabelClass}>Date of birth</label>
+              <label className={authLabelClass}>
+                Date of birth <span className="text-[#E5484D]">*</span>
+              </label>
               <input
-                className={authInputClass(focused === 'dob')}
+                className={authInputClass(focused === 'dob', Boolean(errors.dob))}
                 type={dobFocused || form.dob ? 'date' : 'text'}
                 placeholder="DD / MM / YYYY"
+                max={maxDobStr}
                 value={form.dob}
                 onChange={update('dob')}
                 onFocus={() => {
@@ -255,9 +324,15 @@ export const RegisterForm: React.FC = () => {
               {errors.dob && <p className="mt-1 text-xs text-[#E5484D]">{errors.dob}</p>}
             </div>
             <div>
-              <label className={authLabelClass}>Gender</label>
+              <label className={authLabelClass}>
+                Gender <span className="text-[#E5484D]">*</span>
+              </label>
               <select
-                className={authInputClass(focused === 'gender', 'cursor-pointer appearance-none')}
+                className={authInputClass(
+                  focused === 'gender',
+                  Boolean(errors.gender),
+                  'cursor-pointer appearance-none'
+                )}
                 value={form.gender}
                 onChange={update('gender')}
                 onFocus={() => setFocused('gender')}
@@ -267,20 +342,24 @@ export const RegisterForm: React.FC = () => {
                 <option value="" disabled>
                   Select
                 </option>
-                <option value="FEMALE">Female</option>
                 <option value="MALE">Male</option>
-                <option value="NON_BINARY">Non-binary</option>
-                <option value="UNDISCLOSED">Prefer not to say</option>
+                <option value="FEMALE">Female</option>
               </select>
               {errors.gender && <p className="mt-1 text-xs text-[#E5484D]">{errors.gender}</p>}
             </div>
           </div>
 
-          <div className="mb-5">
-            <label className={authLabelClass}>Password</label>
+          <div className="mb-4">
+            <label className={authLabelClass}>
+              Password <span className="text-[#E5484D]">*</span>
+            </label>
             <div className="relative">
               <input
-                className={authInputClass(focused === 'password', 'pr-10')}
+                className={authInputClass(
+                  focused === 'password',
+                  Boolean(errors.password),
+                  'pr-10'
+                )}
                 type={showPw ? 'text' : 'password'}
                 placeholder="Create a password"
                 value={form.password}
@@ -307,6 +386,38 @@ export const RegisterForm: React.FC = () => {
           </div>
 
           <div className="mb-5">
+            <label className={authLabelClass}>
+              Confirm password <span className="text-[#E5484D]">*</span>
+            </label>
+            <div className="relative">
+              <input
+                className={authInputClass(
+                  focused === 'confirmPassword',
+                  Boolean(errors.confirmPassword),
+                  'pr-10'
+                )}
+                type={showConfirmPw ? 'text' : 'password'}
+                placeholder="Confirm your password"
+                value={form.confirmPassword}
+                onChange={update('confirmPassword')}
+                onFocus={() => setFocused('confirmPassword')}
+                onBlur={() => setFocused(null)}
+                aria-invalid={Boolean(errors.confirmPassword)}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPw((s) => !s)}
+                className="absolute right-3 top-1/2 flex -translate-y-1/2 cursor-pointer items-center text-[#6B7280]"
+              >
+                {showConfirmPw ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
+            {errors.confirmPassword && (
+              <p className="mt-1 text-xs text-[#E5484D]">{errors.confirmPassword}</p>
+            )}
+          </div>
+
+          <div className="mb-5">
             <label className="flex cursor-pointer items-start gap-2 text-[#6B7280]">
               <input
                 type="checkbox"
@@ -316,7 +427,8 @@ export const RegisterForm: React.FC = () => {
               />
               <span className="text-[12.5px]">
                 I agree to the <span className={authLinkClass}>Terms</span> and{' '}
-                <span className={authLinkClass}>Privacy Policy</span>
+                <span className={authLinkClass}>Privacy Policy</span>{' '}
+                <span className="text-[#E5484D]">*</span>
               </span>
             </label>
             {errors.agreeToTerms && (

@@ -1,27 +1,29 @@
-export const authPageClass = "flex min-h-screen w-full bg-[#F4F6FB] font-['Inter',sans-serif]";
+export const authPageClass = "min-h-screen w-full bg-[#F4F6FB] font-['Inter',sans-serif]";
 
-export const authShellClass =
-  'grid h-screen w-full grid-cols-1 overflow-hidden bg-white lg:grid-cols-2';
+export const authShellClass = 'min-h-screen w-full bg-white lg:grid lg:grid-cols-2';
 
-export const authFormPaneClass = 'flex flex-col justify-center overflow-y-auto px-6 py-10 sm:px-12';
+export const authFormPaneClass =
+  'flex flex-col justify-center px-4 py-8 sm:px-8 md:px-12 min-h-screen w-full overflow-y-auto';
 
-export const authFormInnerClass = 'mx-auto w-full max-w-[380px] pb-4';
+export const authFormInnerClass = 'mx-auto w-full max-w-[420px] py-4';
 
 export const authEyebrowClass = 'mb-2 text-[12.5px] font-semibold uppercase text-[#2F5FE0]';
 
 export const authTitleClass =
-  "mb-1.5 font-['Sora',sans-serif] text-[25px] font-semibold text-[#16274F]";
+  "mb-1.5 font-['Sora',sans-serif] text-[22px] sm:text-[25px] font-semibold text-[#16274F]";
 
-export const authSubtitleClass = 'mb-7 text-sm leading-[1.55] text-[#6B7280]';
+export const authSubtitleClass = 'mb-6 text-xs sm:text-sm leading-[1.55] text-[#6B7280]';
 
 export const authLabelClass = 'mb-1.5 block text-[13px] font-semibold text-[#16274F]';
 
-export const authInputClass = (focused = false, extra = '') =>
+export const authInputClass = (focused = false, hasError = false, extra = '') =>
   [
     'w-full rounded-[10px] border px-[13px] py-[11px] text-sm text-[#16274F] outline-none transition-[border-color,box-shadow,background-color] placeholder:text-[#A6ACBB]',
-    focused
-      ? 'border-[#2F5FE0] bg-white shadow-[0_0_0_3px_rgba(47,95,224,0.12)]'
-      : 'border-[#E5E9F2] bg-[#FBFCFE]',
+    hasError
+      ? 'border-[#E5484D] bg-[#FFF8F8] shadow-[0_0_0_3px_rgba(229,72,77,0.12)]'
+      : focused
+        ? 'border-[#2F5FE0] bg-white shadow-[0_0_0_3px_rgba(47,95,224,0.12)]'
+        : 'border-[#E5E9F2] bg-[#FBFCFE]',
     extra,
   ]
     .filter(Boolean)
@@ -38,7 +40,7 @@ export const authLinkClass = 'cursor-pointer font-semibold text-[#2F5FE0]';
 export const authMutedLinkClass = 'mt-6 cursor-pointer text-center text-[13.5px] text-[#6B7280]';
 
 export const authBrandPanelClass =
-  'flex flex-col justify-between bg-[radial-gradient(circle_at_30%_20%,#16274F_0%,#0E1B38_70%)] px-10 py-11 text-white';
+  'hidden lg:flex flex-col justify-between bg-[radial-gradient(circle_at_30%_20%,#16274F_0%,#0E1B38_70%)] px-10 py-11 text-white min-h-screen';
 
 export const authBrandLogoClass =
   "flex items-center gap-2.5 font-['Sora',sans-serif] text-lg font-bold";

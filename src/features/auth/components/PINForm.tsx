@@ -112,14 +112,23 @@ export const PINForm: React.FC<PINFormProps> = ({
   return (
     <div className={authFormPaneClass}>
       <div className={authFormInnerClass}>
+        <div className="mb-6 flex items-center justify-center gap-2 lg:hidden">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-linear-to-br from-[#2F5FE0] to-[#5B8CF5] text-sm font-bold text-white shadow-sm">
+            V
+          </div>
+          <span className="font-['Sora',sans-serif] text-lg font-bold text-[#16274F]">
+            VaultSaaS
+          </span>
+        </div>
+
         <div className={authEyebrowClass}>Security verification</div>
         <h1 className={authTitleClass}>{title}</h1>
         <p className={authSubtitleClass}>{subtitle}</p>
 
         {displayError && <div className={`${authAlertClass} mb-6`}>{displayError}</div>}
 
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4 flex justify-center gap-3.5" onPaste={handlePaste}>
+        <form onSubmit={handleSubmit} noValidate>
+          <div className="mb-4 flex justify-center gap-2 sm:gap-3.5" onPaste={handlePaste}>
             {digits.map((d, i) => (
               <input
                 key={i}
@@ -133,7 +142,7 @@ export const PINForm: React.FC<PINFormProps> = ({
                 onChange={(e) => handleChange(i, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(i, e)}
                 className={[
-                  "h-[58px] w-[52px] rounded-xl border-[1.5px] text-center font-['JetBrains_Mono',monospace] text-[22px] font-semibold text-[#16274F] outline-none transition-[border-color,box-shadow,background-color]",
+                  "h-[48px] w-[44px] sm:h-[58px] sm:w-[52px] rounded-xl border-[1.5px] text-center font-['JetBrains_Mono',monospace] text-lg sm:text-[22px] font-semibold text-[#16274F] outline-none transition-[border-color,box-shadow,background-color]",
                   d
                     ? 'border-[#2F5FE0] bg-white shadow-[0_0_0_3px_rgba(47,95,224,0.12)]'
                     : 'border-[#E5E9F2] bg-[#FBFCFE]',

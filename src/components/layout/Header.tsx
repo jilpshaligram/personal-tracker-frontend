@@ -50,6 +50,9 @@ export default function Header({ onMenuClick }: HeaderProps) {
   }, [isDropdownOpen]);
 
   const handleLogout = async () => {
+    const confirmed = window.confirm('Are you sure you want to log out?');
+    if (!confirmed) return;
+    setIsDropdownOpen(false);
     await logout();
     navigate('/login');
   };
