@@ -9,7 +9,7 @@ import {
   Phone,
   Lock,
 } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context';
 import { apiClient } from '../api/client';
 
 type ThemeType = 'light' | 'dark' | 'system';
