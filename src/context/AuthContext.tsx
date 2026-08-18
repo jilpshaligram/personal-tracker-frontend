@@ -1,29 +1,9 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { clearAuthTokens } from '../api/client';
+import { AuthContext, type AuthContextType, type User } from './useAuth';
 
-export interface User {
-  id: string;
-  sub: string;
-  role: string;
-  sessionId: string;
-  email?: string;
-  firstName?: string;
-  lastName?: string;
-  phone?: string;
-  isEmailVerified?: boolean;
-  isPinCreated?: boolean;
-}
-
-interface AuthContextType {
-  user: User | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  error: string | null;
-  login: (user: User) => void;
-  logout: () => Promise<void>;
-  verifyAuth: () => Promise<boolean>;
-}
+export type { User } from './useAuth';
 
 const API_BASE_URL = '/api/v1/auth';
 
@@ -46,89 +26,69 @@ const PUBLIC_AUTH_PATHS = new Set([
 
 async function verifyToken(): Promise<User | null> {
   try {
-    const response = await authClient.get('/verify-token');
+    const res = await authClient.get<{
+      success: boolean;
+      user?: User;
+      data?: { user?: User };
+    }>('/verify-token');
 
-    const json = response.data as {
-      success?: boolean;
-      data?: {
-        user?: {
-          id: string;
-          sub: string;
-          role: string;
-          sessionId: string;
-        };
-      };
-    };
-
-    if (!json.success || !json.data?.user) {
-      return null;
+    if (res.data?.success) {
+      return res.data.user ?? res.data.data?.user ?? null;
     }
-
-    const verifiedUser: User = {
-      id: json.data.user.id,
-      sub: json.data.user.sub,
-      role: json.data.user.role,
-      sessionId: json.data.user.sessionId,
-    };
-
-    try {
-      const profileResponse = await axios.get('/api/v1/users/me', {
-        withCredentials: true,
-        timeout: 5000,
-      });
-      const profileJson = profileResponse.data as {
-        success?: boolean;
-        data?: {
-          firstName?: string;
-          lastName?: string;
-          email?: string;
-          phone?: string;
-          isEmailVerified?: boolean;
-          isPinCreated?: boolean;
-        };
-      };
-      if (profileJson.success && profileJson.data) {
-        return {
-          ...verifiedUser,
-          firstName: profileJson.data.firstName,
-          lastName: profileJson.data.lastName,
-          email: profileJson.data.email,
-          phone: profileJson.data.phone,
-          isEmailVerified: profileJson.data.isEmailVerified,
-          isPinCreated: profileJson.data.isPinCreated,
-        } as User;
-      }
-    } catch (err) {
-      console.warn('Failed to fetch full user profile:', err);
+    return null;
+  } catch (err: unknown) {
+    const axiosError = err as { response?: { status?: number } };
+    if (axiosError.response?.status !== 401) {
+      console.warn('verify-token error (non-401):', err);
     }
-
-    return verifiedUser as User;
-  } catch {
     return null;
   }
 }
 
-async function logoutApi(): Promise<void> {
-  try {
-    await authClient.post('/logout');
-  } catch {
-    return;
-  }
-}
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUserState] = useState<User | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const verifyAuth = useCallback(async (): Promise<boolean> => {
-    setIsLoading(true);
-    setError(null);
+  const shouldSkipAuthCheck = useCallback((): boolean => {
+    if (typeof window === 'undefined') return false;
+    const path = window.location.pathname;
+    if (path.startsWith('/admin')) return true;
+    return PUBLIC_AUTH_PATHS.has(path);
+  }, []);
 
+  const login = useCallback((userData: User) => {
+    setUserState(userData);
+    setIsAuthenticated(true);
+    setError(null);
+  }, []);
+
+  const logout = useCallback(async () => {
     try {
+      await authClient.post('/logout');
+    } catch (err) {
+      console.warn('Logout request error:', err);
+    } finally {
+      clearAuthTokens();
+      setUserState(null);
+      setIsAuthenticated(false);
+      setError(null);
+      if (
+        typeof window !== 'undefined' &&
+        !['/login', '/'].includes(window.location.pathname) &&
+        !window.location.pathname.startsWith('/admin')
+      ) {
+        window.location.href = '/login';
+      }
+    }
+  }, []);
+
+  const verifyAuth = useCallback(async (): Promise<boolean> => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
       const verifiedUser = await verifyToken();
 
       if (verifiedUser) {
@@ -137,12 +97,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return true;
       }
 
+      try {
+        const refreshRes = await authClient.post<{
+          success: boolean;
+          user?: User;
+          data?: { user?: User };
+        }>('/refresh-token');
+
+        if (refreshRes.data?.success) {
+          const refreshedUser = await verifyToken();
+          if (refreshedUser) {
+            setUserState(refreshedUser);
+            setIsAuthenticated(true);
+            return true;
+          }
+        }
+      } catch {
+        // Refresh token invalid or expired
+      }
+
       setUserState(null);
       setIsAuthenticated(false);
       return false;
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Authentication check failed';
-      setError(message);
+      console.error('verifyAuth failed:', err);
       setUserState(null);
       setIsAuthenticated(false);
       return false;
@@ -151,37 +129,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  const login = useCallback((newUser: User) => {
-    setUserState(newUser);
-    setIsAuthenticated(true);
-    setError(null);
-  }, []);
-
-  const logout = useCallback(async () => {
-    await logoutApi();
-    clearAuthTokens();
-    setUserState(null);
-    setIsAuthenticated(false);
-    setError(null);
-  }, []);
-
-  const shouldSkipAuthCheck = useCallback((): boolean => {
-    if (typeof window === 'undefined') {
-      return false;
-    }
-
-    return PUBLIC_AUTH_PATHS.has(window.location.pathname);
-  }, []);
-
   useEffect(() => {
     const checkAuth = async () => {
       if (shouldSkipAuthCheck()) {
-        if (
-          typeof window !== 'undefined' &&
-          ['/login', '/register'].includes(window.location.pathname)
-        ) {
+        const path = typeof window !== 'undefined' ? window.location.pathname : '';
+        if (['/login', '/register', '/verify-otp', '/'].includes(path)) {
           try {
-            await logoutApi();
+            await authClient.post('/logout');
           } catch (err) {
             console.warn('Logout api failed:', err);
           }
@@ -209,13 +163,4 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};
-
-// eslint-disable-next-line react-refresh/only-export-components
-export const useAuth = (): AuthContextType => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within AuthProvider');
-  }
-  return context;
 };

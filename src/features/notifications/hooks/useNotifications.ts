@@ -117,6 +117,10 @@ export function useNotifications() {
   );
 
   useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')) {
+      return;
+    }
+
     Promise.resolve().then(() => {
       void loadNotifications();
       void refreshUnreadCount();

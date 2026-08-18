@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Mail, X, Send, CheckCircle } from 'lucide-react';
 import { useHelpStore } from '../../../store/helpStore';
-import { useAuth } from '../../../context/AuthContext';
+import { useAuth } from '../../../context';
 import { apiClient } from '../../../api/client';
 
 export default function SupportCenter() {

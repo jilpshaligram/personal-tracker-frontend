@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { HelpCircle, Menu, User, LogOut } from 'lucide-react';
 import { useHelpStore } from '../../store';
 import { NotificationBell } from '../../features/notifications';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context';
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -14,18 +14,25 @@ export default function Header({ onMenuClick }: HeaderProps) {
   const setIsHelpOpen = useHelpStore((state) => state.setIsOpen);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  const isAdminRoute = location.pathname.startsWith('/admin');
+
   const getInitials = () => {
+    if (isAdminRoute && !user) return 'SA';
     if (!user) return 'U';
     const first = user.firstName?.[0] || '';
     const last = user.lastName?.[0] || '';
     return (first + last).toUpperCase() || 'U';
   };
 
-  const displayName = user
-    ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email || 'User'
-    : 'User';
+  const displayName =
+    isAdminRoute && !user
+      ? 'Super Admin'
+      : user
+        ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email || 'User'
+        : 'User';
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
