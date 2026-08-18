@@ -66,7 +66,7 @@ export default function SavingGoalForm({ isOpen, onClose, onSubmit, goal }: Savi
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-[480px]">
         <DialogHeader>
           <DialogTitle>{goal ? 'Edit Savings Goal' : 'Create New Savings Goal'}</DialogTitle>
         </DialogHeader>
