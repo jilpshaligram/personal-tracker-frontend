@@ -1,22 +1,39 @@
 import type { ReactNode } from 'react';
 
-interface DialogProps {
-  isOpen: boolean;
-  onClose: () => void;
-  title?: string;
+export const Dialog = ({
+  open,
+  onOpenChange,
+  children,
+}: {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
   children: ReactNode;
-}
-
-export const Dialog = ({ isOpen, onClose, title, children }: DialogProps) => {
-  if (!isOpen) return null;
-
+}) => {
+  if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="fixed inset-0 bg-black bg-opacity-50" onClick={onClose} />
-      <div className="relative bg-white rounded-lg p-6 max-w-lg w-full z-10 mx-4">
-        {title && <h2 className="text-xl font-semibold mb-4">{title}</h2>}
-        {children}
-      </div>
+      <div className="fixed inset-0 bg-black/50" onClick={() => onOpenChange?.(false)} />
+      {children}
     </div>
   );
 };
+
+export const DialogContent = ({
+  children,
+  className = '',
+}: {
+  children: ReactNode;
+  className?: string;
+}) => (
+  <div className={`relative bg-white rounded-lg p-6 w-full z-10 mx-4 shadow-lg ${className}`}>
+    {children}
+  </div>
+);
+
+export const DialogHeader = ({ children }: { children: ReactNode }) => (
+  <div className="mb-4">{children}</div>
+);
+
+export const DialogTitle = ({ children }: { children: ReactNode }) => (
+  <h2 className="text-lg font-semibold">{children}</h2>
+);

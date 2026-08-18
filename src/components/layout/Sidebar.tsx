@@ -7,7 +7,6 @@ import {
   Receipt,
   PiggyBank,
   Settings,
-  Plus,
   X,
 } from 'lucide-react';
 
@@ -119,17 +118,6 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             ))}
           </ul>
         </nav>
-
-        <div className="px-4 py-5 border-t border-slate-100">
-          <button
-            type="button"
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 active:scale-[0.98] transition-all duration-150"
-            aria-label="Add a new transaction"
-          >
-            <Plus className="w-4 h-4" strokeWidth={2.5} aria-hidden="true" />
-            Add Transaction
-          </button>
-        </div>
       </aside>
     </>
   );
