@@ -52,7 +52,7 @@ export default function SavingTransactionForm({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-[480px]">
         <DialogHeader>
           <DialogTitle>Add Funds to {goal?.title || 'Goal'}</DialogTitle>
         </DialogHeader>

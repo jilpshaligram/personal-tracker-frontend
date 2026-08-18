@@ -16,12 +16,19 @@ export default function SavingGoalList() {
   const [isTransactionOpen, setIsTransactionOpen] = useState(false);
   const [selectedGoal, setSelectedGoal] = useState<SavingGoal | null>(null);
 
-  const displayedGoals = goals.filter((g) => g.status === activeTab);
-  const activeCount = goals.filter((g) => g.status === 'ACTIVE').length;
-  const completedCount = goals.filter((g) => g.status === 'COMPLETED').length;
+  const displayedGoals = goals.filter((g) => {
+    const isCompleted = g.status === 'COMPLETED' || g.savedAmount >= g.targetAmount;
+    return activeTab === 'COMPLETED' ? isCompleted : !isCompleted;
+  });
+  const activeCount = goals.filter(
+    (g) => g.status === 'ACTIVE' && g.savedAmount < g.targetAmount
+  ).length;
+  const completedCount = goals.filter(
+    (g) => g.status === 'COMPLETED' || g.savedAmount >= g.targetAmount
+  ).length;
 
   const totalSavings = goals
-    .filter((g) => g.status === 'ACTIVE')
+    .filter((g) => g.status === 'ACTIVE' && g.savedAmount < g.targetAmount)
     .reduce((sum, g) => sum + g.savedAmount, 0);
 
   const handleFormSubmit = async (goalData: {

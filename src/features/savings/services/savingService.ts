@@ -19,14 +19,16 @@ interface PaginatedData<T> {
 interface BackendSavingGoalsResponse {
   success: boolean;
   message: string;
-  data: SavingGoal[];
-  meta: {
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-    hasNextPage: boolean;
-    hasPrevPage: boolean;
+  data: {
+    data: SavingGoal[];
+    meta: {
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+      hasNextPage: boolean;
+      hasPrevPage: boolean;
+    };
   };
 }
 
@@ -43,17 +45,30 @@ export async function fetchSavingGoals(
   const query = params.toString();
   const url = query ? `${BASE}?${query}` : BASE;
   const res = await apiClient.get<BackendSavingGoalsResponse>(url);
-  return {
-    data: res.data.data || [],
-    meta: res.data.meta || {
-      total: 0,
-      page: 1,
-      limit: 100,
-      totalPages: 0,
-      hasNextPage: false,
-      hasPrevPage: false,
-    },
+
+  let data: SavingGoal[] = [];
+  if (res.data && res.data.data) {
+    if (Array.isArray(res.data.data)) {
+      data = res.data.data;
+    } else if (res.data.data.data && Array.isArray(res.data.data.data)) {
+      data = res.data.data.data;
+    }
+  }
+
+  let meta = {
+    total: data.length,
+    page: filter?.page || 1,
+    limit: filter?.limit || 100,
+    totalPages: 1,
+    hasNextPage: false,
+    hasPrevPage: false,
   };
+
+  if (res.data && res.data.data && !Array.isArray(res.data.data) && res.data.data.meta) {
+    meta = { ...meta, ...res.data.data.meta };
+  }
+
+  return { data, meta };
 }
 
 export async function fetchSavingGoalById(id: string): Promise<SavingGoal> {
