@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   getOnboardingToken,
@@ -9,6 +9,7 @@ import {
   verifyPasswordOtp,
   verifyPinOtp,
 } from '../services/authService';
+import { AuthLoadingOverlay } from './AuthLoadingOverlay';
 import {
   authEyebrowClass,
   authFormInnerClass,
@@ -75,20 +76,10 @@ export const OTPForm: React.FC<OTPFormProps> = ({
           : '/login';
 
   const [digits, setDigits] = useState<string[]>(['', '', '', '', '', '']);
-  const [seconds, setSeconds] = useState(29);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isResending, setIsResending] = useState(false);
   const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
-
-  useEffect(() => {
-    if (seconds <= 0) return;
-    const t = setInterval(() => setSeconds((s) => s - 1), 1000);
-    return () => clearInterval(t);
-  }, [seconds]);
-
-  const mm = String(Math.floor(Math.max(seconds, 0) / 60)).padStart(2, '0');
-  const ss = String(Math.max(seconds, 0) % 60).padStart(2, '0');
 
   const handleChange = (i: number, val: string) => {
     const v = val.replace(/[^0-9]/g, '').slice(-1);
@@ -134,7 +125,6 @@ export const OTPForm: React.FC<OTPFormProps> = ({
         await resendEmailOtp(displayEmail);
       }
 
-      setSeconds(29);
       setDigits(['', '', '', '', '', '']);
       inputsRef.current[0]?.focus();
     } catch (resendError) {
@@ -206,8 +196,27 @@ export const OTPForm: React.FC<OTPFormProps> = ({
   const isFormIncomplete = digits.some((d) => !d) || isSubmitting;
 
   return (
-    <div className={authFormPaneClass}>
+    <div className={`${authFormPaneClass} relative min-h-[380px]`}>
+      {(isSubmitting || isResending) && (
+        <AuthLoadingOverlay
+          title={isResending ? 'Resending code...' : 'Verifying code...'}
+          message={
+            isResending
+              ? 'Sending a new 6-digit verification code'
+              : 'Validating your verification code'
+          }
+        />
+      )}
       <div className={authFormInnerClass}>
+        <div className="mb-6 flex items-center justify-center gap-2 lg:hidden">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-linear-to-br from-[#2F5FE0] to-[#5B8CF5] text-sm font-bold text-white shadow-sm">
+            V
+          </div>
+          <span className="font-['Sora',sans-serif] text-lg font-bold text-[#16274F]">
+            VaultSaaS
+          </span>
+        </div>
+
         <div className={authEyebrowClass}>{currentEyebrow}</div>
         <h1 className={authTitleClass}>{currentTitle}</h1>
         <p className={authSubtitleClass}>
@@ -222,8 +231,8 @@ export const OTPForm: React.FC<OTPFormProps> = ({
           </div>
         )}
 
-        <form onSubmit={handleSubmit}>
-          <div className="mb-2 flex gap-2.5" onPaste={handlePaste}>
+        <form onSubmit={handleSubmit} noValidate>
+          <div className="mb-2 flex justify-center gap-1.5 sm:gap-2.5" onPaste={handlePaste}>
             {digits.map((d, i) => (
               <input
                 key={i}
@@ -236,7 +245,7 @@ export const OTPForm: React.FC<OTPFormProps> = ({
                 onChange={(e) => handleChange(i, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(i, e)}
                 className={[
-                  "h-[52px] w-[46px] rounded-[10px] border text-center font-['JetBrains_Mono',monospace] text-xl font-semibold text-[#16274F] outline-none transition-[border-color,box-shadow,background-color]",
+                  "h-[44px] w-[38px] sm:h-[52px] sm:w-[46px] rounded-[10px] border text-center font-['JetBrains_Mono',monospace] text-lg sm:text-xl font-semibold text-[#16274F] outline-none transition-[border-color,box-shadow,background-color]",
                   d
                     ? 'border-[#2F5FE0] bg-white shadow-[0_0_0_3px_rgba(47,95,224,0.12)]'
                     : 'border-[#E5E9F2] bg-[#FBFCFE]',
@@ -246,25 +255,14 @@ export const OTPForm: React.FC<OTPFormProps> = ({
           </div>
 
           <div className="mb-6 mt-[18px] text-[13px] text-[#6B7280]">
-            {seconds > 0 ? (
-              <>
-                Didn't get a code? <span className="text-[#6B7280]/50">Resend</span> in{' '}
-                <span className="font-['JetBrains_Mono',monospace] font-semibold text-[#16274F]">
-                  {mm}:{ss}
-                </span>
-              </>
-            ) : (
-              <>
-                Didn't get a code?{' '}
-                <span
-                  onClick={resend}
-                  className={`cursor-pointer font-semibold ${isResending ? 'text-[#6B7280]/50' : 'text-[#2F5FE0]'}`}
-                  style={{ pointerEvents: isResending ? 'none' : 'auto' }}
-                >
-                  {isResending ? 'Sending...' : 'Resend'}
-                </span>
-              </>
-            )}
+            Didn't get a code?{' '}
+            <span
+              onClick={resend}
+              className={`cursor-pointer font-semibold ${isResending ? 'text-[#6B7280]/50' : 'text-[#2F5FE0] hover:underline'}`}
+              style={{ pointerEvents: isResending ? 'none' : 'auto' }}
+            >
+              {isResending ? 'Sending...' : 'Resend'}
+            </span>
           </div>
 
           <button

@@ -172,7 +172,7 @@ export function DocumentUpload({ document, onClose, onUpload, onUpdate }: Docume
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6">
+        <form onSubmit={handleSubmit} noValidate className="p-6">
           {(validationError || error || categoriesError) && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm flex items-start gap-2">
               <span className="font-semibold shrink-0">Error:</span>

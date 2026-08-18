@@ -22,16 +22,24 @@ import { VerifyPIN } from '../pages/auth/VerifyPIN';
 import { ForgotPassword } from '../pages/auth/ForgotPassword';
 import { ResetPassword } from '../pages/auth/ResetPassword';
 
-import AuthGuard, { VerifyPinGuard } from '../components/guards/AuthGuard';
+import AuthGuard, { PublicOnlyGuard, VerifyPinGuard } from '../components/guards/AuthGuard';
 
 const router = createBrowserRouter([
   {
     path: '/login',
-    element: <Login />,
+    element: (
+      <PublicOnlyGuard>
+        <Login />
+      </PublicOnlyGuard>
+    ),
   },
   {
     path: '/register',
-    element: <Register />,
+    element: (
+      <PublicOnlyGuard>
+        <Register />
+      </PublicOnlyGuard>
+    ),
   },
   {
     path: '/verify-otp',
@@ -51,13 +59,20 @@ const router = createBrowserRouter([
   },
   {
     path: '/forgot-password',
-    element: <ForgotPassword />,
+    element: (
+      <PublicOnlyGuard>
+        <ForgotPassword />
+      </PublicOnlyGuard>
+    ),
   },
   {
     path: '/reset-password',
-    element: <ResetPassword />,
+    element: (
+      <PublicOnlyGuard>
+        <ResetPassword />
+      </PublicOnlyGuard>
+    ),
   },
-  // Public Super Admin Routes
   {
     path: '/admin',
     element: <AppLayout />,

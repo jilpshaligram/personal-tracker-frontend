@@ -63,7 +63,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({ profile, isOpen, onClo
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} noValidate className="p-6 space-y-4">
           {error && (
             <div className="p-3 rounded-lg bg-red-50 text-xs font-semibold text-red-600 border border-red-100">
               {error}
@@ -119,9 +119,11 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({ profile, isOpen, onClo
             </label>
             <input
               type="tel"
+              inputMode="numeric"
+              maxLength={10}
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="e.g. +91 9876543211"
+              onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+              placeholder="9876543210"
               className="w-full text-sm px-3.5 py-2.5 rounded-lg border border-slate-200 bg-white focus:outline-hidden focus:border-blue-900 focus:ring-1 focus:ring-blue-900 transition-all"
             />
           </div>

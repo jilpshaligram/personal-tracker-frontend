@@ -4,6 +4,7 @@ export { OTPForm } from './components/OTPForm';
 export { PINForm } from './components/PINForm';
 export { ForgotPasswordForm } from './components/ForgotPasswordForm';
 export { ResetPasswordForm } from './components/ResetPasswordForm';
+export { AuthLoadingOverlay } from './components/AuthLoadingOverlay';
 export { VaultBrandPanel } from './components/VaultBrandPanel';
 export { VaultSignupBrandPanel } from './components/VaultSignupBrandPanel';
 export { VaultVerifyOtpBrandPanel } from './components/VaultVerifyOtpBrandPanel';

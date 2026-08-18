@@ -104,7 +104,7 @@ export default function SupportCenter() {
 
         <div className="flex-1 overflow-y-auto p-6 bg-white">
           {!isSuccess ? (
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} noValidate className="space-y-5">
               <div>
                 <p className="text-xs text-slate-500 leading-relaxed">
                   Have a question or running into an issue? Drop us a line and our support team will

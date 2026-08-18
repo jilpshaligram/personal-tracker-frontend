@@ -92,7 +92,7 @@ export const PayBillDialog: React.FC<PayBillDialogProps> = ({
           </div>
         )}
 
-        <form onSubmit={handlePay} className="p-6 space-y-4">
+        <form onSubmit={handlePay} noValidate className="p-6 space-y-4">
           <div className="p-4 rounded-xl bg-emerald-50/60 border border-emerald-100 flex items-center justify-between">
             <div>
               <span className="text-xs text-emerald-600 font-medium">Paying for</span>

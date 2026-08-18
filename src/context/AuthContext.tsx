@@ -51,14 +51,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const shouldSkipAuthCheck = useCallback((): boolean => {
-    if (typeof window === 'undefined') return false;
-    const path = window.location.pathname;
-    if (path.startsWith('/admin')) return true;
-    return PUBLIC_AUTH_PATHS.has(path);
-  }, []);
-
   const login = useCallback((userData: User) => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('explicitLogout');
+      sessionStorage.removeItem('loggedOut');
+    }
     setUserState(userData);
     setIsAuthenticated(true);
     setError(null);
@@ -66,6 +63,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = useCallback(async () => {
     try {
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('explicitLogout', 'true');
+        sessionStorage.setItem('loggedOut', 'true');
+      }
       await authClient.post('/logout');
     } catch (err) {
       console.warn('Logout request error:', err);
@@ -94,6 +95,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (verifiedUser) {
         setUserState(verifiedUser);
         setIsAuthenticated(true);
+        if (typeof window !== 'undefined') {
+          sessionStorage.removeItem('explicitLogout');
+          sessionStorage.removeItem('loggedOut');
+        }
         return true;
       }
 
@@ -109,6 +114,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (refreshedUser) {
             setUserState(refreshedUser);
             setIsAuthenticated(true);
+            if (typeof window !== 'undefined') {
+              sessionStorage.removeItem('explicitLogout');
+              sessionStorage.removeItem('loggedOut');
+            }
             return true;
           }
         }
@@ -116,11 +125,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Refresh token invalid or expired
       }
 
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('loggedOut', 'true');
+      }
       setUserState(null);
       setIsAuthenticated(false);
       return false;
     } catch (err) {
       console.error('verifyAuth failed:', err);
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('loggedOut', 'true');
+      }
       setUserState(null);
       setIsAuthenticated(false);
       return false;
@@ -131,18 +146,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     const checkAuth = async () => {
-      if (shouldSkipAuthCheck()) {
-        const path = typeof window !== 'undefined' ? window.location.pathname : '';
-        if (['/login', '/register', '/verify-otp', '/'].includes(path)) {
-          try {
-            await authClient.post('/logout');
-          } catch (err) {
-            console.warn('Logout api failed:', err);
-          }
-          clearAuthTokens();
-          setUserState(null);
-          setIsAuthenticated(false);
-        }
+      const path = typeof window !== 'undefined' ? window.location.pathname : '';
+
+      if (path.startsWith('/admin')) {
+        setIsLoading(false);
+        return;
+      }
+
+      const isLoggedOut =
+        typeof window !== 'undefined' &&
+        (sessionStorage.getItem('explicitLogout') === 'true' ||
+          sessionStorage.getItem('loggedOut') === 'true');
+
+      if (PUBLIC_AUTH_PATHS.has(path) && isLoggedOut) {
+        setUserState(null);
+        setIsAuthenticated(false);
         setIsLoading(false);
         return;
       }
@@ -150,7 +168,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await verifyAuth();
     };
     checkAuth();
-  }, [verifyAuth, shouldSkipAuthCheck]);
+  }, [verifyAuth]);
 
   const value: AuthContextType = {
     user,

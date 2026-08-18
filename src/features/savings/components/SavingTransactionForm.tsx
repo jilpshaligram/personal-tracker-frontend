@@ -56,7 +56,7 @@ export default function SavingTransactionForm({
         <DialogHeader>
           <DialogTitle>Add Funds to {goal?.title || 'Goal'}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} noValidate className="space-y-4">
           {goal && (
             <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-4 flex justify-between items-center text-xs font-medium text-blue-800">
               <div>

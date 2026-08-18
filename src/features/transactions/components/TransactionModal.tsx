@@ -191,7 +191,7 @@ export function TransactionModal({
           <DialogTitle>{initialData ? 'Edit Transaction' : 'Add Transaction'}</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4 py-4">
+        <form onSubmit={handleSubmit} noValidate className="space-y-4 py-4">
           {error && <div className="text-red-500 text-sm font-medium">{error}</div>}
 
           <div className="grid grid-cols-2 gap-4">
