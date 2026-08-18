@@ -78,6 +78,12 @@ export default function TransactionsPage() {
             totalRows={totalRows}
             onPageChange={changePage}
             categories={categories}
+            currentSort={{
+              field: filters.sortBy || 'transactionDate',
+              order: filters.sortOrder || 'desc',
+            }}
+            onSortChange={(field, order) => updateFilters({ sortBy: field, sortOrder: order })}
+            onLimitChange={(newLimit) => updateFilters({ limit: newLimit })}
           />
         </div>
 

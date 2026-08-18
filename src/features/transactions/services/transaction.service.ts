@@ -32,6 +32,8 @@ export const transactionService = {
     if (filters.search) params.append('search', filters.search);
     if (filters.startDate) params.append('startDate', filters.startDate);
     if (filters.endDate) params.append('endDate', filters.endDate);
+    if (filters.sortBy) params.append('sortBy', filters.sortBy);
+    if (filters.sortOrder) params.append('sortOrder', filters.sortOrder);
 
     const { data } = await apiClient.get<ApiSuccessResponse<Transaction[]>>(
       '/transactions?' + params.toString()

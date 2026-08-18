@@ -1,4 +1,3 @@
-/* eslint-disable */
 import { useState, useCallback, useEffect } from 'react';
 import { transactionService } from '../services/transaction.service';
 import type {
@@ -22,6 +21,8 @@ export function useTransactions() {
     type: undefined,
     categoryId: undefined,
     search: '',
+    sortBy: 'transactionDate',
+    sortOrder: 'desc',
   });
 
   const fetchTransactions = useCallback(async () => {
@@ -31,8 +32,9 @@ export function useTransactions() {
       const result = await transactionService.getTransactions(filters);
       setTransactions(result.data || []);
       setTotalRows(result.total || 0);
-    } catch (err: any) {
-      setError(err?.response?.data?.message || 'Failed to fetch transactions');
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } };
+      setError(error?.response?.data?.message || 'Failed to fetch transactions');
       setTransactions([]);
     } finally {
       setLoading(false);
@@ -42,18 +44,24 @@ export function useTransactions() {
   const fetchDependencies = useCallback(async () => {
     try {
       const [cats] = await Promise.all([transactionService.getTransactionCategories()]);
-      setCategories(Array.isArray(cats) ? cats : (cats as any).data || []);
+      setCategories(
+        Array.isArray(cats) ? cats : (cats as { data?: TransactionCategory[] }).data || []
+      );
     } catch (err) {
       console.error('Failed to load categories', err);
     }
   }, []);
 
   useEffect(() => {
-    fetchDependencies();
+    void (async () => {
+      await fetchDependencies();
+    })();
   }, [fetchDependencies]);
 
   useEffect(() => {
-    fetchTransactions();
+    void (async () => {
+      await fetchTransactions();
+    })();
   }, [fetchTransactions]);
 
   const updateFilters = (newFilters: Partial<TransactionFilterDto>) => {
@@ -69,8 +77,9 @@ export function useTransactions() {
       await transactionService.createTransaction(data);
       await fetchTransactions();
       return true;
-    } catch (err: any) {
-      setError(err?.response?.data?.message || 'Failed to create transaction');
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } };
+      setError(error?.response?.data?.message || 'Failed to create transaction');
       return false;
     }
   };
@@ -80,8 +89,9 @@ export function useTransactions() {
       await transactionService.updateTransaction(id, data);
       await fetchTransactions();
       return true;
-    } catch (err: any) {
-      setError(err?.response?.data?.message || 'Failed to update transaction');
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } };
+      setError(error?.response?.data?.message || 'Failed to update transaction');
       return false;
     }
   };
@@ -91,8 +101,9 @@ export function useTransactions() {
       await transactionService.deleteTransaction(id);
       await fetchTransactions();
       return true;
-    } catch (err: any) {
-      setError(err?.response?.data?.message || 'Failed to delete transaction');
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } };
+      setError(error?.response?.data?.message || 'Failed to delete transaction');
       return false;
     }
   };
@@ -100,10 +111,13 @@ export function useTransactions() {
   const createTransactionCategory = async (data: Partial<TransactionCategory>) => {
     try {
       const newCategory = await transactionService.createTransactionCategory(data);
-      await fetchDependencies(); // refresh categories list globally
+      await fetchDependencies();
       return newCategory;
-    } catch (err: any) {
-      throw new Error(err?.response?.data?.message || 'Failed to create custom category');
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } };
+      throw new Error(error?.response?.data?.message || 'Failed to create custom category', {
+        cause: err,
+      });
     }
   };
 
