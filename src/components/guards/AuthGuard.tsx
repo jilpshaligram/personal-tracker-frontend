@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context';
 
 const hasSessionToken = (): boolean => {
   const cookieMatch = document.cookie.match(
     /(?:^|;\s*)(refreshToken|accessToken|sessionId)=([^;]+)/
   );
-  const localToken = localStorage.getItem('accessToken');
-  return Boolean(cookieMatch || localToken);
+  return Boolean(cookieMatch);
 };
 
 const hasAllowedVerifyPinFlow = (locationState?: Record<string, unknown>): boolean => {

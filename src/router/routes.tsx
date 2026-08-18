@@ -10,6 +10,10 @@ import SavingsPage from '../pages/SavingsPage';
 import SettingsPage from '../pages/SettingsPage';
 import ProfilePage from '../pages/ProfilePage';
 
+import SuperAdminDashboardPage from '../pages/super-admin/SuperAdminDashboardPage';
+import SuperAdminUsersPage from '../pages/super-admin/SuperAdminUsersPage';
+import SuperAdminAuditLogsPage from '../pages/super-admin/SuperAdminAuditLogsPage';
+
 import { Login } from '../pages/auth/Login';
 import { Register } from '../pages/auth/Register';
 import { VerifyOTP } from '../pages/auth/VerifyOTP';
@@ -52,6 +56,17 @@ const router = createBrowserRouter([
   {
     path: '/reset-password',
     element: <ResetPassword />,
+  },
+  // Public Super Admin Routes
+  {
+    path: '/admin',
+    element: <AppLayout />,
+    children: [
+      { index: true, element: <Navigate to="/admin/dashboard" replace /> },
+      { path: 'dashboard', element: <SuperAdminDashboardPage /> },
+      { path: 'users', element: <SuperAdminUsersPage /> },
+      { path: 'audit-logs', element: <SuperAdminAuditLogsPage /> },
+    ],
   },
   {
     path: '/',
