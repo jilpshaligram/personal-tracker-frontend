@@ -63,7 +63,7 @@ export default function TransactionsPage() {
           </div>
         )}
 
-        <div className="bg-white p-6 rounded-lg border shadow-sm">
+        <div className="bg-white p-6 rounded-lg shadow-sm">
           <TransactionFilters
             filters={filters}
             categories={categories}

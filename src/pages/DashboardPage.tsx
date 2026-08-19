@@ -21,7 +21,7 @@ export default function DashboardPage() {
   } = useDashboard();
 
   return (
-    <div className="flex-1 space-y-6 p-6 sm:p-8 pt-6">
+    <div className="flex-1 space-y-6 p-4 sm:p-8 pt-6 min-w-0 overflow-x-hidden">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold tracking-tight text-slate-900">Dashboard</h2>
