@@ -68,7 +68,6 @@ apiClient.interceptors.request.use((config) => {
 apiClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
-    // If currently on an admin route, do not attempt auth refresh or trigger logout
     if (typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')) {
       return Promise.reject(error);
     }

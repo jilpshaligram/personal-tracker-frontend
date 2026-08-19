@@ -57,7 +57,15 @@ function buildBillFormData(payload: CreateBillPayload | UpdateBillPayload): Form
 
 export const billService = {
   getBills: async (filters?: BillFilters): Promise<PaginatedBillsResult> => {
-    const response = await apiClient.get('/bills', { params: filters });
+    const cleanParams: Record<string, unknown> = {};
+    if (filters) {
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          cleanParams[key] = value;
+        }
+      });
+    }
+    const response = await apiClient.get('/bills', { params: cleanParams });
     const resData = response.data;
 
     let items: Bill[] = [];
@@ -141,21 +149,43 @@ export const billService = {
   },
 
   createBill: async (payload: CreateBillPayload): Promise<Bill> => {
-    const formData = buildBillFormData(payload);
-    const response = await apiClient.post('/bills', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
+    if (payload.attachment instanceof File) {
+      const formData = buildBillFormData(payload);
+      const response = await apiClient.post('/bills', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return extractData<Bill>(response);
+    }
+
+    const cleanPayload = { ...payload };
+    delete cleanPayload.attachment;
+    const response = await apiClient.post('/bills', {
+      ...cleanPayload,
+      isRecurring: Boolean(payload.isRecurring),
     });
     return extractData<Bill>(response);
   },
 
   updateBill: async (id: string, payload: UpdateBillPayload): Promise<Bill> => {
-    const formData = buildBillFormData(payload);
-    const response = await apiClient.patch(`/bills/${id}`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
+    if (payload.attachment instanceof File) {
+      const formData = buildBillFormData(payload);
+      const response = await apiClient.patch(`/bills/${id}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return extractData<Bill>(response);
+    }
+
+    const cleanPayload = { ...payload };
+    delete cleanPayload.attachment;
+    const response = await apiClient.patch(`/bills/${id}`, {
+      ...cleanPayload,
+      ...(payload.isRecurring !== undefined && {
+        isRecurring: Boolean(payload.isRecurring),
+      }),
     });
     return extractData<Bill>(response);
   },
@@ -215,12 +245,34 @@ export const billService = {
 
   getCategories: async (): Promise<BillCategory[]> => {
     try {
-      const response = await apiClient.get('/transaction-categories');
-      const data = extractData<BillCategory[]>(response);
-      if (Array.isArray(data)) return data;
+      const response = await apiClient.get('/transaction-categories', {
+        params: { type: 'EXPENSE', limit: 100 },
+      });
+      const rawData = extractData<BillCategory[] | { data: BillCategory[] }>(response);
+      const data = Array.isArray(rawData)
+        ? rawData
+        : Array.isArray(rawData?.data)
+          ? rawData.data
+          : [];
+      if (Array.isArray(data)) {
+        return data.filter((cat) => !cat.type || cat.type === 'EXPENSE');
+      }
     } catch (err) {
       console.warn('Failed to fetch transaction categories from /transaction-categories:', err);
     }
     return [];
+  },
+
+  createCategory: async (payload: {
+    name: string;
+    type?: 'EXPENSE' | 'INCOME';
+    icon?: string;
+    color?: string;
+  }): Promise<BillCategory> => {
+    const response = await apiClient.post('/transaction-categories', {
+      type: 'EXPENSE',
+      ...payload,
+    });
+    return extractData<BillCategory>(response);
   },
 };

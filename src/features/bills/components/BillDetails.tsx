@@ -273,9 +273,17 @@ export const BillDetails: React.FC<BillDetailsProps> = ({
                       <Repeat className="w-4 h-4 text-slate-400" /> Recurrence
                     </span>
                     <span className="font-medium text-slate-800">
-                      {bill.isRecurring
-                        ? `${bill.recurringType || 'MONTHLY'} (Recurring)`
-                        : 'One-time bill'}
+                      {bill.isRecurring === true || (bill.isRecurring as unknown) === 'true' ? (
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-700 border border-blue-200/60">
+                          <Repeat className="w-3.5 h-3.5" />
+                          {bill.recurringType || 'MONTHLY'} (Recurring)
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-violet-50 px-2.5 py-0.5 text-xs font-semibold text-violet-700 border border-violet-200/60">
+                          <Calendar className="w-3.5 h-3.5 text-violet-500" />
+                          One-time bill
+                        </span>
+                      )}
                     </span>
                   </div>
 

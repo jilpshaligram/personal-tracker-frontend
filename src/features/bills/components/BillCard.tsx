@@ -55,7 +55,7 @@ export const BillCard: React.FC<BillCardProps> = ({
         <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
           <Calendar className="w-3.5 h-3.5 text-slate-400" />
           <span>{bill.dueDate ? bill.dueDate.split('T')[0] : '-'}</span>
-          {bill.isRecurring && (
+          {(bill.isRecurring === true || (bill.isRecurring as unknown) === 'true') && (
             <span title="Recurring">
               <Repeat className="w-3 h-3 text-blue-500 ml-1" />
             </span>

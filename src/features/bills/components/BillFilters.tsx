@@ -41,7 +41,7 @@ export const BillFilterBar: React.FC<BillFilterBarProps> = ({
   };
 
   const statusOptions = [
-    { value: '', label: 'All Statuses' },
+    { value: '', label: 'All Status' },
     { value: 'PENDING', label: 'Pending' },
     { value: 'PAID', label: 'Paid' },
     { value: 'PARTIALLY_PAID', label: 'Partially Paid' },
@@ -75,7 +75,7 @@ export const BillFilterBar: React.FC<BillFilterBarProps> = ({
       <div className="flex flex-wrap items-center gap-2.5">
         <select
           value={filters.status || ''}
-          onChange={(e) => onFilterChange({ status: e.target.value })}
+          onChange={(e) => onFilterChange({ status: e.target.value || undefined })}
           className="px-3 py-2 text-sm rounded-lg bg-slate-50 border border-slate-200 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-700 font-medium transition-all"
           aria-label="Filter by status"
         >
@@ -88,19 +88,21 @@ export const BillFilterBar: React.FC<BillFilterBarProps> = ({
 
         <select
           value={filters.categoryId || ''}
-          onChange={(e) => onFilterChange({ categoryId: e.target.value })}
+          onChange={(e) => onFilterChange({ categoryId: e.target.value || undefined })}
           className="px-3 py-2 text-sm rounded-lg bg-slate-50 border border-slate-200 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-700 font-medium transition-all"
           aria-label="Filter by category"
         >
           <option value="">All Categories</option>
-          {categories.map((cat) => {
-            const catId = cat.id || cat._id || '';
-            return (
-              <option key={catId} value={catId}>
-                {cat.name}
-              </option>
-            );
-          })}
+          {categories
+            .filter((cat) => !cat.type || cat.type === 'EXPENSE')
+            .map((cat) => {
+              const catId = cat.id || cat._id || '';
+              return (
+                <option key={catId} value={catId}>
+                  {cat.name}
+                </option>
+              );
+            })}
         </select>
 
         <select
