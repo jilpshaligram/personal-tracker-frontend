@@ -4,7 +4,7 @@ export type RecurringType = 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY';
 
 export type BillStatus = 'PENDING' | 'PAID' | 'PARTIALLY_PAID' | 'OVERDUE' | 'UPCOMING';
 
-export type PaymentMethod = 'CARD' | 'UPI' | 'BANK_TRANSFER' | 'CASH' | 'NET_BANKING' | 'OTHER';
+export type PaymentMethod = 'BANK_TRANSFER' | 'CARD' | 'CASH' | 'UPI';
 
 export interface BillCategory {
   id: string;
@@ -87,7 +87,6 @@ export interface PayBillPayload {
   amountPaid: number;
   paymentMethod: PaymentMethod | string;
   notes?: string;
-  remarks?: string;
   createTransaction?: boolean;
 }
 

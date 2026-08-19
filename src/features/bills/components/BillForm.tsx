@@ -41,7 +41,6 @@ export const BillForm: React.FC<BillFormProps> = ({
   const [reminderDaysBefore, setReminderDaysBefore] = useState<number | ''>(
     initialData?.reminderDaysBefore !== undefined ? initialData.reminderDaysBefore : 3
   );
-  const [description, setDescription] = useState(initialData?.description || '');
   const [notes, setNotes] = useState(initialData?.notes || '');
   const [attachment, setAttachment] = useState<File | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -117,7 +116,6 @@ export const BillForm: React.FC<BillFormProps> = ({
       isRecurring: Boolean(isRecurring),
       recurringType: isRecurring ? recurringType : undefined,
       reminderDaysBefore: reminderDaysBefore !== '' ? Number(reminderDaysBefore) : 0,
-      description: description.trim() || undefined,
       notes: notes.trim() || undefined,
       attachment: attachment || undefined,
     };
@@ -385,20 +383,6 @@ export const BillForm: React.FC<BillFormProps> = ({
               />
               {attachment && <Paperclip className="w-4 h-4 text-emerald-600 shrink-0" />}
             </div>
-          </div>
-
-          {/* Description */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Description (Optional)
-            </label>
-            <input
-              type="text"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="e.g. Account number / plan name"
-              className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-            />
           </div>
 
           {/* Notes */}

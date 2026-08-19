@@ -42,9 +42,7 @@ export const BillCard: React.FC<BillCardProps> = ({
           {bill.title}
         </h4>
 
-        {bill.description && (
-          <p className="text-xs text-slate-400 mt-1 line-clamp-2">{bill.description}</p>
-        )}
+        {bill.notes && <p className="text-xs text-slate-400 mt-1 line-clamp-2">{bill.notes}</p>}
 
         <div className="mt-3 text-lg font-bold text-slate-900">
           {formatCurrency(bill.amount, bill.currency)}

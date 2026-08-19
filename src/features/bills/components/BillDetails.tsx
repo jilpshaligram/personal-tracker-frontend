@@ -298,17 +298,6 @@ export const BillDetails: React.FC<BillDetailsProps> = ({
                     </div>
                   )}
 
-                  {bill.description && (
-                    <div className="pt-2">
-                      <span className="flex items-center gap-2 text-slate-500 mb-1">
-                        <FileText className="w-4 h-4 text-slate-400" /> Description
-                      </span>
-                      <p className="text-slate-700 bg-slate-50 p-2.5 rounded-lg border border-slate-100 text-xs leading-relaxed">
-                        {bill.description}
-                      </p>
-                    </div>
-                  )}
-
                   {bill.notes && (
                     <div className="pt-2">
                       <span className="flex items-center gap-2 text-slate-500 mb-1">

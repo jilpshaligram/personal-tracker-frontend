@@ -57,6 +57,8 @@
     "*.{ts,tsx}": [
       "eslint --fix --max-warnings=0"
     ],
-    "*.{css,json,md}": []
+    "*.{css,json,md}": [
+      "prettier --write"
+    ]
   }
 }
