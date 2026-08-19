@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 import type { ReactNode } from 'react';
 
 interface SelectProps {
@@ -44,9 +44,13 @@ export const Select = ({ value, onValueChange, children }: SelectProps) => {
   );
 };
 
-export const SelectTrigger = ({ children }: { children?: ReactNode; className?: string }) => (
-  <>{children}</>
-);
+export const SelectTrigger = ({
+  children,
+}: {
+  children?: ReactNode;
+  id?: string;
+  className?: string;
+}) => <>{children}</>;
 export const SelectValue = ({ placeholder }: { placeholder?: string; className?: string }) => (
   <>{placeholder}</>
 );
@@ -57,12 +61,14 @@ export const SelectItem = ({
   value,
   children,
   className,
+  disabled,
 }: {
   value: string | number;
   children: ReactNode;
   className?: string;
+  disabled?: boolean;
 }) => (
-  <option value={value} className={className}>
+  <option value={value} className={className} disabled={disabled}>
     {children}
   </option>
 );

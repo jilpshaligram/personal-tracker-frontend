@@ -1,20 +1,22 @@
 import * as React from 'react';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'default' | 'outline' | 'ghost' | 'link';
+  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
   size?: 'default' | 'sm' | 'lg' | 'icon';
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = 'default', size = 'default', ...props }, ref) => {
+  ({ className = '', variant = 'default', size = 'default', ...props }, ref) => {
     const baseStyles =
       'inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50';
 
     const variants = {
-      default: 'bg-blue-600 text-white hover:bg-blue-700',
+      default: 'bg-slate-900 text-slate-50 hover:bg-slate-900/90',
+      destructive: 'bg-red-500 text-slate-50 hover:bg-red-500/90',
       outline: 'border border-slate-200 bg-white hover:bg-slate-100 hover:text-slate-900',
+      secondary: 'bg-slate-100 text-slate-900 hover:bg-slate-100/80',
       ghost: 'hover:bg-slate-100 hover:text-slate-900',
-      link: 'text-blue-600 underline-offset-4 hover:underline',
+      link: 'text-slate-900 underline-offset-4 hover:underline',
     };
 
     const sizes = {
@@ -24,13 +26,10 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       icon: 'h-10 w-10',
     };
 
-    const variantStyles = variants[variant];
-    const sizeStyles = sizes[size];
-
     return (
       <button
-        className={`${baseStyles} ${variantStyles} ${sizeStyles} ${className || ''}`}
         ref={ref}
+        className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${className}`}
         {...props}
       />
     );
