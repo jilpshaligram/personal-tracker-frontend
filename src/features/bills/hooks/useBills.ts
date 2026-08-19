@@ -29,7 +29,16 @@ export const useBills = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  const refresh = useCallback(() => {
+  const handleResetFilters = useCallback(() => {
+    setFilters({});
+    setCurrentPage(1);
+  }, []);
+
+  const refresh = useCallback((clearFilters = true) => {
+    if (clearFilters) {
+      setFilters({});
+      setCurrentPage(1);
+    }
     setReloadKey((prev) => prev + 1);
   }, []);
 
@@ -56,15 +65,74 @@ export const useBills = () => {
         if (!active) return;
 
         if (catListResult.status === 'fulfilled') {
-          setCategories(catListResult.value);
+          const expenseCategories = (catListResult.value || []).filter(
+            (cat) => !cat.type || cat.type === 'EXPENSE'
+          );
+          setCategories(expenseCategories);
         }
 
         if (billsResult.status === 'fulfilled') {
           const res = billsResult.value;
-          setBills(res.data || []);
-          setTotalBills(typeof res.total === 'number' ? res.total : res.data.length);
+          let items = res.data || [];
+
+          // Recurrence filter (Handles true, false, and string variants)
+          if (filters.isRecurring !== undefined) {
+            if (filters.isRecurring === true) {
+              items = items.filter(
+                (b) => b.isRecurring === true || (b.isRecurring as unknown) === 'true'
+              );
+            } else if (filters.isRecurring === false) {
+              items = items.filter(
+                (b) =>
+                  b.isRecurring === false ||
+                  (b.isRecurring as unknown) === 'false' ||
+                  b.isRecurring === undefined ||
+                  b.isRecurring === null
+              );
+            }
+          }
+
+          // Category filter fallback
+          if (filters.categoryId) {
+            items = items.filter((b) => {
+              const catId =
+                typeof b.category === 'object' && b.category
+                  ? b.category.id || b.category._id
+                  : b.categoryId || b.category;
+              return catId === filters.categoryId;
+            });
+          }
+
+          // Status filter fallback
+          if (filters.status) {
+            items = items.filter(
+              (b) => (b.status || '').toUpperCase() === (filters.status || '').toUpperCase()
+            );
+          }
+
+          // Search filter fallback
+          if (filters.search) {
+            const q = filters.search.toLowerCase();
+            items = items.filter(
+              (b) =>
+                (b.title || '').toLowerCase().includes(q) ||
+                (b.description || '').toLowerCase().includes(q) ||
+                (b.notes || '').toLowerCase().includes(q)
+            );
+          }
+
+          setBills(items);
+          const computedTotal =
+            items.length !== (res.data || []).length
+              ? items.length
+              : typeof res.total === 'number'
+                ? res.total
+                : items.length;
+          setTotalBills(computedTotal);
           setTotalPages(
-            res.totalPages || Math.max(1, Math.ceil((res.total || res.data.length) / pageSize))
+            items.length !== (res.data || []).length
+              ? Math.max(1, Math.ceil(items.length / pageSize))
+              : res.totalPages || Math.max(1, Math.ceil(computedTotal / pageSize))
           );
         } else {
           const reason = billsResult.reason;
@@ -156,7 +224,7 @@ export const useBills = () => {
   const handleCreateBill = async (payload: CreateBillPayload) => {
     try {
       await billService.createBill(payload);
-      refresh();
+      refresh(false);
     } catch (err: unknown) {
       const errorObj = err as { response?: { data?: { message?: string } }; message?: string };
       const msg = errorObj.response?.data?.message || errorObj.message || 'Failed to create bill';
@@ -167,7 +235,7 @@ export const useBills = () => {
   const handleUpdateBill = async (id: string, payload: UpdateBillPayload) => {
     try {
       await billService.updateBill(id, payload);
-      refresh();
+      refresh(false);
     } catch (err: unknown) {
       const errorObj = err as { response?: { data?: { message?: string } }; message?: string };
       const msg = errorObj.response?.data?.message || errorObj.message || 'Failed to update bill';
@@ -178,7 +246,7 @@ export const useBills = () => {
   const handleDeleteBill = async (id: string) => {
     try {
       await billService.deleteBill(id);
-      refresh();
+      refresh(false);
     } catch (err: unknown) {
       const errorObj = err as { response?: { data?: { message?: string } }; message?: string };
       const msg = errorObj.response?.data?.message || errorObj.message || 'Failed to delete bill';
@@ -189,7 +257,7 @@ export const useBills = () => {
   const handleMarkAsPaid = async (id: string, payload?: PayBillPayload) => {
     try {
       await billService.recordPayment(id, payload);
-      refresh();
+      refresh(false);
     } catch (err: unknown) {
       const errorObj = err as { response?: { data?: { message?: string } }; message?: string };
       const msg =
@@ -199,12 +267,18 @@ export const useBills = () => {
   };
 
   const handleFilterChange = (newFilters: Partial<BillFilters>) => {
-    setFilters((prev) => ({ ...prev, ...newFilters }));
-    setCurrentPage(1);
-  };
-
-  const handleResetFilters = () => {
-    setFilters({});
+    setFilters((prev) => {
+      const merged = { ...prev, ...newFilters };
+      const cleaned: BillFilters = {};
+      (Object.keys(merged) as (keyof BillFilters)[]).forEach((key) => {
+        const val = merged[key];
+        if (val !== undefined && val !== null && val !== '') {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (cleaned as any)[key] = val;
+        }
+      });
+      return cleaned;
+    });
     setCurrentPage(1);
   };
 

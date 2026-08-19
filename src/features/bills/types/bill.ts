@@ -1,3 +1,5 @@
+import type { TransactionType } from '../../transactions/types/transaction.types';
+
 export type RecurringType = 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY';
 
 export type BillStatus = 'PENDING' | 'PAID' | 'PARTIALLY_PAID' | 'OVERDUE' | 'UPCOMING';
@@ -8,6 +10,7 @@ export interface BillCategory {
   id: string;
   _id?: string;
   name: string;
+  type?: TransactionType;
   color?: string;
   icon?: string;
 }
