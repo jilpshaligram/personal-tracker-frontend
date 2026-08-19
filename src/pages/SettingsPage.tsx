@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import {
   ShieldCheck,
   ShieldAlert,
-  Palette,
+  // Palette,
   Grid3X3,
   CheckCircle2,
   Mail,
@@ -12,12 +12,12 @@ import {
 import { useAuth } from '../context';
 import { apiClient } from '../api/client';
 
-type ThemeType = 'light' | 'dark' | 'system';
+// type ThemeType = 'light' | 'dark' | 'system';
 
 export default function SettingsPage() {
   const { user, verifyAuth } = useAuth();
   const [requirePin, setRequirePin] = useState(user?.isPinCreated || false);
-  const [theme, setTheme] = useState<ThemeType>('system');
+  // const [theme, setTheme] = useState<ThemeType>('system');
   const [newPin, setNewPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
   const [isPinUpdating, setIsPinUpdating] = useState(false);
@@ -192,7 +192,7 @@ export default function SettingsPage() {
             </form>
           </div>
 
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-6 space-y-5">
+          {/* <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-6 space-y-5">
             <div className="flex items-start gap-4">
               <span className="flex items-center justify-center w-11 h-11 rounded-xl bg-slate-100 text-slate-600 shrink-0">
                 <Palette className="w-5 h-5" />
@@ -272,7 +272,7 @@ export default function SettingsPage() {
                 </span>
               </button>
             </div>
-          </div>
+          </div> */}
         </div>
 
         <div className="space-y-6">

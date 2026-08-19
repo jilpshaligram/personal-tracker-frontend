@@ -121,20 +121,121 @@ export const documentService = {
     return null as unknown as Document;
   },
 
-  uploadDocument: async (data: DocumentUploadData) => {
-    const formData = new FormData();
-    formData.append('file', data.file);
-    formData.append('name', data.name);
-    formData.append('categoryId', data.categoryId);
-    if (data.documentNumber) formData.append('documentNumber', data.documentNumber);
-    if (data.description) formData.append('description', data.description);
-    if (data.issueDate) formData.append('issueDate', data.issueDate);
-    if (data.expiryDate) formData.append('expiryDate', data.expiryDate);
-    if (data.notes) formData.append('notes', data.notes);
-    if (data.tags) formData.append('tags', JSON.stringify(data.tags));
+  // ─── Step 1: Get a signed upload URL from the backend ──────────────────────
+  getUploadSignature: async (
+    categoryId: string
+  ): Promise<{
+    signature: string;
+    timestamp: number;
+    apiKey: string;
+    cloudName: string;
+    folder: string;
+  }> => {
+    const response = await apiClient.post<{
+      success: boolean;
+      data: {
+        signature: string;
+        timestamp: number;
+        apiKey: string;
+        cloudName: string;
+        folder: string;
+      };
+    }>('/documents/upload-signature', { categoryId });
+    return response.data.data;
+  },
 
-    const response = await apiClient.post<Document>('/documents', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+  // ─── Step 2: Upload file directly to Cloudinary ────────────────────────────
+  uploadToCloudinaryDirect: async (
+    file: File,
+    signatureData: {
+      signature: string;
+      timestamp: number;
+      apiKey: string;
+      cloudName: string;
+      folder: string;
+    },
+    onProgress?: (percent: number) => void
+  ): Promise<{
+    url: string;
+    publicId: string;
+    originalName: string;
+    mimeType: string;
+    extension: string;
+    size: number;
+  }> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('api_key', signatureData.apiKey);
+    formData.append('timestamp', String(signatureData.timestamp));
+    formData.append('signature', signatureData.signature);
+    formData.append('folder', signatureData.folder);
+
+    const cloudinaryUrl = `https://api.cloudinary.com/v1_1/${signatureData.cloudName}/auto/upload`;
+
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', cloudinaryUrl);
+
+      if (onProgress) {
+        xhr.upload.onprogress = (event) => {
+          if (event.lengthComputable) {
+            onProgress(Math.round((event.loaded / event.total) * 100));
+          }
+        };
+      }
+
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          const result = JSON.parse(xhr.responseText) as {
+            secure_url: string;
+            public_id: string;
+            original_filename: string;
+            format: string;
+            bytes: number;
+            resource_type: string;
+          };
+          resolve({
+            url: result.secure_url,
+            publicId: result.public_id,
+            originalName: file.name,
+            mimeType: file.type,
+            extension: result.format || file.name.split('.').pop() || '',
+            size: result.bytes,
+          });
+        } else {
+          reject(new Error(`Cloudinary upload failed: ${xhr.statusText}`));
+        }
+      };
+
+      xhr.onerror = () => reject(new Error('Network error during Cloudinary upload.'));
+      xhr.send(formData);
+    });
+  },
+
+  uploadDocument: async (
+    data: DocumentUploadData,
+    onProgress?: (stage: 'uploading' | 'saving', percent?: number) => void
+  ) => {
+    const signatureData = await documentService.getUploadSignature(data.categoryId);
+
+    onProgress?.('uploading', 0);
+    const cloudinaryData = await documentService.uploadToCloudinaryDirect(
+      data.file,
+      signatureData,
+      (percent) => onProgress?.('uploading', percent)
+    );
+    onProgress?.('saving');
+
+    const response = await apiClient.post<Document>('/documents', {
+      name: data.name,
+      categoryId: data.categoryId,
+      cloudinaryData,
+      ...(data.documentNumber && { documentNumber: data.documentNumber }),
+      ...(data.description && { description: data.description }),
+      ...(data.issueDate && { issueDate: data.issueDate }),
+      ...(data.expiryDate && { expiryDate: data.expiryDate }),
+      ...(data.notes && { notes: data.notes }),
+      ...(data.tags && { tags: data.tags }),
     });
     return response.data;
   },

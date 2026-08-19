@@ -26,9 +26,13 @@ export function DocumentCategoryList({
   const categories = (() => {
     if (!dataToUse || dataToUse.length === 0) return [];
 
-    const hasAll = dataToUse.some((cat) => cat._id === 'all' || cat.id === 'all');
+    const filteredCategories = dataToUse.filter(
+      (cat) => cat.name.toLowerCase() !== 'all documents'
+    );
+
+    const hasAll = filteredCategories.some((cat) => cat._id === 'all' || cat.id === 'all');
     if (!hasAll) {
-      const totalCount = dataToUse.reduce((acc, cat) => acc + (cat.count || 0), 0);
+      const totalCount = filteredCategories.reduce((acc, cat) => acc + (cat.count || 0), 0);
       const allCategory: DocumentCategory = {
         id: 'all',
         _id: 'all',
@@ -38,9 +42,9 @@ export function DocumentCategoryList({
         updatedAt: '',
         count: totalCount,
       };
-      return [allCategory, ...dataToUse];
+      return [allCategory, ...filteredCategories];
     }
-    return dataToUse;
+    return filteredCategories;
   })();
 
   if (isLoading) {

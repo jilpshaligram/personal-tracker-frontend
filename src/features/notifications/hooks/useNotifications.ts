@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { Notification, NotificationFilter } from '../types/notification';
 import {
   fetchNotifications,
@@ -10,8 +10,6 @@ import {
 } from '../services/notificationService';
 import { useNotificationStore } from '../../../store/notificationStore';
 
-const POLL_INTERVAL_MS = 60_000;
-
 export function useNotifications() {
   const { setUnreadCount } = useNotificationStore();
 
@@ -21,8 +19,6 @@ export function useNotifications() {
   const [isActing, setIsActing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<NotificationFilter>({ page: 1, limit: 20 });
-
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const loadNotifications = useCallback(
     async (f?: NotificationFilter) => {
@@ -126,12 +122,22 @@ export function useNotifications() {
       void refreshUnreadCount();
     });
 
-    pollRef.current = setInterval(() => {
+    const eventSource = new EventSource('/api/v1/notifications/sse', {
+      withCredentials: true,
+    });
+
+    eventSource.onmessage = () => {
+      // Refresh list and unread count immediately on new notification
+      void loadNotifications();
       void refreshUnreadCount();
-    }, POLL_INTERVAL_MS);
+    };
+
+    eventSource.onerror = (err) => {
+      console.warn('SSE connection warning, retrying...', err);
+    };
 
     return () => {
-      if (pollRef.current) clearInterval(pollRef.current);
+      eventSource.close();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
