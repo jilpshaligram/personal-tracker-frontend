@@ -78,11 +78,10 @@ export default function NotificationItem({
   onDismiss,
   onMarkAsRead,
 }: NotificationItemProps) {
-  const { id, title, message, type, priority, isRead, createdAt, actionUrl } = notification;
+  const { id, title, message, type, priority, isRead, createdAt } = notification;
 
   const handleClick = () => {
     if (!isRead) onMarkAsRead(id);
-    if (actionUrl) window.location.href = actionUrl;
   };
 
   return (
@@ -91,7 +90,7 @@ export default function NotificationItem({
         !isRead ? 'bg-blue-50/30' : ''
       }`}
       onClick={handleClick}
-      style={{ cursor: actionUrl || !isRead ? 'pointer' : 'default' }}
+      style={{ cursor: !isRead ? 'pointer' : 'default' }}
     >
       <div className="flex gap-3">
         <div className="mt-0.5 shrink-0">{getIcon(type)}</div>

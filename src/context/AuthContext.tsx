@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { clearAuthTokens } from '../api/client';
 import { AuthContext, type AuthContextType, type User } from './useAuth';
-
 export type { User } from './useAuth';
 
 const API_BASE_URL = '/api/v1/auth';
@@ -24,6 +23,27 @@ const PUBLIC_AUTH_PATHS = new Set([
   '/',
 ]);
 
+const userClient = axios.create({
+  baseURL: '/api/v1/users',
+  withCredentials: true,
+  timeout: 10000,
+});
+
+async function fetchUserProfile(): Promise<Partial<User> | null> {
+  try {
+    const res = await userClient.get<{
+      success: boolean;
+      data?: Partial<User>;
+    }>('/me');
+    if (res.data?.success && res.data?.data) {
+      return res.data.data;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 async function verifyToken(): Promise<User | null> {
   try {
     const res = await authClient.get<{
@@ -33,7 +53,15 @@ async function verifyToken(): Promise<User | null> {
     }>('/verify-token');
 
     if (res.data?.success) {
-      return res.data.user ?? res.data.data?.user ?? null;
+      const baseUser = res.data.user ?? res.data.data?.user ?? null;
+      if (!baseUser) return null;
+
+      // Fetch full profile to get firstName, lastName, etc.
+      const profile = await fetchUserProfile();
+      if (profile) {
+        return { ...baseUser, ...profile } as User;
+      }
+      return baseUser;
     }
     return null;
   } catch (err: unknown) {

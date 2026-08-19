@@ -53,6 +53,8 @@ export function DocumentUpload({ document, onClose, onUpload, onUpdate }: Docume
     error: categoriesError,
   } = useDocumentCategories();
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [uploadStage, setUploadStage] = useState<'idle' | 'uploading' | 'saving'>('idle');
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const categories = apiCategories || [];
   const isLoading = isUploading || isUpdating;
@@ -127,19 +129,29 @@ export function DocumentUpload({ document, onClose, onUpload, onUpdate }: Docume
         await updateMutate({ id: document.id, formData: updateData });
         onUpdate?.();
       } else {
-        await uploadMutate({
-          name: formData.name,
-          categoryId: formData.categoryId,
-          file: formData.file!,
-          documentNumber: formData.documentNumber || undefined,
-          description: formData.description || undefined,
-          issueDate: formData.issueDate || undefined,
-          expiryDate: formData.expiryDate || undefined,
-          notes: formData.notes || undefined,
-        });
+        setUploadStage('uploading');
+        setUploadProgress(0);
+        await uploadMutate(
+          {
+            name: formData.name,
+            categoryId: formData.categoryId,
+            file: formData.file!,
+            documentNumber: formData.documentNumber || undefined,
+            description: formData.description || undefined,
+            issueDate: formData.issueDate || undefined,
+            expiryDate: formData.expiryDate || undefined,
+            notes: formData.notes || undefined,
+          },
+          (stage, percent) => {
+            setUploadStage(stage);
+            if (percent !== undefined) setUploadProgress(percent);
+          }
+        );
+        setUploadStage('idle');
         onUpload?.(formData);
       }
     } catch {
+      setUploadStage('idle');
       // Handled by mutation hook state
     }
   };
@@ -435,22 +447,34 @@ export function DocumentUpload({ document, onClose, onUpload, onUpdate }: Docume
             <button
               type="submit"
               disabled={isLoading}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex flex-col items-center gap-1 px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-w-[140px]"
             >
-              {isLoading ? (
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              ) : document ? (
-                <CheckCircle2 className="w-4 h-4" />
-              ) : (
-                <Upload className="w-4 h-4" />
+              <span className="flex items-center gap-2">
+                {isLoading ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : document ? (
+                  <CheckCircle2 className="w-4 h-4" />
+                ) : (
+                  <Upload className="w-4 h-4" />
+                )}
+                {isLoading
+                  ? document
+                    ? 'Updating...'
+                    : uploadStage === 'uploading'
+                      ? `Uploading... ${uploadProgress}%`
+                      : 'Saving document...'
+                  : document
+                    ? 'Save Changes'
+                    : 'Secure Upload'}
+              </span>
+              {!document && uploadStage === 'uploading' && (
+                <span className="w-full bg-blue-500/40 rounded-full h-1 overflow-hidden">
+                  <span
+                    className="block bg-white h-1 rounded-full transition-all duration-300"
+                    style={{ width: `${uploadProgress}%` }}
+                  />
+                </span>
               )}
-              {isLoading
-                ? document
-                  ? 'Updating...'
-                  : 'Uploading...'
-                : document
-                  ? 'Save Changes'
-                  : 'Secure Upload'}
             </button>
           </div>
         </form>

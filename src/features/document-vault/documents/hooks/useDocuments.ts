@@ -56,11 +56,14 @@ export const useUploadDocument = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const mutate = async (data: DocumentUploadData) => {
+  const mutate = async (
+    data: DocumentUploadData,
+    onProgress?: (stage: 'uploading' | 'saving', percent?: number) => void
+  ) => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await documentService.uploadDocument(data);
+      const response = await documentService.uploadDocument(data, onProgress);
       return response;
     } catch (err) {
       const errorObject = err instanceof Error ? err : new Error(String(err));

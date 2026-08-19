@@ -21,7 +21,6 @@ const navItems: NavItem[] = [
   { path: '/documents', label: 'Documents', icon: FileText },
   { path: '/transactions', label: 'Transactions', icon: ArrowLeftRight },
   { path: '/budgets', label: 'Budgets', icon: WalletCards },
-  // { path: '/analytics', label: 'Analytics', icon: BarChart3 },
   { path: '/bills', label: 'Bills', icon: Receipt },
   { path: '/savings', label: 'Savings', icon: PiggyBank },
   { path: '/settings', label: 'Settings', icon: Settings },
