@@ -6,11 +6,10 @@ import type {
   UpdateBudgetDto,
 } from '../types/budget.types';
 
-// Helper to map summary response to frontend Budget type
 function mapSummaryToBudget(summaryData: Record<string, unknown>): Budget {
   const b = summaryData.budget as Record<string, unknown>;
   return {
-    id: (b._id || b.id) as string, // Handle both raw mongo document and DTO
+    id: (b._id || b.id) as string,
     amount: (summaryData.budgetAmount || b.amount || 0) as number,
     spent: (summaryData.spentAmount || 0) as number,
     remaining: (summaryData.remainingAmount || 0) as number,
@@ -24,15 +23,19 @@ function mapSummaryToBudget(summaryData: Record<string, unknown>): Budget {
   };
 }
 
-// Helper to map basic budget DTO to frontend Budget type
 function mapDtoToBudget(dto: Record<string, unknown>): Budget {
   return {
     id: (dto.id || dto._id) as string,
     amount: (dto.amount as number) || 0,
-    spent: 0, // Not provided by basic DTO
-    remaining: (dto.amount as number) || 0,
-    percentageUsed: 0,
-    status: dto.isActive ? 'ON_TRACK' : 'EXCEEDED', // Fallback for list view
+    spent: (dto.spentAmount as number) || 0,
+    remaining:
+      dto.remainingAmount !== undefined
+        ? (dto.remainingAmount as number)
+        : (dto.amount as number) || 0,
+    percentageUsed: (dto.percentageUsed as number) || 0,
+    status:
+      (dto.status as 'ON_TRACK' | 'WARNING' | 'EXCEEDED') ||
+      (dto.isActive ? 'ON_TRACK' : 'EXCEEDED'),
     period: dto.period as Budget['period'],
     startDate: dto.startDate as string,
     endDate: dto.endDate as string,
@@ -48,9 +51,8 @@ export const budgetService = {
   },
 
   getBudgets: async (): Promise<Budget[]> => {
-    const response = await apiClient.get<{ data: { data: Record<string, unknown>[] } }>('/budgets');
-    // Backend PaginatedResponseDto wraps the array in `data.data`
-    const items = response.data.data?.data || [];
+    const response = await apiClient.get<{ data: Record<string, unknown>[] }>('/budgets');
+    const items = Array.isArray(response.data.data) ? response.data.data : [];
     return items.map(mapDtoToBudget);
   },
 
@@ -81,12 +83,6 @@ export const budgetService = {
     const response = await apiClient.get<{ data: Record<string, unknown> }>(
       `/budgets/${id}/summary`
     );
-    // getSummary returns the summary object, but we need to fetch the base budget first
-    // because getSummary doesn't return the base budget object in the backend!
-    // Wait, let's just map it loosely and fetch budget info if needed.
-    // Actually, backend getSummary only returns { budgetAmount, spentAmount, remainingAmount, percentageUsed, status }
-    // It doesn't return the budget document itself like getCurrentSummary does!
-    // So we fetch the budget too:
     const budget = await budgetService.getBudgetById(id);
     const summaryData = response.data.data;
     return {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../../components/ui/dialog';
 import { Input } from '../../../components/ui/input';
 import { Label } from '../../../components/ui/label';
@@ -31,14 +31,15 @@ export function CreateBudgetModal({
   const [period, setPeriod] = useState<'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY'>('MONTHLY');
   const [validationError, setValidationError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
     if (open) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setAmount('');
       setPeriod('MONTHLY');
       setValidationError(null);
     }
-  }, [open]);
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
