@@ -40,7 +40,10 @@ export function DashboardStats({ stats, loading, period }: DashboardStatsProps) 
           </span>
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">
+          <div
+            className="text-2xl font-bold truncate"
+            title={stats ? formatCurrency(stats.currentBalance) : ''}
+          >
             {loading ? '---' : stats ? formatCurrency(stats.currentBalance) : '₹0.00'}
           </div>
           <p className="text-xs text-slate-500 mt-1">Total across all wallets</p>
@@ -70,7 +73,10 @@ export function DashboardStats({ stats, loading, period }: DashboardStatsProps) 
           </span>
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">
+          <div
+            className="text-2xl font-bold truncate"
+            title={stats ? formatCurrency(stats.monthlyIncome) : ''}
+          >
             {loading ? '---' : stats ? formatCurrency(stats.monthlyIncome) : '₹0.00'}
           </div>
           <p className="text-xs text-slate-500 mt-1">Based on transactions</p>
@@ -100,7 +106,10 @@ export function DashboardStats({ stats, loading, period }: DashboardStatsProps) 
           </span>
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">
+          <div
+            className="text-2xl font-bold truncate"
+            title={stats ? formatCurrency(stats.monthlyExpense) : ''}
+          >
             {loading ? '---' : stats ? formatCurrency(stats.monthlyExpense) : '₹0.00'}
           </div>
           <p className="text-xs text-slate-500 mt-1">Based on transactions</p>
@@ -132,11 +141,14 @@ export function DashboardStats({ stats, loading, period }: DashboardStatsProps) 
           </span>
         </CardHeader>
         <CardContent>
-          <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-bold">
+          <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+            <span
+              className="text-2xl font-bold truncate max-w-full"
+              title={stats ? formatCurrency(stats.totalSavings) : ''}
+            >
               {loading ? '---' : stats ? formatCurrency(stats.totalSavings) : '₹0.00'}
             </span>
-            <span className="text-sm text-slate-500 font-medium">
+            <span className="text-sm text-slate-500 font-medium whitespace-nowrap">
               / {loading ? '---' : stats ? formatCurrency(stats.totalTargetSavings) : '₹0.00'}
             </span>
           </div>

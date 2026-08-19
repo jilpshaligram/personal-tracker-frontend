@@ -169,7 +169,7 @@ export function TransactionTable({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-md border bg-white max-h-[600px] overflow-auto">
+      <div className="rounded-md bg-white overflow-hidden [&>div]:max-h-[600px]">
         <Table>
           <TableHeader className="bg-slate-50/50 sticky top-0 z-10 shadow-sm">
             {table.getHeaderGroups().map((headerGroup) => (

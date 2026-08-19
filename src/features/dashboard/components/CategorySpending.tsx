@@ -52,6 +52,7 @@ export function CategorySpending({ data, period, loading }: CategorySpendingProp
   const option = {
     tooltip: {
       trigger: 'item',
+      confine: true,
       formatter: function (params: { name: string; data: { percentage: number }; value: number }) {
         return `
           <div class="font-sans">
@@ -74,7 +75,7 @@ export function CategorySpending({ data, period, loading }: CategorySpendingProp
       {
         name: 'Spending by Category',
         type: 'pie',
-        radius: ['50%', '80%'],
+        radius: ['45%', '75%'],
         avoidLabelOverlap: false,
         itemStyle: {
           borderRadius: 4,
@@ -107,7 +108,7 @@ export function CategorySpending({ data, period, loading }: CategorySpendingProp
         <CardTitle className="capitalize">Categories ({period})</CardTitle>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col md:flex-row items-center gap-6">
-        <div className="w-full md:w-1/2 h-[250px]">
+        <div className="w-full md:w-1/2 h-[250px] min-w-0">
           <ReactECharts
             option={option}
             style={{ height: '100%', width: '100%' }}
