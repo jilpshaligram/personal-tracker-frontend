@@ -261,9 +261,9 @@ export const BillTable: React.FC<BillTableProps> = ({
                 <tr key={id} className="hover:bg-slate-50/60 transition-colors group">
                   <td className="px-5 py-4">
                     <div className="font-semibold text-slate-900 text-sm">{bill.title}</div>
-                    {bill.description && (
+                    {bill.notes && (
                       <div className="text-xs text-slate-400 truncate max-w-xs mt-0.5">
-                        {bill.description}
+                        {bill.notes}
                       </div>
                     )}
                   </td>

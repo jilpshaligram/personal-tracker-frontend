@@ -109,6 +109,14 @@ export const BillHistoryTable: React.FC<BillHistoryTableProps> = ({
                       <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                       <span>{formatDateTime(item.paymentDate || item.createdAt)}</span>
                     </div>
+                    {item.notes && (
+                      <div
+                        className="text-[11px] text-slate-500 mt-0.5 max-w-[200px] truncate"
+                        title={item.notes}
+                      >
+                        Notes: {item.notes}
+                      </div>
+                    )}
                   </td>
 
                   <td className="px-3.5 py-3 whitespace-nowrap">
