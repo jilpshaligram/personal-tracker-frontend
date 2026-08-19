@@ -12,21 +12,22 @@ import type {
   VerifyPinPayload,
 } from '../features/auth/types/auth';
 
-const SIGNUP_URL = 'http://localhost:3005/api/v1/auth/signup';
-const VERIFY_EMAIL_URL = 'http://localhost:3005/api/v1/auth/verify-email';
-const CREATE_PIN_URL = 'http://localhost:3005/api/v1/auth/create-pin';
-const RESEND_EMAIL_OTP_URL = 'http://localhost:3005/api/v1/auth/resend-email-otp';
-const LOGIN_URL = 'http://localhost:3005/api/v1/auth/login';
-const VERIFY_PIN_URL = 'http://localhost:3005/api/v1/auth/verify-pin';
-const FORGOT_PASSWORD_URL = 'http://localhost:3005/api/v1/auth/forgot-password';
-const VERIFY_PASSWORD_OTP_URL = 'http://localhost:3005/api/v1/auth/verify-password-otp';
-const RESET_PASSWORD_URL = 'http://localhost:3005/api/v1/auth/reset-password';
-const RESEND_PASSWORD_OTP_URL = 'http://localhost:3005/api/v1/auth/forgot-password';
-const FORGOT_PIN_URL = 'http://localhost:3005/api/v1/auth/forgot-pin';
-const VERIFY_PIN_OTP_URL = 'http://localhost:3005/api/v1/auth/verify-pin-otp';
-const RESET_PIN_URL = 'http://localhost:3005/api/v1/auth/reset-pin';
-const RESEND_PIN_OTP_URL = 'http://localhost:3005/api/v1/auth/forgot-pin';
-const VERIFY_TOKEN_URL = 'http://localhost:3005/api/v1/auth/verify-token';
+const BASE_URL = '/api/v1/auth';
+const SIGNUP_URL = `${BASE_URL}/signup`;
+const VERIFY_EMAIL_URL = `${BASE_URL}/verify-email`;
+const CREATE_PIN_URL = `${BASE_URL}/create-pin`;
+const RESEND_EMAIL_OTP_URL = `${BASE_URL}/resend-email-otp`;
+const LOGIN_URL = `${BASE_URL}/login`;
+const VERIFY_PIN_URL = `${BASE_URL}/verify-pin`;
+const FORGOT_PASSWORD_URL = `${BASE_URL}/forgot-password`;
+const VERIFY_PASSWORD_OTP_URL = `${BASE_URL}/verify-password-otp`;
+const RESET_PASSWORD_URL = `${BASE_URL}/reset-password`;
+const RESEND_PASSWORD_OTP_URL = `${BASE_URL}/forgot-password`;
+const FORGOT_PIN_URL = `${BASE_URL}/forgot-pin`;
+const VERIFY_PIN_OTP_URL = `${BASE_URL}/verify-pin-otp`;
+const RESET_PIN_URL = `${BASE_URL}/reset-pin`;
+const RESEND_PIN_OTP_URL = `${BASE_URL}/forgot-pin`;
+const VERIFY_TOKEN_URL = `${BASE_URL}/verify-token`;
 
 export function verifyTokenApi(token?: string | null): Promise<Response> {
   const headers: Record<string, string> = {};

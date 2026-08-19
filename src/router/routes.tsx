@@ -10,6 +10,10 @@ import SavingsPage from '../pages/SavingsPage';
 import SettingsPage from '../pages/SettingsPage';
 import ProfilePage from '../pages/ProfilePage';
 
+import SuperAdminDashboardPage from '../pages/super-admin/SuperAdminDashboardPage';
+import SuperAdminUsersPage from '../pages/super-admin/SuperAdminUsersPage';
+import SuperAdminAuditLogsPage from '../pages/super-admin/SuperAdminAuditLogsPage';
+
 import { Login } from '../pages/auth/Login';
 import { Register } from '../pages/auth/Register';
 import { VerifyOTP } from '../pages/auth/VerifyOTP';
@@ -18,16 +22,24 @@ import { VerifyPIN } from '../pages/auth/VerifyPIN';
 import { ForgotPassword } from '../pages/auth/ForgotPassword';
 import { ResetPassword } from '../pages/auth/ResetPassword';
 
-import AuthGuard, { VerifyPinGuard } from '../components/guards/AuthGuard';
+import AuthGuard, { PublicOnlyGuard, VerifyPinGuard } from '../components/guards/AuthGuard';
 
 const router = createBrowserRouter([
   {
     path: '/login',
-    element: <Login />,
+    element: (
+      <PublicOnlyGuard>
+        <Login />
+      </PublicOnlyGuard>
+    ),
   },
   {
     path: '/register',
-    element: <Register />,
+    element: (
+      <PublicOnlyGuard>
+        <Register />
+      </PublicOnlyGuard>
+    ),
   },
   {
     path: '/verify-otp',
@@ -47,11 +59,29 @@ const router = createBrowserRouter([
   },
   {
     path: '/forgot-password',
-    element: <ForgotPassword />,
+    element: (
+      <PublicOnlyGuard>
+        <ForgotPassword />
+      </PublicOnlyGuard>
+    ),
   },
   {
     path: '/reset-password',
-    element: <ResetPassword />,
+    element: (
+      <PublicOnlyGuard>
+        <ResetPassword />
+      </PublicOnlyGuard>
+    ),
+  },
+  {
+    path: '/admin',
+    element: <AppLayout />,
+    children: [
+      { index: true, element: <Navigate to="/admin/dashboard" replace /> },
+      { path: 'dashboard', element: <SuperAdminDashboardPage /> },
+      { path: 'users', element: <SuperAdminUsersPage /> },
+      { path: 'audit-logs', element: <SuperAdminAuditLogsPage /> },
+    ],
   },
   {
     path: '/',

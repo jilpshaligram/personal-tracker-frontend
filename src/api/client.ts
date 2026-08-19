@@ -1,8 +1,7 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3005/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/api/v1';
 
-const ACCESS_TOKEN_KEY = 'accessToken';
 const REFRESH_TOKEN_COOKIE = 'refreshToken';
 
 type AuthRequestConfig = InternalAxiosRequestConfig & { _retry?: boolean };
@@ -10,14 +9,6 @@ type AuthRequestConfig = InternalAxiosRequestConfig & { _retry?: boolean };
 function getCookie(name: string): string | null {
   const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
   return match?.[1] ? decodeURIComponent(match[1]) : null;
-}
-
-export function getAccessToken(): string | null {
-  return localStorage.getItem(ACCESS_TOKEN_KEY);
-}
-
-export function setAccessToken(token: string): void {
-  localStorage.setItem(ACCESS_TOKEN_KEY, token);
 }
 
 export function getRefreshToken(): string | null {
@@ -29,13 +20,18 @@ export function setRefreshToken(token: string): void {
 }
 
 export function clearAuthTokens(): void {
-  localStorage.removeItem(ACCESS_TOKEN_KEY);
   document.cookie = `${REFRESH_TOKEN_COOKIE}=; path=/; max-age=0`;
+  document.cookie = `accessToken=; path=/; max-age=0`;
+  document.cookie = `sessionId=; path=/; max-age=0`;
 }
 
 function logout(): void {
   clearAuthTokens();
-  if (!['/login', '/'].includes(window.location.pathname)) {
+  if (
+    typeof window !== 'undefined' &&
+    !['/login', '/'].includes(window.location.pathname) &&
+    !window.location.pathname.startsWith('/admin')
+  ) {
     window.location.href = '/login';
   }
 }
@@ -72,6 +68,11 @@ apiClient.interceptors.request.use((config) => {
 apiClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
+    // If currently on an admin route, do not attempt auth refresh or trigger logout
+    if (typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')) {
+      return Promise.reject(error);
+    }
+
     const config = error.config as AuthRequestConfig | undefined;
 
     if (!config || error.response?.status !== 401 || config._retry) {

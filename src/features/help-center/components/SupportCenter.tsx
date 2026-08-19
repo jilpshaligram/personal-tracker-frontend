@@ -1,10 +1,18 @@
 import { useEffect, useState } from 'react';
-import { HelpCircle, X, Search, MessageSquare, Mail, FileText } from 'lucide-react';
+import { Mail, X, Send, CheckCircle } from 'lucide-react';
 import { useHelpStore } from '../../../store/helpStore';
+import { useAuth } from '../../../context';
+import { apiClient } from '../../../api/client';
 
 export default function SupportCenter() {
   const { isOpen, setIsOpen } = useHelpStore();
-  const [searchQuery, setSearchQuery] = useState('');
+  const { user } = useAuth();
+
+  const [subject, setSubject] = useState('');
+  const [message, setMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -22,26 +30,45 @@ export default function SupportCenter() {
     };
   }, [isOpen, setIsOpen]);
 
-  const articles = [
-    {
-      title: 'How to reconcile accounts',
-      description: 'Step-by-step guide to monthly reconciliation.',
-    },
-    {
-      title: 'Exporting tax documents',
-      description: 'Download your year-end financial summaries.',
-    },
-    {
-      title: 'Managing user roles',
-      description: 'Set permissions for your finance team.',
-    },
-  ];
+  useEffect(() => {
+    if (!isOpen) {
+      Promise.resolve().then(() => {
+        setSubject('');
+        setMessage('');
+        setIsSuccess(false);
+        setIsSubmitting(false);
+        setErrorMessage(null);
+      });
+    }
+  }, [isOpen]);
 
-  const filteredArticles = articles.filter(
-    (article) =>
-      article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      article.description.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!subject.trim() || !message.trim()) return;
+
+    setIsSubmitting(true);
+    setErrorMessage(null);
+
+    try {
+      await apiClient.post('/support/send', {
+        subject,
+        message,
+      });
+      setIsSuccess(true);
+    } catch (err: unknown) {
+      console.error('Failed to send support message:', err);
+      let msg = 'Failed to send message. Please try again.';
+      if (err && typeof err === 'object' && 'response' in err) {
+        const res = (err as { response?: { data?: { message?: string } } }).response;
+        if (res?.data?.message) {
+          msg = res.data.message;
+        }
+      }
+      setErrorMessage(msg);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <>
@@ -57,86 +84,120 @@ export default function SupportCenter() {
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
-        <div className="flex items-center justify-between px-5 py-4 shrink-0 bg-slate-50/50">
+        <div className="flex items-center justify-between px-5 py-4 shrink-0 bg-slate-50/50 border-b border-slate-100">
           <div className="flex items-center gap-2.5">
             <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-50 text-blue-600">
-              <HelpCircle className="w-5 h-5" />
+              <Mail className="w-4.5 h-4.5" />
             </span>
-            <h2 className="text-lg font-semibold text-slate-800">Support Center</h2>
+            <h2 className="text-base font-semibold text-slate-800">Help Center</h2>
           </div>
 
           <button
             type="button"
             onClick={() => setIsOpen(false)}
             className="p-1.5 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all cursor-pointer"
-            aria-label="Close support center"
+            aria-label="Close help center"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="h-px bg-slate-100 shrink-0" />
-
-        <div className="flex-1 overflow-y-auto p-5 bg-white">
-          <div className="relative">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Search knowledge base..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/25 focus:border-blue-500 focus:bg-white transition-all text-slate-700"
-            />
-          </div>
-
-          <div className="mt-6">
-            <h3 className="text-[11px] font-semibold text-slate-400 tracking-wider uppercase mb-3">
-              Quick Actions
-            </h3>
-            <div className="flex gap-3">
-              <button
-                type="button"
-                className="flex-1 py-4 bg-slate-50 hover:bg-slate-100/80 border border-slate-200/50 rounded-xl flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer text-slate-700 hover:text-slate-800"
-              >
-                <MessageSquare className="w-5 h-5 text-blue-600" />
-                <span className="text-xs font-semibold">Live Chat</span>
-              </button>
-              <button
-                type="button"
-                className="flex-1 py-4 bg-slate-50 hover:bg-slate-100/80 border border-slate-200/50 rounded-xl flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer text-slate-700 hover:text-slate-800"
-              >
-                <Mail className="w-5 h-5 text-blue-600" />
-                <span className="text-xs font-semibold">Email Us</span>
-              </button>
-            </div>
-          </div>
-
-          <div className="mt-6">
-            <h3 className="text-[11px] font-semibold text-slate-400 tracking-wider uppercase mb-3">
-              Recommended Articles
-            </h3>
-            <div className="space-y-4">
-              {filteredArticles.length > 0 ? (
-                filteredArticles.map((article, i) => (
-                  <div key={i} className="flex gap-3">
-                    <FileText className="w-4 h-4 text-slate-400 mt-0.5 shrink-0" />
-                    <div>
-                      <h4 className="text-sm font-semibold text-slate-800 hover:text-blue-600 hover:underline cursor-pointer transition-colors leading-snug">
-                        {article.title}
-                      </h4>
-                      <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
-                        {article.description}
-                      </p>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <p className="text-xs text-slate-400 italic">
-                  No articles found matching "{searchQuery}"
+        <div className="flex-1 overflow-y-auto p-6 bg-white">
+          {!isSuccess ? (
+            <form onSubmit={handleSubmit} noValidate className="space-y-5">
+              <div>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  Have a question or running into an issue? Drop us a line and our support team will
+                  get back to you shortly.
                 </p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-400 uppercase mb-1.5">
+                  Your Email Address
+                </label>
+                <input
+                  type="email"
+                  disabled
+                  value={user?.email || ''}
+                  className="w-full text-sm px-3.5 py-2.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-400 cursor-not-allowed select-none"
+                />
+              </div>
+
+              {/* Subject */}
+              <div>
+                <label className="block text-xs font-bold text-slate-400 uppercase mb-1.5">
+                  Subject
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Question about budgets"
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                  disabled={isSubmitting}
+                  className="w-full text-sm px-3.5 py-2.5 rounded-lg border border-slate-200 bg-white focus:outline-hidden focus:border-blue-900 focus:ring-1 focus:ring-blue-900 transition-all text-slate-700 placeholder-slate-400"
+                />
+              </div>
+
+              {/* Message */}
+              <div>
+                <label className="block text-xs font-bold text-slate-400 uppercase mb-1.5">
+                  Message
+                </label>
+                <textarea
+                  required
+                  rows={6}
+                  placeholder="Describe your issue or question in detail..."
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  disabled={isSubmitting}
+                  className="w-full text-sm px-3.5 py-2.5 rounded-lg border border-slate-200 bg-white focus:outline-hidden focus:border-blue-900 focus:ring-1 focus:ring-blue-900 transition-all text-slate-700 placeholder-slate-400 resize-none"
+                />
+              </div>
+
+              {errorMessage && (
+                <div className="p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-xs leading-relaxed">
+                  {errorMessage}
+                </div>
               )}
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={isSubmitting || !subject.trim() || !message.trim()}
+                className="w-full flex items-center justify-center gap-2 py-3 bg-blue-900 hover:bg-blue-800 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-lg transition-all shadow-xs cursor-pointer"
+              >
+                {isSubmitting ? (
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-400 border-t-transparent" />
+                ) : (
+                  <Send className="w-4 h-4" />
+                )}
+                <span>{isSubmitting ? 'Sending...' : 'Send Message'}</span>
+              </button>
+            </form>
+          ) : (
+            /* Success confirmation screen */
+            <div className="flex flex-col items-center justify-center text-center py-12 space-y-4">
+              <span className="flex items-center justify-center w-14 h-14 rounded-full bg-emerald-50 text-emerald-600">
+                <CheckCircle className="w-7 h-7" />
+              </span>
+              <div>
+                <h3 className="text-base font-bold text-slate-800">Message Sent!</h3>
+                <p className="text-xs text-slate-500 mt-2 max-w-[240px] leading-relaxed">
+                  Thank you! Your request was sent. Our team will contact you at{' '}
+                  <strong className="text-slate-700">{user?.email}</strong> shortly.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsOpen(false)}
+                className="mt-4 px-5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-700 text-xs font-semibold rounded-lg transition-all cursor-pointer"
+              >
+                Close Panel
+              </button>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </>

@@ -1,25 +1,9 @@
-﻿import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import { clearAuthTokens } from '../api/client';
+import { AuthContext, type AuthContextType, type User } from './useAuth';
 
-export interface User {
-  id: string;
-  sub: string;
-  role: string;
-  sessionId: string;
-  email?: string;
-  firstName?: string;
-  lastName?: string;
-}
-
-interface AuthContextType {
-  user: User | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  error: string | null;
-  login: (user: User) => void;
-  logout: () => Promise<void>;
-  verifyAuth: () => Promise<boolean>;
-}
+export type { User } from './useAuth';
 
 const API_BASE_URL = '/api/v1/auth';
 
@@ -42,58 +26,116 @@ const PUBLIC_AUTH_PATHS = new Set([
 
 async function verifyToken(): Promise<User | null> {
   try {
-    const response = await authClient.get('/verify-token');
+    const res = await authClient.get<{
+      success: boolean;
+      user?: User;
+      data?: { user?: User };
+    }>('/verify-token');
 
-    const json = response.data as {
-      success?: boolean;
-      data?: { user?: unknown };
-    };
-
-    if (!json.success || !json.data?.user) {
-      return null;
+    if (res.data?.success) {
+      return res.data.user ?? res.data.data?.user ?? null;
     }
-
-    return json.data.user as User;
-  } catch {
+    return null;
+  } catch (err: unknown) {
+    const axiosError = err as { response?: { status?: number } };
+    if (axiosError.response?.status !== 401) {
+      console.warn('verify-token error (non-401):', err);
+    }
     return null;
   }
 }
 
-async function logoutApi(): Promise<void> {
-  try {
-    await authClient.post('/logout');
-  } catch {
-    return;
-  }
-}
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUserState] = useState<User | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const verifyAuth = useCallback(async (): Promise<boolean> => {
-    setIsLoading(true);
+  const login = useCallback((userData: User) => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('explicitLogout');
+      sessionStorage.removeItem('loggedOut');
+    }
+    setUserState(userData);
+    setIsAuthenticated(true);
     setError(null);
+  }, []);
 
+  const logout = useCallback(async () => {
     try {
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('explicitLogout', 'true');
+        sessionStorage.setItem('loggedOut', 'true');
+      }
+      await authClient.post('/logout');
+    } catch (err) {
+      console.warn('Logout request error:', err);
+    } finally {
+      clearAuthTokens();
+      setUserState(null);
+      setIsAuthenticated(false);
+      setError(null);
+      if (
+        typeof window !== 'undefined' &&
+        !['/login', '/'].includes(window.location.pathname) &&
+        !window.location.pathname.startsWith('/admin')
+      ) {
+        window.location.href = '/login';
+      }
+    }
+  }, []);
+
+  const verifyAuth = useCallback(async (): Promise<boolean> => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
       const verifiedUser = await verifyToken();
 
       if (verifiedUser) {
         setUserState(verifiedUser);
         setIsAuthenticated(true);
+        if (typeof window !== 'undefined') {
+          sessionStorage.removeItem('explicitLogout');
+          sessionStorage.removeItem('loggedOut');
+        }
         return true;
       }
 
+      try {
+        const refreshRes = await authClient.post<{
+          success: boolean;
+          user?: User;
+          data?: { user?: User };
+        }>('/refresh-token');
+
+        if (refreshRes.data?.success) {
+          const refreshedUser = await verifyToken();
+          if (refreshedUser) {
+            setUserState(refreshedUser);
+            setIsAuthenticated(true);
+            if (typeof window !== 'undefined') {
+              sessionStorage.removeItem('explicitLogout');
+              sessionStorage.removeItem('loggedOut');
+            }
+            return true;
+          }
+        }
+      } catch {
+        // Refresh token invalid or expired
+      }
+
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('loggedOut', 'true');
+      }
       setUserState(null);
       setIsAuthenticated(false);
       return false;
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Authentication check failed';
-      setError(message);
+      console.error('verifyAuth failed:', err);
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('loggedOut', 'true');
+      }
       setUserState(null);
       setIsAuthenticated(false);
       return false;
@@ -102,40 +144,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  const login = useCallback((newUser: User) => {
-    setUserState(newUser);
-    setIsAuthenticated(true);
-    setError(null);
-  }, []);
-
-  const logout = useCallback(async () => {
-    await logoutApi();
-    setUserState(null);
-    setIsAuthenticated(false);
-    setError(null);
-  }, []);
-
-  const shouldSkipAuthCheck = useCallback((): boolean => {
-    if (typeof window === 'undefined') {
-      return false;
-    }
-
-    return PUBLIC_AUTH_PATHS.has(window.location.pathname);
-  }, []);
-
   useEffect(() => {
     const checkAuth = async () => {
-      if (shouldSkipAuthCheck()) {
+      const path = typeof window !== 'undefined' ? window.location.pathname : '';
+
+      if (path.startsWith('/admin')) {
         setIsLoading(false);
+        return;
+      }
+
+      const isLoggedOut =
+        typeof window !== 'undefined' &&
+        (sessionStorage.getItem('explicitLogout') === 'true' ||
+          sessionStorage.getItem('loggedOut') === 'true');
+
+      if (PUBLIC_AUTH_PATHS.has(path) && isLoggedOut) {
         setUserState(null);
         setIsAuthenticated(false);
+        setIsLoading(false);
         return;
       }
 
       await verifyAuth();
     };
     checkAuth();
-  }, [verifyAuth, shouldSkipAuthCheck]);
+  }, [verifyAuth]);
 
   const value: AuthContextType = {
     user,
@@ -148,13 +181,4 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};
-
-// eslint-disable-next-line react-refresh/only-export-components
-export const useAuth = (): AuthContextType => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within AuthProvider');
-  }
-  return context;
 };

@@ -3,6 +3,7 @@ import { Eye, EyeOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { login } from '../services/authService';
 import { GoogleIcon } from './GoogleIcon';
+import { AuthLoadingOverlay } from './AuthLoadingOverlay';
 import {
   authEyebrowClass,
   authFormInnerClass,
@@ -21,23 +22,39 @@ export const LoginForm: React.FC = () => {
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
   const [focused, setFocused] = useState<string | null>(null);
+  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!email || !password) {
-      setError('Please enter both email and password.');
+    const newErrors: { email?: string; password?: string } = {};
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!email.trim()) {
+      newErrors.email = 'Email address is required.';
+    } else if (!emailRegex.test(email.trim())) {
+      newErrors.email = 'Please enter a valid email address.';
+    }
+
+    if (!password) {
+      newErrors.password = 'Password is required.';
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
+
+    setErrors({});
 
     try {
       setIsSubmitting(true);
       setError('');
-      await login({ email, password });
+      await login({ email: email.trim(), password });
       sessionStorage.setItem('verifyPinAccess', 'true');
-      navigate('/verify-pin', { state: { email, flow: 'login' } });
+      navigate('/verify-pin', { state: { email: email.trim(), flow: 'login' } });
     } catch (submitError) {
       setError(
         submitError instanceof Error ? submitError.message : 'Unable to sign in. Please try again.'
@@ -48,8 +65,23 @@ export const LoginForm: React.FC = () => {
   };
 
   return (
-    <div className={authFormPaneClass}>
+    <div className={`${authFormPaneClass} relative min-h-[400px]`}>
+      {isSubmitting && (
+        <AuthLoadingOverlay
+          title="Signing in..."
+          message="Authenticating credentials & establishing secure session"
+        />
+      )}
       <div className={authFormInnerClass}>
+        <div className="mb-6 flex items-center justify-center gap-2 lg:hidden">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-linear-to-br from-[#2F5FE0] to-[#5B8CF5] text-sm font-bold text-white shadow-sm">
+            V
+          </div>
+          <span className="font-['Sora',sans-serif] text-lg font-bold text-[#16274F]">
+            VaultSaaS
+          </span>
+        </div>
+
         <div className={authEyebrowClass}>Personal finance</div>
         <h1 className={authTitleClass}>Sign in to VaultSaaS</h1>
         <p className={authSubtitleClass}>
@@ -62,31 +94,44 @@ export const LoginForm: React.FC = () => {
           </div>
         )}
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} noValidate>
           <div className="mb-4">
             <label className={authLabelClass}>Email address</label>
             <input
-              className={authInputClass(focused === 'email')}
+              className={authInputClass(focused === 'email', Boolean(errors.email))}
               type="email"
               placeholder="name@company.com"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                if (errors.email) setErrors((prev) => ({ ...prev, email: undefined }));
+              }}
               onFocus={() => setFocused('email')}
               onBlur={() => setFocused(null)}
+              aria-invalid={Boolean(errors.email)}
             />
+            {errors.email && <p className="mt-1 text-xs text-[#E5484D]">{errors.email}</p>}
           </div>
 
           <div className="mb-4">
             <label className={authLabelClass}>Password</label>
             <div className="relative">
               <input
-                className={authInputClass(focused === 'password', 'pr-10')}
+                className={authInputClass(
+                  focused === 'password',
+                  Boolean(errors.password),
+                  'pr-10'
+                )}
                 type={showPw ? 'text' : 'password'}
                 placeholder="Enter your password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (errors.password) setErrors((prev) => ({ ...prev, password: undefined }));
+                }}
                 onFocus={() => setFocused('password')}
                 onBlur={() => setFocused(null)}
+                aria-invalid={Boolean(errors.password)}
               />
               <button
                 type="button"
@@ -96,6 +141,7 @@ export const LoginForm: React.FC = () => {
                 {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
+            {errors.password && <p className="mt-1 text-xs text-[#E5484D]">{errors.password}</p>}
           </div>
 
           <div className="mb-5 flex justify-end text-[13px]">

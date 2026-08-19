@@ -1,11 +1,10 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { verifyPin } from '../../features/auth/services/authService';
 import { VaultPINBrandPanel } from '../../features/auth/components/VaultPINBrandPanel';
 import { PINForm } from '../../features/auth/components/PINForm';
 import { authPageClass, authShellClass } from '../../features/auth/components/authTailwind';
-import { useAuth } from '../../context/AuthContext';
-import type { User } from '../../context/AuthContext';
+import { useAuth, type User } from '../../context';
 
 export const VerifyPIN: React.FC = () => {
   const navigate = useNavigate();
