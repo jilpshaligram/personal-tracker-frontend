@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, X, Plus, AlertTriangle, RefreshCw } from 'lucide-react';
+import { Search, X, Plus, AlertTriangle, RefreshCw, Receipt } from 'lucide-react';
 import { BillTable, BillForm, BillDetails, PayBillDialog, useBills } from '../features/bills';
 import type { Bill, CreateBillPayload, PayBillPayload } from '../features/bills';
 
@@ -121,60 +121,78 @@ export default function BillsPage() {
   return (
     <div className="w-full flex justify-center px-4 sm:px-6 lg:px-8 py-6">
       <div className="flex flex-col gap-6 w-full max-w-[1600px] 2xl:max-w-[1800px]">
-        <div className="relative w-full sm:max-w-md lg:max-w-lg">
-          <Search
-            className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none"
-            aria-hidden="true"
-          />
-          <input
-            type="search"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search transactions or docs..."
-            className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-9 pr-8 text-sm text-slate-700 placeholder:text-slate-400 outline-none focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-100 shadow-xs transition-all"
-            aria-label="Search transactions or documents"
-          />
-          {searchTerm && (
-            <button
-              type="button"
-              onClick={() => {
-                setSearchTerm('');
-                handleFilterChange({ search: undefined });
-              }}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-200 transition-colors"
-              title="Clear search"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
-          )}
-        </div>
-
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-          <div className="shrink-0">
-            <h1 className="text-2xl font-semibold text-slate-800 tracking-tight">Bills</h1>
+        {/* Heading Section */}
+        <div className="shrink-0 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
+              <Receipt className="w-6 h-6 text-blue-600" />
+              Bills
+            </h1>
             <p className="mt-1 text-sm text-slate-500">
               Set and monitor your upcoming and recurring bills.
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2.5 xl:flex-nowrap xl:justify-end">
+          <button
+            type="button"
+            onClick={handleOpenCreate}
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700 active:scale-[0.98] transition-all shadow-sm"
+          >
+            <Plus className="w-4 h-4 stroke-[2.5]" />
+            <span>Add Bill</span>
+          </button>
+        </div>
+
+        {/* Filters Section */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          {/* Left: Search */}
+          <div className="relative w-full sm:max-w-[280px] shrink-0">
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none"
+              aria-hidden="true"
+            />
+            <input
+              type="search"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search bills..."
+              className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-8 text-sm text-slate-700 placeholder:text-slate-400 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 shadow-sm transition-all"
+              aria-label="Search bills"
+            />
+            {searchTerm && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchTerm('');
+                  handleFilterChange({ search: undefined });
+                }}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-200 transition-colors"
+                title="Clear search"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+
+          {/* Right: Filters and Actions */}
+          <div className="flex flex-wrap items-center lg:justify-end gap-3 w-full lg:w-auto">
             <select
               value={filters.status || ''}
               onChange={(e) => handleFilterChange({ status: e.target.value || undefined })}
-              className="px-3 py-2 text-xs sm:text-sm rounded-lg bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-700 font-medium transition-all shadow-2xs shrink-0"
+              className="px-3 py-2 text-sm rounded-lg bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-700 font-medium shadow-sm transition-all"
               aria-label="Filter by status"
             >
               <option value="">All Statuses</option>
+              <option value="PARTIAL">Partial</option>
               <option value="PENDING">Pending</option>
               <option value="PAID">Paid</option>
               <option value="OVERDUE">Overdue</option>
-              <option value="UPCOMING">Upcoming</option>
             </select>
 
             <select
               value={filters.categoryId || ''}
               onChange={(e) => handleFilterChange({ categoryId: e.target.value || undefined })}
-              className="px-3 py-2 text-xs sm:text-sm rounded-lg bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-700 font-medium transition-all shadow-2xs shrink-0 max-w-[180px]"
+              className="px-3 py-2 text-sm rounded-lg bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-700 font-medium shadow-sm transition-all max-w-[180px]"
               aria-label="Filter by category"
             >
               <option value="">All Categories</option>
@@ -200,7 +218,7 @@ export default function BillsPage() {
                   isRecurring: val === '' ? undefined : val === 'true',
                 });
               }}
-              className="px-3 py-2 text-xs sm:text-sm rounded-lg bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-700 font-medium transition-all shadow-2xs shrink-0"
+              className="px-3 py-2 text-sm rounded-lg bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-700 font-medium shadow-sm transition-all"
               aria-label="Filter by recurrence"
             >
               <option value="">All Types</option>
@@ -208,26 +226,15 @@ export default function BillsPage() {
               <option value="false">One-Time Only</option>
             </select>
 
-            <div className="flex items-center gap-2.5 shrink-0">
-              <button
-                type="button"
-                onClick={handleRefresh}
-                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200 bg-white shadow-2xs"
-                title="Refresh bills and clear filters"
-                aria-label="Refresh bills and clear filters"
-              >
-                <RefreshCw className="w-4 h-4" />
-              </button>
-
-              <button
-                type="button"
-                onClick={handleOpenCreate}
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs sm:text-sm font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700 active:scale-[0.98] transition-all shadow-xs whitespace-nowrap"
-              >
-                <Plus className="w-4 h-4 stroke-[2.5]" />
-                <span>Add Bill</span>
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={handleRefresh}
+              className="p-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200 bg-white shadow-sm shrink-0"
+              title="Refresh bills and clear filters"
+              aria-label="Refresh bills and clear filters"
+            >
+              <RefreshCw className="w-4 h-4" />
+            </button>
           </div>
         </div>
 

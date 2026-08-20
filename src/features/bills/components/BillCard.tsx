@@ -61,16 +61,19 @@ export const BillCard: React.FC<BillCardProps> = ({
         </div>
 
         <div className="flex items-center gap-1.5 relative">
-          {!isPaid && (
-            <button
-              type="button"
-              onClick={() => onMarkAsPaid(bill)}
-              className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-md bg-emerald-600 text-white hover:bg-emerald-700 shadow-xs transition-colors"
-            >
-              <CheckCircle className="w-3 h-3" />
-              Pay
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={() => !isPaid && onMarkAsPaid(bill)}
+            disabled={isPaid}
+            className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-md shadow-xs transition-colors ${
+              isPaid
+                ? 'bg-emerald-50 text-emerald-400 cursor-not-allowed border border-emerald-100'
+                : 'bg-emerald-600 text-white hover:bg-emerald-700'
+            }`}
+          >
+            <CheckCircle className="w-3 h-3" />
+            {isPaid ? 'Paid' : 'Pay'}
+          </button>
 
           <button
             type="button"
@@ -98,20 +101,28 @@ export const BillCard: React.FC<BillCardProps> = ({
               <button
                 type="button"
                 onClick={() => {
+                  if (isPaid) return;
                   setIsMenuOpen(false);
                   onEdit(bill);
                 }}
-                className="w-full px-3 py-1.5 text-left text-xs text-slate-700 hover:bg-slate-50"
+                disabled={isPaid}
+                className={`w-full px-3 py-1.5 text-left text-xs ${
+                  isPaid ? 'text-slate-300 cursor-not-allowed' : 'text-slate-700 hover:bg-slate-50'
+                }`}
               >
                 Edit
               </button>
               <button
                 type="button"
                 onClick={() => {
+                  if (isPaid) return;
                   setIsMenuOpen(false);
                   onDelete(bill);
                 }}
-                className="w-full px-3 py-1.5 text-left text-xs text-rose-600 hover:bg-rose-50"
+                disabled={isPaid}
+                className={`w-full px-3 py-1.5 text-left text-xs ${
+                  isPaid ? 'text-slate-300 cursor-not-allowed' : 'text-rose-600 hover:bg-rose-50'
+                }`}
               >
                 Delete
               </button>

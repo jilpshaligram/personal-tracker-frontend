@@ -44,9 +44,8 @@ export const BillFilterBar: React.FC<BillFilterBarProps> = ({
     { value: '', label: 'All Status' },
     { value: 'PENDING', label: 'Pending' },
     { value: 'PAID', label: 'Paid' },
-    { value: 'PARTIALLY_PAID', label: 'Partially Paid' },
+    { value: 'PARTIAL', label: 'Partial' },
     { value: 'OVERDUE', label: 'Overdue' },
-    { value: 'UPCOMING', label: 'Upcoming' },
   ];
 
   return (
@@ -57,7 +56,7 @@ export const BillFilterBar: React.FC<BillFilterBarProps> = ({
           type="text"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="Search by title, description or notes..."
+          placeholder="Search by title or notes..."
           className="w-full pl-9 pr-8 py-2 text-sm rounded-lg bg-slate-50 border border-slate-200 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-800 placeholder-slate-400 transition-all"
         />
         {searchTerm && (

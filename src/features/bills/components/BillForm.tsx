@@ -50,7 +50,17 @@ export const BillForm: React.FC<BillFormProps> = ({
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
-    if (!title.trim()) newErrors.title = 'Title is required';
+    if (!title.trim()) {
+      newErrors.title = 'Title is required';
+    } else if (title.trim().length < 3) {
+      newErrors.title = 'Title must be at least 3 characters long';
+    } else if (title.trim().length > 20) {
+      newErrors.title = 'Title cannot exceed 20 characters';
+    } else if (/(.)\1{4,}/.test(title.trim())) {
+      newErrors.title = 'Title cannot contain excessive repeating characters';
+    } else if (/\s{3,}/.test(title.trim())) {
+      newErrors.title = 'Title cannot contain excessive spaces';
+    }
     if (!categoryId) {
       newErrors.categoryId = 'Category is required';
     } else if (categoryId === 'OTHER_CUSTOM') {
@@ -60,6 +70,9 @@ export const BillForm: React.FC<BillFormProps> = ({
     }
     if (amount === '' || Number(amount) <= 0)
       newErrors.amount = 'Valid positive amount is required';
+    if (reminderDaysBefore !== '' && Number(reminderDaysBefore) < 0) {
+      newErrors.reminderDaysBefore = 'Reminder days cannot be negative';
+    }
     if (!dueDate) {
       newErrors.dueDate = 'Due date is required';
     } else {
@@ -326,9 +339,16 @@ export const BillForm: React.FC<BillFormProps> = ({
                     setReminderDaysBefore(e.target.value === '' ? '' : Number(e.target.value))
                   }
                   placeholder="0"
-                  className="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                  className={`w-full pl-9 pr-3 py-2 text-sm rounded-lg border bg-white focus:outline-none focus:ring-2 ${
+                    errors.reminderDaysBefore
+                      ? 'border-rose-400 focus:ring-rose-500/20'
+                      : 'border-slate-200 focus:ring-blue-500/20 focus:border-blue-500'
+                  }`}
                 />
               </div>
+              {errors.reminderDaysBefore && (
+                <p className="text-xs text-rose-500 mt-1">{errors.reminderDaysBefore}</p>
+              )}
             </div>
           </div>
 

@@ -116,7 +116,6 @@ export const useBills = () => {
             items = items.filter(
               (b) =>
                 (b.title || '').toLowerCase().includes(q) ||
-                (b.description || '').toLowerCase().includes(q) ||
                 (b.notes || '').toLowerCase().includes(q)
             );
           }

@@ -26,8 +26,8 @@ function buildBillFormData(payload: CreateBillPayload | UpdateBillPayload): Form
   const formData = new FormData();
   if (payload.categoryId) formData.append('categoryId', payload.categoryId);
   if (payload.title) formData.append('title', payload.title);
-  if (payload.description !== undefined && payload.description !== null) {
-    formData.append('description', payload.description);
+  if (payload.notes !== undefined && payload.notes !== null) {
+    formData.append('notes', payload.notes);
   }
   if (payload.amount !== undefined && payload.amount !== null) {
     formData.append('amount', String(payload.amount));
