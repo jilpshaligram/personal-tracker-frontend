@@ -48,6 +48,10 @@ const router = createBrowserRouter([
     element: <VerifyOTP />,
   },
   {
+    path: '/verify-email',
+    element: <VerifyOTP />,
+  },
+  {
     path: '/pin-setup',
     element: <PINSetup />,
   },

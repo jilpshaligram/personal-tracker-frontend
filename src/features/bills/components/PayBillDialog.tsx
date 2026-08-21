@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, CheckCircle, CreditCard, DollarSign, FileText } from 'lucide-react';
+import { useBillHistory } from '../history/useBillHistory';
 import type { PayBillDialogProps, PayBillPayload, PaymentMethod } from '../types';
 
 export const PayBillDialog: React.FC<PayBillDialogProps> = ({
@@ -10,10 +11,15 @@ export const PayBillDialog: React.FC<PayBillDialogProps> = ({
   onConfirm,
   isSubmitting,
 }) => {
-  const [amountPaid, setAmountPaid] = useState<number | ''>('');
+  const {
+    totalPaid,
+    remainingAmount: historyRemaining,
+    isPartiallyPaid,
+  } = useBillHistory(bill, isOpen);
+
+  const [userInputAmount, setUserInputAmount] = useState<number | '' | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('CARD');
   const [notes, setNotes] = useState('');
-  const [remarks, setRemarks] = useState('');
   const [payError, setPayError] = useState<string | null>(null);
 
   const [prevDialogKey, setPrevDialogKey] = useState<string | null>(null);
@@ -21,24 +27,37 @@ export const PayBillDialog: React.FC<PayBillDialogProps> = ({
 
   if (currentKey !== prevDialogKey) {
     setPrevDialogKey(currentKey);
-    if (bill && isOpen) {
-      setAmountPaid(
-        defaultAmount !== undefined && defaultAmount > 0 ? defaultAmount : bill.amount || ''
-      );
-      setPaymentMethod('CARD');
-      setNotes('');
-      setRemarks('');
-      setPayError(null);
-    }
+    setUserInputAmount(null);
+    setPaymentMethod('CARD');
+    setNotes('');
+    setPayError(null);
   }
 
   if (!isOpen || !bill) return null;
+
+  const effectiveRemaining =
+    defaultAmount !== undefined && defaultAmount > 0
+      ? defaultAmount
+      : historyRemaining > 0 && historyRemaining < bill.amount
+        ? historyRemaining
+        : bill.amount || 0;
+
+  const isPartial =
+    isPartiallyPaid ||
+    (defaultAmount !== undefined && defaultAmount > 0 && defaultAmount < bill.amount) ||
+    (historyRemaining > 0 && historyRemaining < bill.amount);
+
+  const currentDisplayAmount =
+    userInputAmount !== null ? userInputAmount : effectiveRemaining > 0 ? effectiveRemaining : '';
 
   const handlePay = async (e: React.FormEvent) => {
     e.preventDefault();
     setPayError(null);
     const id = bill.id || bill._id || '';
-    const numAmount = amountPaid !== '' ? Number(amountPaid) : bill.amount;
+    const numAmount =
+      userInputAmount !== null && userInputAmount !== ''
+        ? Number(userInputAmount)
+        : effectiveRemaining;
 
     if (numAmount <= 0) {
       setPayError('Please enter a valid payment amount greater than zero.');
@@ -49,7 +68,6 @@ export const PayBillDialog: React.FC<PayBillDialogProps> = ({
       amountPaid: numAmount,
       paymentMethod,
       notes: notes.trim() || undefined,
-      remarks: remarks.trim() || notes.trim() || undefined,
       createTransaction: true,
     };
 
@@ -68,9 +86,6 @@ export const PayBillDialog: React.FC<PayBillDialogProps> = ({
       maximumFractionDigits: 2,
     }).format(amount);
   };
-
-  const isPartialDefault =
-    defaultAmount !== undefined && defaultAmount > 0 && defaultAmount < bill.amount;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
@@ -97,7 +112,7 @@ export const PayBillDialog: React.FC<PayBillDialogProps> = ({
             <div>
               <span className="text-xs text-emerald-600 font-medium">Paying for</span>
               <div className="font-bold text-slate-800 text-sm mt-0.5">{bill.title}</div>
-              {isPartialDefault && (
+              {isPartial && (
                 <span className="inline-block mt-1 text-[11px] font-semibold text-amber-700 bg-amber-100/70 px-2 py-0.5 rounded">
                   Paying Remaining Balance
                 </span>
@@ -105,11 +120,16 @@ export const PayBillDialog: React.FC<PayBillDialogProps> = ({
             </div>
             <div className="text-right">
               <span className="text-xs text-emerald-600 font-medium">
-                {isPartialDefault ? 'Remaining Balance' : 'Total Bill'}
+                {isPartial ? 'Remaining Balance' : 'Total Bill'}
               </span>
               <div className="font-bold text-emerald-700 text-base">
-                {formatCurrency(isPartialDefault ? defaultAmount : bill.amount, bill.currency)}
+                {formatCurrency(effectiveRemaining, bill.currency)}
               </div>
+              {isPartial && totalPaid > 0 && (
+                <span className="text-[11px] text-slate-500 block mt-0.5">
+                  Paid: {formatCurrency(totalPaid, bill.currency)}
+                </span>
+              )}
             </div>
           </div>
 
@@ -118,13 +138,13 @@ export const PayBillDialog: React.FC<PayBillDialogProps> = ({
               <label className="block text-xs font-semibold text-slate-700">
                 Amount Paid <span className="text-rose-500">*</span>
               </label>
-              {isPartialDefault && (
+              {isPartial && (
                 <button
                   type="button"
-                  onClick={() => setAmountPaid(defaultAmount)}
+                  onClick={() => setUserInputAmount(effectiveRemaining)}
                   className="text-[11px] font-semibold text-blue-600 hover:underline"
                 >
-                  Fill Remaining ({formatCurrency(defaultAmount, bill.currency)})
+                  Fill Remaining ({formatCurrency(effectiveRemaining, bill.currency)})
                 </button>
               )}
             </div>
@@ -135,8 +155,10 @@ export const PayBillDialog: React.FC<PayBillDialogProps> = ({
                 step="any"
                 min="0.01"
                 required
-                value={amountPaid}
-                onChange={(e) => setAmountPaid(e.target.value === '' ? '' : Number(e.target.value))}
+                value={currentDisplayAmount}
+                onChange={(e) =>
+                  setUserInputAmount(e.target.value === '' ? '' : Number(e.target.value))
+                }
                 placeholder="0.00"
                 className="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
               />
@@ -154,12 +176,10 @@ export const PayBillDialog: React.FC<PayBillDialogProps> = ({
                 onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
                 className="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
               >
-                <option value="CARD">CARD (Credit / Debit Card)</option>
-                <option value="UPI">UPI / Instant Transfer</option>
                 <option value="BANK_TRANSFER">BANK_TRANSFER (NEFT / IMPS)</option>
-                <option value="NET_BANKING">NET_BANKING</option>
+                <option value="CARD">CARD (Credit / Debit Card)</option>
                 <option value="CASH">CASH</option>
-                <option value="OTHER">OTHER</option>
+                <option value="UPI">UPI / Instant Transfer</option>
               </select>
             </div>
           </div>
@@ -178,19 +198,6 @@ export const PayBillDialog: React.FC<PayBillDialogProps> = ({
                 className="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
               />
             </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Remarks (Optional)
-            </label>
-            <input
-              type="text"
-              value={remarks}
-              onChange={(e) => setRemarks(e.target.value)}
-              placeholder="e.g. Reference No / Transaction ID"
-              className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
-            />
           </div>
 
           <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">

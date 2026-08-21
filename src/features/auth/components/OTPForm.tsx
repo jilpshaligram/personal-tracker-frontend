@@ -48,7 +48,9 @@ export const OTPForm: React.FC<OTPFormProps> = ({
       ? 'Password Recovery'
       : flow === 'forgot-pin'
         ? 'PIN Recovery'
-        : 'Step 3 of 4');
+        : flow === 'verify-email'
+          ? 'Email Verification'
+          : 'Step 3 of 4');
 
   const currentTitle =
     title ||
@@ -56,7 +58,9 @@ export const OTPForm: React.FC<OTPFormProps> = ({
       ? 'Verify reset code'
       : flow === 'forgot-pin'
         ? 'Verify PIN reset code'
-        : 'Verify your identity');
+        : flow === 'verify-email'
+          ? 'Verify your email'
+          : 'Verify your identity');
 
   const targetNextRoute =
     nextRoute ||

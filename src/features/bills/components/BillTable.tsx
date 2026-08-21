@@ -261,9 +261,9 @@ export const BillTable: React.FC<BillTableProps> = ({
                 <tr key={id} className="hover:bg-slate-50/60 transition-colors group">
                   <td className="px-5 py-4">
                     <div className="font-semibold text-slate-900 text-sm">{bill.title}</div>
-                    {bill.description && (
+                    {bill.notes && (
                       <div className="text-xs text-slate-400 truncate max-w-xs mt-0.5">
-                        {bill.description}
+                        {bill.notes}
                       </div>
                     )}
                   </td>
@@ -295,13 +295,16 @@ export const BillTable: React.FC<BillTableProps> = ({
                   </td>
 
                   <td className="px-5 py-4">
-                    {bill.isRecurring ? (
-                      <span className="inline-flex items-center gap-1 text-xs font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
-                        <Repeat className="w-3 h-3" />
+                    {bill.isRecurring === true || (bill.isRecurring as unknown) === 'true' ? (
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-700 border border-blue-200/60">
+                        <Repeat className="w-3.5 h-3.5" />
                         {bill.recurringType || 'MONTHLY'}
                       </span>
                     ) : (
-                      <span className="text-xs text-slate-400">One-time</span>
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-violet-50 px-2.5 py-0.5 text-xs font-semibold text-violet-700 border border-violet-200/60">
+                        <Calendar className="w-3.5 h-3.5 text-violet-500" />
+                        One-time
+                      </span>
                     )}
                   </td>
 

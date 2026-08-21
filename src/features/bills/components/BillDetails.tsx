@@ -273,9 +273,17 @@ export const BillDetails: React.FC<BillDetailsProps> = ({
                       <Repeat className="w-4 h-4 text-slate-400" /> Recurrence
                     </span>
                     <span className="font-medium text-slate-800">
-                      {bill.isRecurring
-                        ? `${bill.recurringType || 'MONTHLY'} (Recurring)`
-                        : 'One-time bill'}
+                      {bill.isRecurring === true || (bill.isRecurring as unknown) === 'true' ? (
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-700 border border-blue-200/60">
+                          <Repeat className="w-3.5 h-3.5" />
+                          {bill.recurringType || 'MONTHLY'} (Recurring)
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-violet-50 px-2.5 py-0.5 text-xs font-semibold text-violet-700 border border-violet-200/60">
+                          <Calendar className="w-3.5 h-3.5 text-violet-500" />
+                          One-time bill
+                        </span>
+                      )}
                     </span>
                   </div>
 
@@ -287,17 +295,6 @@ export const BillDetails: React.FC<BillDetailsProps> = ({
                       <span className="font-medium text-slate-800">
                         {bill.reminderDaysBefore} days before due date
                       </span>
-                    </div>
-                  )}
-
-                  {bill.description && (
-                    <div className="pt-2">
-                      <span className="flex items-center gap-2 text-slate-500 mb-1">
-                        <FileText className="w-4 h-4 text-slate-400" /> Description
-                      </span>
-                      <p className="text-slate-700 bg-slate-50 p-2.5 rounded-lg border border-slate-100 text-xs leading-relaxed">
-                        {bill.description}
-                      </p>
                     </div>
                   )}
 

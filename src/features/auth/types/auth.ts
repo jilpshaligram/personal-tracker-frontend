@@ -47,10 +47,16 @@ export interface LoginPayload {
 }
 
 export interface LoginResponse {
+  success?: boolean;
   message?: string;
+  nextStep?: string;
+  emailVerified?: boolean;
   accessToken?: string;
   token?: string;
   data?: {
+    emailExists?: boolean;
+    emailVerified?: boolean;
+    nextStep?: string;
     accessToken?: string;
     token?: string;
     user?: {

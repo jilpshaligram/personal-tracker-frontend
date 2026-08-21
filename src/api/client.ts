@@ -64,6 +64,10 @@ apiClient.interceptors.request.use((config) => {
 apiClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
+    if (typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')) {
+      return Promise.reject(error);
+    }
+
     const config = error.config as AuthRequestConfig | undefined;
 
     if (!config || error.response?.status !== 401 || config._retry) {

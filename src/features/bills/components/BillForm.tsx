@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, Calendar, DollarSign, Tag, Clock, Paperclip, AlertCircle } from 'lucide-react';
+import { billService } from '../services/billService';
 import type { RecurringType, BillFormProps, CreateBillPayload } from '../types';
 
 export const BillForm: React.FC<BillFormProps> = ({
@@ -10,12 +11,18 @@ export const BillForm: React.FC<BillFormProps> = ({
   categories,
   isSubmitting,
 }) => {
+  const expenseCategories = categories.filter((c) => !c.type || c.type === 'EXPENSE');
+
   const [title, setTitle] = useState(initialData?.title || '');
   const [categoryId, setCategoryId] = useState(
-    initialData?.categoryId || categories[0]?.id || categories[0]?._id || ''
+    initialData?.categoryId ||
+      expenseCategories[0]?.id ||
+      expenseCategories[0]?._id ||
+      categories[0]?.id ||
+      categories[0]?._id ||
+      ''
   );
-  const [customCategoryId, setCustomCategoryId] = useState('');
-  const [useCustomCategory, setUseCustomCategory] = useState(false);
+  const [customCategoryName, setCustomCategoryName] = useState('');
   const [amount, setAmount] = useState<number | ''>(
     initialData?.amount !== undefined ? initialData.amount : ''
   );
@@ -25,14 +32,15 @@ export const BillForm: React.FC<BillFormProps> = ({
       ? initialData.dueDate.split('T')[0]
       : new Date().toISOString().split('T')[0]
   );
-  const [isRecurring, setIsRecurring] = useState(Boolean(initialData?.isRecurring));
+  const [isRecurring, setIsRecurring] = useState(
+    initialData?.isRecurring === true || (initialData?.isRecurring as unknown) === 'true'
+  );
   const [recurringType, setRecurringType] = useState<RecurringType>(
     initialData?.recurringType || 'MONTHLY'
   );
   const [reminderDaysBefore, setReminderDaysBefore] = useState<number | ''>(
     initialData?.reminderDaysBefore !== undefined ? initialData.reminderDaysBefore : 3
   );
-  const [description, setDescription] = useState(initialData?.description || '');
   const [notes, setNotes] = useState(initialData?.notes || '');
   const [attachment, setAttachment] = useState<File | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -40,15 +48,29 @@ export const BillForm: React.FC<BillFormProps> = ({
 
   if (!isOpen) return null;
 
-  const effectiveCategoryId = useCustomCategory ? customCategoryId.trim() : categoryId;
-
   const validate = () => {
     const newErrors: Record<string, string> = {};
     if (!title.trim()) newErrors.title = 'Title is required';
-    if (!effectiveCategoryId) newErrors.categoryId = 'Category ID is required';
+    if (!categoryId) {
+      newErrors.categoryId = 'Category is required';
+    } else if (categoryId === 'OTHER_CUSTOM') {
+      if (!customCategoryName.trim()) {
+        newErrors.customCategoryName = 'Category name is required';
+      }
+    }
     if (amount === '' || Number(amount) <= 0)
       newErrors.amount = 'Valid positive amount is required';
-    if (!dueDate) newErrors.dueDate = 'Due date is required';
+    if (!dueDate) {
+      newErrors.dueDate = 'Due date is required';
+    } else {
+      const selected = new Date(dueDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      selected.setHours(0, 0, 0, 0);
+      if (selected < today) {
+        newErrors.dueDate = 'Due date cannot be in the past';
+      }
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -58,16 +80,42 @@ export const BillForm: React.FC<BillFormProps> = ({
     setSubmitError(null);
     if (!validate()) return;
 
+    let finalCategoryId = categoryId;
+    if (categoryId === 'OTHER_CUSTOM') {
+      const trimmedName = customCategoryName.trim();
+      const existingCategory = expenseCategories.find(
+        (c) => c.name.toLowerCase() === trimmedName.toLowerCase()
+      );
+      if (existingCategory) {
+        finalCategoryId = existingCategory.id || existingCategory._id || '';
+      } else {
+        try {
+          const newCat = await billService.createCategory({
+            name: trimmedName,
+            type: 'EXPENSE',
+          });
+          finalCategoryId = newCat.id || newCat._id || '';
+        } catch (err: unknown) {
+          const errorObj = err as { message?: string; response?: { data?: { message?: string } } };
+          setSubmitError(
+            errorObj?.response?.data?.message ||
+              errorObj?.message ||
+              'Failed to create custom category'
+          );
+          return;
+        }
+      }
+    }
+
     const payload: CreateBillPayload = {
       title: title.trim(),
-      categoryId: effectiveCategoryId,
+      categoryId: finalCategoryId,
       amount: Number(amount),
       currency: currency || 'INR',
       dueDate: new Date(dueDate).toISOString(),
-      isRecurring,
-      ...(isRecurring && { recurringType }),
+      isRecurring: Boolean(isRecurring),
+      recurringType: isRecurring ? recurringType : undefined,
       reminderDaysBefore: reminderDaysBefore !== '' ? Number(reminderDaysBefore) : 0,
-      description: description.trim() || undefined,
       notes: notes.trim() || undefined,
       attachment: attachment || undefined,
     };
@@ -130,60 +178,73 @@ export const BillForm: React.FC<BillFormProps> = ({
             {errors.title && <p className="text-xs text-rose-500 mt-1">{errors.title}</p>}
           </div>
 
-          {/* Category & Custom Category Switch */}
+          {/* Category */}
           <div>
-            <div className="flex items-center justify-between mb-1">
-              <label className="text-xs font-semibold text-slate-700">
-                Category Reference ID <span className="text-rose-500">*</span>
-              </label>
-              <button
-                type="button"
-                onClick={() => setUseCustomCategory(!useCustomCategory)}
-                className="text-[11px] text-blue-600 hover:underline font-medium"
-              >
-                {useCustomCategory ? 'Choose from list' : 'Enter custom ID'}
-              </button>
-            </div>
-
-            {useCustomCategory ? (
-              <input
-                type="text"
-                value={customCategoryId}
-                onChange={(e) => setCustomCategoryId(e.target.value)}
-                placeholder="Enter MongoDB Category ID"
-                className={`w-full px-3.5 py-2 text-sm rounded-lg border bg-white focus:outline-none focus:ring-2 ${
+            <label className="block text-xs font-semibold text-slate-700 mb-1">
+              Category <span className="text-rose-500">*</span>
+            </label>
+            <div className="relative">
+              <Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+              <select
+                value={categoryId}
+                onChange={(e) => {
+                  setCategoryId(e.target.value);
+                  if (e.target.value !== 'OTHER_CUSTOM') {
+                    setCustomCategoryName('');
+                  }
+                  if (errors.categoryId) {
+                    setErrors((prev) => ({ ...prev, categoryId: '' }));
+                  }
+                }}
+                className={`w-full pl-9 pr-3 py-2 text-sm rounded-lg border bg-white focus:outline-none focus:ring-2 ${
                   errors.categoryId
                     ? 'border-rose-400 focus:ring-rose-500/20'
                     : 'border-slate-200 focus:ring-blue-500/20 focus:border-blue-500'
                 }`}
-              />
-            ) : (
-              <div className="relative">
-                <Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-                <select
-                  value={categoryId}
-                  onChange={(e) => setCategoryId(e.target.value)}
-                  className={`w-full pl-9 pr-3 py-2 text-sm rounded-lg border bg-white focus:outline-none focus:ring-2 ${
-                    errors.categoryId
+              >
+                <option value="" disabled>
+                  Select category
+                </option>
+                {expenseCategories.map((cat) => {
+                  const id = cat.id || cat._id || '';
+                  return (
+                    <option key={id} value={id}>
+                      {cat.name}
+                    </option>
+                  );
+                })}
+                <option value="OTHER_CUSTOM">Other (Custom category)</option>
+              </select>
+            </div>
+            {errors.categoryId && <p className="text-xs text-rose-500 mt-1">{errors.categoryId}</p>}
+
+            {/* Custom Category Input */}
+            {categoryId === 'OTHER_CUSTOM' && (
+              <div className="mt-2.5">
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Custom Category Name <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={customCategoryName}
+                  onChange={(e) => {
+                    setCustomCategoryName(e.target.value);
+                    if (errors.customCategoryName) {
+                      setErrors((prev) => ({ ...prev, customCategoryName: '' }));
+                    }
+                  }}
+                  placeholder="e.g. Subscriptions, Maintenance"
+                  className={`w-full px-3.5 py-2 text-sm rounded-lg border bg-white focus:outline-none focus:ring-2 ${
+                    errors.customCategoryName
                       ? 'border-rose-400 focus:ring-rose-500/20'
                       : 'border-slate-200 focus:ring-blue-500/20 focus:border-blue-500'
                   }`}
-                >
-                  <option value="" disabled>
-                    Select category
-                  </option>
-                  {categories.map((cat) => {
-                    const id = cat.id || cat._id || '';
-                    return (
-                      <option key={id} value={id}>
-                        {cat.name}
-                      </option>
-                    );
-                  })}
-                </select>
+                />
+                {errors.customCategoryName && (
+                  <p className="text-xs text-rose-500 mt-1">{errors.customCategoryName}</p>
+                )}
               </div>
             )}
-            {errors.categoryId && <p className="text-xs text-rose-500 mt-1">{errors.categoryId}</p>}
           </div>
 
           {/* Amount & Currency */}
@@ -231,12 +292,13 @@ export const BillForm: React.FC<BillFormProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Due Date (ISO string) <span className="text-rose-500">*</span>
+                Due Date <span className="text-rose-500">*</span>
               </label>
               <div className="relative">
                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                 <input
                   type="date"
+                  min={new Date().toISOString().split('T')[0]}
                   value={dueDate}
                   onChange={(e) => setDueDate(e.target.value)}
                   className={`w-full pl-9 pr-3 py-2 text-sm rounded-lg border bg-white focus:outline-none focus:ring-2 ${
@@ -321,20 +383,6 @@ export const BillForm: React.FC<BillFormProps> = ({
               />
               {attachment && <Paperclip className="w-4 h-4 text-emerald-600 shrink-0" />}
             </div>
-          </div>
-
-          {/* Description */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Description (Optional)
-            </label>
-            <input
-              type="text"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="e.g. Account number / plan name"
-              className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-            />
           </div>
 
           {/* Notes */}
