@@ -1,14 +1,23 @@
-import { FileText, MoreVertical } from 'lucide-react';
+import { useState } from 'react';
+import { FileText, MoreVertical, Edit, Trash2 } from 'lucide-react';
 import type { Document } from '../types/document';
 
 interface DocumentTableProps {
   documents: Document[];
   onDocumentClick: (document: Document) => void;
+  onEdit: (document: Document) => void;
+  onDelete: (id: string) => void;
 }
 
-export function DocumentTable({ documents, onDocumentClick }: DocumentTableProps) {
+export function DocumentTable({
+  documents,
+  onDocumentClick,
+  onEdit,
+  onDelete,
+}: DocumentTableProps) {
+  const [activeMenuDocId, setActiveMenuDocId] = useState<string | null>(null);
   return (
-    <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+    <div className="bg-white rounded-lg border border-slate-200 overflow-visible">
       <table className="w-full">
         <thead className="bg-slate-50 border-b border-slate-200">
           <tr>
@@ -55,15 +64,52 @@ export function DocumentTable({ documents, onDocumentClick }: DocumentTableProps
               <td className="px-4 py-3 text-sm text-slate-600">{document.type}</td>
               <td className="px-4 py-3 text-sm text-slate-600">{document.size}</td>
               <td className="px-4 py-3 text-sm text-slate-500">{document.uploadedDate}</td>
-              <td className="px-4 py-3">
+              <td className="px-4 py-3 relative">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
+                    setActiveMenuDocId(activeMenuDocId === document.id ? null : document.id);
                   }}
-                  className="p-1 hover:bg-slate-100 rounded transition-colors"
+                  className="p-1 hover:bg-slate-100 rounded transition-colors cursor-pointer"
                 >
                   <MoreVertical className="w-4 h-4 text-slate-400" />
                 </button>
+
+                {activeMenuDocId === document.id && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-30 cursor-default"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActiveMenuDocId(null);
+                      }}
+                    />
+                    <div className="absolute right-4 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg py-1 w-28 z-40">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveMenuDocId(null);
+                          onEdit(document);
+                        }}
+                        className="w-full text-left px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <Edit className="w-3.5 h-3.5 text-slate-400" />
+                        Edit
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveMenuDocId(null);
+                          onDelete(document.id);
+                        }}
+                        className="w-full text-left px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 transition-colors flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                        Delete
+                      </button>
+                    </div>
+                  </>
+                )}
               </td>
             </tr>
           ))}

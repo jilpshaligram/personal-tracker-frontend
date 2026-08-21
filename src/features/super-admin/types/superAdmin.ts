@@ -47,3 +47,12 @@ export interface AlertItem {
   subtitle: string;
   severity: 'critical' | 'warning' | 'info';
 }
+
+export interface PaginationMeta {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+}

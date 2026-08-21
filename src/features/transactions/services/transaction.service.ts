@@ -22,7 +22,6 @@ export const transactionService = {
   getTransactions: async (
     filters: TransactionFilterDto
   ): Promise<PaginatedResponse<Transaction>> => {
-    // Build query params
     const params = new URLSearchParams();
     if (filters.page) params.append('page', filters.page.toString());
     if (filters.limit) params.append('limit', filters.limit.toString());

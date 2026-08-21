@@ -27,11 +27,7 @@ export function clearAuthTokens(): void {
 
 function logout(): void {
   clearAuthTokens();
-  if (
-    typeof window !== 'undefined' &&
-    !['/login', '/'].includes(window.location.pathname) &&
-    !window.location.pathname.startsWith('/admin')
-  ) {
+  if (typeof window !== 'undefined' && !['/login', '/'].includes(window.location.pathname)) {
     window.location.href = '/login';
   }
 }
@@ -68,11 +64,6 @@ apiClient.interceptors.request.use((config) => {
 apiClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
-    // If currently on an admin route, do not attempt auth refresh or trigger logout
-    if (typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')) {
-      return Promise.reject(error);
-    }
-
     const config = error.config as AuthRequestConfig | undefined;
 
     if (!config || error.response?.status !== 401 || config._retry) {

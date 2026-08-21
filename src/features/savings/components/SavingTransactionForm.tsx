@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../../components/ui/dialog';
 import { Button } from '../../../components/ui/button';
 import type { SavingGoal } from '../types/savingGoal';
@@ -18,15 +18,6 @@ export default function SavingTransactionForm({
 }: SavingTransactionFormProps) {
   const [amount, setAmount] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
-
-  useEffect(() => {
-    /* eslint-disable react-hooks/set-state-in-effect */
-    if (isOpen) {
-      setAmount('');
-      setErrorMsg('');
-    }
-    /* eslint-enable react-hooks/set-state-in-effect */
-  }, [isOpen]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

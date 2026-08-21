@@ -197,6 +197,7 @@ export default function SavingGoalList() {
       )}
 
       <SavingGoalForm
+        key={selectedGoal?.id ?? 'new'}
         isOpen={isFormOpen}
         onClose={() => {
           setIsFormOpen(false);
@@ -207,6 +208,7 @@ export default function SavingGoalList() {
       />
 
       <SavingTransactionForm
+        key={isTransactionOpen ? 'open' : 'closed'}
         isOpen={isTransactionOpen}
         onClose={() => {
           setIsTransactionOpen(false);

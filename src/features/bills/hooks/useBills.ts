@@ -21,11 +21,9 @@ export const useBills = () => {
   const [filters, setFilters] = useState<BillFilters>({});
   const [reloadKey, setReloadKey] = useState(0);
 
-  // Sorting State
   const [sortField, setSortField] = useState<BillSortField | null>('dueDate');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
 
-  // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
@@ -99,7 +97,6 @@ export const useBills = () => {
     };
   }, [filters, currentPage, pageSize, sortField, sortOrder, reloadKey]);
 
-  // Statistics calculation based on active bill records
   const stats = useMemo(() => {
     let totalDue = 0;
     let totalPaid = 0;

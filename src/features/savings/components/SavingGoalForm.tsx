@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../../components/ui/dialog';
 import { Button } from '../../../components/ui/button';
 import type { SavingGoal } from '../types/savingGoal';
@@ -15,40 +15,21 @@ interface SavingGoalFormProps {
   goal?: SavingGoal | null;
 }
 
+function getInitialTargetDate(goal?: SavingGoal | null): string {
+  if (!goal?.targetDate) return '';
+  const dateObj = new Date(goal.targetDate);
+  if (isNaN(dateObj.getTime())) return '';
+  const year = dateObj.getFullYear();
+  const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+  const day = String(dateObj.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 export default function SavingGoalForm({ isOpen, onClose, onSubmit, goal }: SavingGoalFormProps) {
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [targetAmount, setTargetAmount] = useState('');
-  const [targetDate, setTargetDate] = useState('');
-
-  useEffect(() => {
-    /* eslint-disable react-hooks/set-state-in-effect */
-    if (goal) {
-      setTitle(goal.title);
-      setDescription(goal.description || '');
-      setTargetAmount(String(goal.targetAmount));
-
-      if (goal.targetDate) {
-        const dateObj = new Date(goal.targetDate);
-        if (!isNaN(dateObj.getTime())) {
-          const year = dateObj.getFullYear();
-          const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-          const day = String(dateObj.getDate()).padStart(2, '0');
-          setTargetDate(`${year}-${month}-${day}`);
-        } else {
-          setTargetDate('');
-        }
-      } else {
-        setTargetDate('');
-      }
-    } else {
-      setTitle('');
-      setDescription('');
-      setTargetAmount('');
-      setTargetDate('');
-    }
-    /* eslint-enable react-hooks/set-state-in-effect */
-  }, [goal, isOpen]);
+  const [title, setTitle] = useState(goal?.title ?? '');
+  const [description, setDescription] = useState(goal?.description ?? '');
+  const [targetAmount, setTargetAmount] = useState(goal ? String(goal.targetAmount) : '');
+  const [targetDate, setTargetDate] = useState(() => getInitialTargetDate(goal));
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

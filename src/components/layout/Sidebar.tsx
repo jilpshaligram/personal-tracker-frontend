@@ -1,4 +1,4 @@
-import { NavLink, Link } from 'react-router-dom';
+import { NavLink, Link, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
   FileText,
@@ -8,6 +8,8 @@ import {
   PiggyBank,
   Settings,
   X,
+  Users,
+  ClipboardList,
 } from 'lucide-react';
 
 interface NavItem {
@@ -16,22 +18,33 @@ interface NavItem {
   icon: React.ElementType;
 }
 
-const navItems: NavItem[] = [
-  { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { path: '/documents', label: 'Documents', icon: FileText },
-  { path: '/transactions', label: 'Transactions', icon: ArrowLeftRight },
-  { path: '/budgets', label: 'Budgets', icon: WalletCards },
-  { path: '/bills', label: 'Bills', icon: Receipt },
-  { path: '/savings', label: 'Savings', icon: PiggyBank },
-  { path: '/settings', label: 'Settings', icon: Settings },
-];
-
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
+  const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith('/admin');
+
+  const navItems: NavItem[] = isAdminRoute
+    ? [
+        { path: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+        { path: '/admin/users', label: 'Users', icon: Users },
+        { path: '/admin/audit-logs', label: 'Audit Logs', icon: ClipboardList },
+      ]
+    : [
+        { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+        { path: '/documents', label: 'Documents', icon: FileText },
+        { path: '/transactions', label: 'Transactions', icon: ArrowLeftRight },
+        { path: '/budgets', label: 'Budgets', icon: WalletCards },
+        { path: '/bills', label: 'Bills', icon: Receipt },
+        { path: '/savings', label: 'Savings', icon: PiggyBank },
+        { path: '/settings', label: 'Settings', icon: Settings },
+      ];
+
+  const displayItems = [...navItems];
+
   return (
     <>
       {isOpen && (
@@ -53,7 +66,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       >
         <div className="flex items-center justify-between px-5 py-5 border-b border-slate-100">
           <Link
-            to="/dashboard"
+            to={isAdminRoute ? '/admin/dashboard' : '/dashboard'}
             onClick={onClose}
             className="flex items-center gap-3 hover:opacity-90 transition-opacity cursor-pointer group"
           >
@@ -82,7 +95,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
         <nav className="flex-1 overflow-y-auto py-4 px-3" role="navigation">
           <ul className="flex flex-col gap-0.5" role="list">
-            {navItems.map(({ path, label, icon: Icon }) => (
+            {displayItems.map(({ path, label, icon: Icon }) => (
               <li key={path}>
                 <NavLink
                   to={path}

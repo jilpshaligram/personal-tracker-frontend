@@ -10,9 +10,6 @@ interface ApiSuccessResponse<T> {
 export const dashboardService = {
   getDashboardSummary: async (period: Period): Promise<DashboardSummaryData> => {
     try {
-      // The backend expects the period in query parameters, e.g., ?period=monthly
-      // We map the frontend 'monthly' to 'MONTHLY' if needed, but it looks like the backend is case insensitive
-      // or we can pass it directly.
       const res = await apiClient.get<ApiSuccessResponse<DashboardSummaryData>>(
         `/dashboard/summary?period=${period.toLowerCase()}`
       );
