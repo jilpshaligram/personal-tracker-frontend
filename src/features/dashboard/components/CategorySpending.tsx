@@ -39,7 +39,6 @@ export function CategorySpending({ data, period, loading }: CategorySpendingProp
   const formatCurrency = (val: number) =>
     new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(val);
 
-  // Prepare chart data using deterministic colors
   const chartData = data.categories.map((cat) => ({
     name: cat.categoryName,
     value: cat.amount,

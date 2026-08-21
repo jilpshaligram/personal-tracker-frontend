@@ -1,5 +1,4 @@
-/* eslint-disable */
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../../components/ui/dialog';
 import { Input } from '../../../components/ui/input';
 import {
@@ -24,6 +23,23 @@ interface TransactionModalProps {
   onCreateCategory: (data: Partial<TransactionCategory>) => Promise<TransactionCategory>;
 }
 
+function getInitialDate(initialData?: Transaction | null): string {
+  if (initialData) {
+    const dateObj = new Date(initialData.transactionDate);
+    if (!isNaN(dateObj.getTime())) return dateObj.toISOString().slice(0, 16);
+  }
+  return new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000)
+    .toISOString()
+    .slice(0, 16);
+}
+
+function getInitialCategoryId(initialData?: Transaction | null): string {
+  if (!initialData) return '';
+  return typeof initialData.categoryId === 'string'
+    ? initialData.categoryId
+    : ((initialData.categoryId.id || initialData.categoryId._id) as string);
+}
+
 export function TransactionModal({
   open,
   onOpenChange,
@@ -32,55 +48,17 @@ export function TransactionModal({
   categories,
   onCreateCategory,
 }: TransactionModalProps) {
-  const [type, setType] = useState<TransactionType>('EXPENSE');
-  const [amount, setAmount] = useState<string>('');
-  const [categoryId, setCategoryId] = useState<string>('');
-  const [paymentMethod, setPaymentMethod] = useState<string>('');
-  const [transactionDate, setTransactionDate] = useState<string>('');
-  const [description, setDescription] = useState<string>('');
+  const [type, setType] = useState<TransactionType>(initialData?.type ?? 'EXPENSE');
+  const [amount, setAmount] = useState<string>(initialData ? initialData.amount.toString() : '');
+  const [categoryId, setCategoryId] = useState<string>(() => getInitialCategoryId(initialData));
+  const [paymentMethod, setPaymentMethod] = useState<string>(initialData?.paymentMethod ?? '');
+  const [transactionDate, setTransactionDate] = useState<string>(() => getInitialDate(initialData));
+  const [description, setDescription] = useState<string>(initialData?.description ?? '');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Custom Category State
   const [customCategoryName, setCustomCategoryName] = useState<string>('');
   const [temporaryCategory, setTemporaryCategory] = useState<TransactionCategory | null>(null);
-
-  useEffect(() => {
-    if (open) {
-      if (initialData) {
-        setType(initialData.type);
-        setAmount(initialData.amount.toString());
-        setCategoryId(
-          typeof initialData.categoryId === 'string'
-            ? initialData.categoryId
-            : ((initialData.categoryId.id || initialData.categoryId._id) as string)
-        );
-        setPaymentMethod(initialData.paymentMethod);
-
-        // Format date for datetime-local input
-        const dateObj = new Date(initialData.transactionDate);
-        if (!isNaN(dateObj.getTime())) {
-          setTransactionDate(dateObj.toISOString().slice(0, 16));
-        }
-        setDescription(initialData.description || '');
-      } else {
-        setType('EXPENSE');
-        setAmount('');
-        setCategoryId('');
-        setPaymentMethod('');
-        // Current local date/time
-        setTransactionDate(
-          new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000)
-            .toISOString()
-            .slice(0, 16)
-        );
-        setDescription('');
-      }
-      setError(null);
-      setCustomCategoryName('');
-      setTemporaryCategory(null);
-    }
-  }, [open, initialData]);
 
   const handleTypeChange = (val: string) => {
     setType(val as TransactionType);
@@ -153,10 +131,10 @@ export function TransactionModal({
           type: type,
         });
         finalCategoryId = newCat.id || newCat._id || '';
-      } catch (err: any) {
+      } catch (err: unknown) {
         setLoading(false);
-        setError(err.message || 'Failed to create custom category');
-        setCategoryId('other'); // Keep it open for them to fix
+        setError((err as Error).message || 'Failed to create custom category');
+        setCategoryId('other');
         return;
       }
     }

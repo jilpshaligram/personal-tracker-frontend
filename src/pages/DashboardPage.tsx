@@ -28,7 +28,6 @@ export default function DashboardPage() {
           <p className="text-slate-500">Welcome back! Here's an overview of your finances.</p>
         </div>
 
-        {/* Period Selector */}
         <div className="flex items-center space-x-2 bg-slate-100 p-1 rounded-lg w-full sm:w-auto overflow-x-auto">
           {(['daily', 'weekly', 'monthly', 'yearly'] as Period[]).map((p) => (
             <button
@@ -47,10 +46,8 @@ export default function DashboardPage() {
       </div>
 
       <div className="space-y-6">
-        {/* Top Summary Cards */}
         <DashboardStats stats={stats} loading={loading} period={period} />
 
-        {/* Middle Section: Budget & Document Alerts */}
         <div className="grid gap-6 lg:grid-cols-7">
           <div className="lg:col-span-4 min-w-0">
             <BudgetOverview data={budgetOverview} loading={loading} />
@@ -60,12 +57,10 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Categories Section */}
         <div className="grid gap-6 min-w-0">
           <CategorySpending data={categoryBreakdown} period={period} loading={loading} />
         </div>
 
-        {/* Bottom Section: Recent Transactions & Upcoming Bills */}
         <div className="grid gap-6 lg:grid-cols-7">
           <div className="lg:col-span-4 min-w-0">
             <RecentTransactions transactions={recentTransactions} loading={loading} />

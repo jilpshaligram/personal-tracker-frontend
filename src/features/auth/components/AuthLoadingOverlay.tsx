@@ -13,13 +13,10 @@ export const AuthLoadingOverlay: React.FC<AuthLoadingOverlayProps> = ({
   return (
     <div className="absolute inset-0 z-50 flex flex-col items-center justify-center rounded-2xl bg-white/95 backdrop-blur-xs p-6 text-center animate-in fade-in duration-200">
       <div className="relative mb-5 flex items-center justify-center">
-        {/* Glowing background ring */}
         <div className="h-16 w-16 rounded-full bg-[#2F5FE0]/10 animate-ping absolute" />
 
-        {/* Outer spinner */}
         <div className="h-16 w-16 rounded-full border-4 border-[#E5E9F2] border-t-[#2F5FE0] animate-spin flex items-center justify-center" />
 
-        {/* Inner icon */}
         <div className="absolute flex h-9 w-9 items-center justify-center rounded-full bg-[#2F5FE0] text-white shadow-md">
           <ShieldCheck className="h-5 w-5 animate-pulse" />
         </div>

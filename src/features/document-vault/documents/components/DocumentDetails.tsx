@@ -1,8 +1,5 @@
-import { useState } from 'react';
 import {
   ChevronLeft,
-  ZoomIn,
-  ZoomOut,
   Maximize2,
   Share2,
   Download,
@@ -32,8 +29,6 @@ export function DocumentDetails({
   onDelete,
   onEdit,
 }: DocumentDetailsProps) {
-  const [zoom, setZoom] = useState(100);
-
   return (
     <div className="fixed inset-0 z-50 flex bg-slate-50">
       <div className="flex-1 flex flex-col bg-white border-r border-slate-200">
@@ -50,23 +45,6 @@ export function DocumentDetails({
             <span className="text-sm text-slate-600">{document.category}</span>
           </div>
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => setZoom(Math.max(50, zoom - 25))}
-              className="p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
-              aria-label="Zoom out"
-            >
-              <ZoomOut className="w-4 h-4" />
-            </button>
-            <span className="text-sm font-medium text-slate-700 min-w-[3rem] text-center">
-              {zoom}%
-            </span>
-            <button
-              onClick={() => setZoom(Math.min(200, zoom + 25))}
-              className="p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
-              aria-label="Zoom in"
-            >
-              <ZoomIn className="w-4 h-4" />
-            </button>
             <button className="p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
               <Maximize2 className="w-4 h-4" />
             </button>
@@ -80,10 +58,7 @@ export function DocumentDetails({
         </div>
 
         <div className="flex-1 overflow-auto p-6 bg-slate-100">
-          <div
-            className="mx-auto bg-white shadow-lg rounded-lg overflow-hidden"
-            style={{ width: `${zoom}%`, maxWidth: '800px' }}
-          >
+          <div className="mx-auto bg-white shadow-lg rounded-lg overflow-hidden w-full max-w-[800px]">
             {document.url && document.type.toUpperCase() === 'PDF' ? (
               <div className="w-full aspect-[8.5/11] bg-white">
                 <iframe

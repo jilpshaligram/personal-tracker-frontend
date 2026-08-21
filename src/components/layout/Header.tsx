@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { HelpCircle, Menu, User, LogOut } from 'lucide-react';
-import { useHelpStore } from '../../store';
+import { Menu, User, LogOut, Shield } from 'lucide-react';
 import { NotificationBell } from '../../features/notifications';
 import { useAuth } from '../../context';
 
@@ -11,7 +10,6 @@ interface HeaderProps {
 
 export default function Header({ onMenuClick }: HeaderProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const setIsHelpOpen = useHelpStore((state) => state.setIsOpen);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -71,18 +69,12 @@ export default function Header({ onMenuClick }: HeaderProps) {
       </div>
 
       <div className="flex items-center gap-1 shrink-0">
-        <NotificationBell />
-
-        <button
-          type="button"
-          onClick={() => setIsHelpOpen(true)}
-          className="flex items-center justify-center w-9 h-9 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-          aria-label="Get help"
-        >
-          <HelpCircle className="w-4.5 h-4.5" strokeWidth={1.75} />
-        </button>
-
-        <div className="mx-2 h-5 w-px bg-slate-200" aria-hidden="true" />
+        {!isAdminRoute && (
+          <>
+            <NotificationBell />
+            <div className="mx-2 h-5 w-px bg-slate-200" aria-hidden="true" />
+          </>
+        )}
 
         <div className="relative" ref={dropdownRef}>
           <button
@@ -106,13 +98,24 @@ export default function Header({ onMenuClick }: HeaderProps) {
           {isDropdownOpen && (
             <div className="absolute right-0 mt-1 w-48 bg-white rounded-xl shadow-lg border border-slate-100 py-1.5 z-20 animate-in fade-in slide-in-from-top-1 duration-100">
               <Link
-                to="/profile"
+                to={isAdminRoute ? '/admin/profile' : '/profile'}
                 className="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
                 onClick={() => setIsDropdownOpen(false)}
               >
                 <User className="w-4 h-4 text-slate-500" />
                 <span>Profile</span>
               </Link>
+
+              {user?.role === 'ADMIN' && !isAdminRoute && (
+                <Link
+                  to="/admin/dashboard"
+                  className="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                  onClick={() => setIsDropdownOpen(false)}
+                >
+                  <Shield className="w-4 h-4 text-slate-500" />
+                  <span>Admin Dashboard</span>
+                </Link>
+              )}
 
               <div className="my-1 border-t border-slate-100" />
 

@@ -8,8 +8,6 @@ interface DashboardStatsProps {
 }
 
 export function DashboardStats({ stats, loading, period }: DashboardStatsProps) {
-  // We keep them pending/empty as instructed, but we lay them out.
-
   const formatCurrency = (val: number) =>
     new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(val);
 
@@ -17,7 +15,6 @@ export function DashboardStats({ stats, loading, period }: DashboardStatsProps) 
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      {/* 1. Current Balance */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Current Balance</CardTitle>
@@ -49,8 +46,6 @@ export function DashboardStats({ stats, loading, period }: DashboardStatsProps) 
           <p className="text-xs text-slate-500 mt-1">Total across all wallets</p>
         </CardContent>
       </Card>
-
-      {/* 2. Dynamic Income */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">{periodLabel} Income</CardTitle>
@@ -83,7 +78,6 @@ export function DashboardStats({ stats, loading, period }: DashboardStatsProps) 
         </CardContent>
       </Card>
 
-      {/* 3. Dynamic Expense */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">{periodLabel} Expense</CardTitle>
@@ -116,7 +110,6 @@ export function DashboardStats({ stats, loading, period }: DashboardStatsProps) 
         </CardContent>
       </Card>
 
-      {/* 4. Total Savings */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Total Savings</CardTitle>

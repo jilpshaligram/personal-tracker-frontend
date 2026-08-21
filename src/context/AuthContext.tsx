@@ -57,7 +57,6 @@ async function verifyToken(): Promise<User | null> {
       const baseUser = res.data.user ?? res.data.data?.user ?? null;
       if (!baseUser) return null;
 
-      // Fetch full profile to get firstName, lastName, etc.
       const profile = await fetchUserProfile();
       if (profile) {
         return { ...baseUser, ...profile } as User;
@@ -104,11 +103,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUserState(null);
       setIsAuthenticated(false);
       setError(null);
-      if (
-        typeof window !== 'undefined' &&
-        !['/login', '/'].includes(window.location.pathname) &&
-        !window.location.pathname.startsWith('/admin')
-      ) {
+      if (typeof window !== 'undefined' && !['/login', '/'].includes(window.location.pathname)) {
         window.location.href = '/login';
       }
     }
@@ -176,11 +171,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const checkAuth = async () => {
       const path = typeof window !== 'undefined' ? window.location.pathname : '';
-
-      if (path.startsWith('/admin')) {
-        setIsLoading(false);
-        return;
-      }
 
       const isLoggedOut =
         typeof window !== 'undefined' &&

@@ -10,8 +10,7 @@ export function getDateRange(period: Period): { startDate: Date; endDate: Date }
       return { startDate, endDate };
     }
     case 'weekly': {
-      // Assuming week starts on Monday
-      const day = now.getDay() || 7; // Convert Sunday (0) to 7
+      const day = now.getDay() || 7;
       const startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - day + 1);
       const endDate = new Date(
         now.getFullYear(),

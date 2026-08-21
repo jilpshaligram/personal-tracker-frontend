@@ -55,7 +55,6 @@ export default function ProfilePage() {
     );
   }
 
-  // Format Date ISO string to readable string
   const formattedDob = profile.dateOfBirth
     ? new Date(profile.dateOfBirth).toLocaleDateString(undefined, {
         month: 'long',
@@ -64,7 +63,6 @@ export default function ProfilePage() {
       })
     : 'Not Specified';
 
-  // Capitalize Gender
   const formattedGender = profile.gender
     ? profile.gender.charAt(0).toUpperCase() + profile.gender.slice(1).toLowerCase()
     : 'Not Specified';
@@ -72,7 +70,6 @@ export default function ProfilePage() {
   return (
     <div className="p-6 sm:p-10 max-w-5xl mx-auto">
       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs max-w-3xl">
-        {/* Banner with Profile Image & Info */}
         <div className="p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6 bg-gradient-to-b from-blue-50/20 to-transparent">
           <div className="flex flex-col sm:flex-row items-center gap-6">
             <div className="relative group">
@@ -133,7 +130,6 @@ export default function ProfilePage() {
 
         <div className="border-t border-slate-200/80" />
 
-        {/* Display Fields */}
         <div className="p-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-12">
             <div>
@@ -180,7 +176,6 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Edit Profile Form Modal */}
       <ProfileForm
         profile={profile}
         isOpen={isEditOpen}

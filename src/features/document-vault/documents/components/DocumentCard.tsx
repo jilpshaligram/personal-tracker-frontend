@@ -1,12 +1,16 @@
-import { FileText, Calendar, Clock, MoreVertical, AlertTriangle } from 'lucide-react';
+import { useState } from 'react';
+import { FileText, Calendar, Clock, MoreVertical, AlertTriangle, Edit, Trash2 } from 'lucide-react';
 import type { Document } from '../types/document';
 
 interface DocumentCardProps {
   document: Document;
   onClick: (document: Document) => void;
+  onEdit: (document: Document) => void;
+  onDelete: (id: string) => void;
 }
 
-export function DocumentCard({ document, onClick }: DocumentCardProps) {
+export function DocumentCard({ document, onClick, onEdit, onDelete }: DocumentCardProps) {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const expiryInfo = (() => {
     if (!document.expiryDate) return null;
 
@@ -111,14 +115,55 @@ export function DocumentCard({ document, onClick }: DocumentCardProps) {
         )}
       </div>
 
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-        }}
-        className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 p-1.5 bg-white rounded-lg shadow-sm hover:bg-slate-50 transition-all z-20"
-      >
-        <MoreVertical className="w-4 h-4 text-slate-600" />
-      </button>
+      <div className="absolute top-3 right-3 z-20">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsMenuOpen(!isMenuOpen);
+          }}
+          className={`p-1.5 bg-white rounded-lg shadow-sm hover:bg-slate-50 transition-all border border-slate-200 cursor-pointer ${
+            isMenuOpen ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+          }`}
+        >
+          <MoreVertical className="w-4 h-4 text-slate-600" />
+        </button>
+
+        {isMenuOpen && (
+          <>
+            <div
+              className="fixed inset-0 z-30 cursor-default"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsMenuOpen(false);
+              }}
+            />
+            <div className="absolute right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg py-1 w-28 z-40">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsMenuOpen(false);
+                  onEdit(document);
+                }}
+                className="w-full text-left px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-1.5 cursor-pointer"
+              >
+                <Edit className="w-3.5 h-3.5 text-slate-400" />
+                Edit
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsMenuOpen(false);
+                  onDelete(document.id);
+                }}
+                className="w-full text-left px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 transition-colors flex items-center gap-1.5 cursor-pointer"
+              >
+                <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                Delete
+              </button>
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }

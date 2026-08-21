@@ -62,7 +62,6 @@ export function TransactionTable({
             className="flex items-center gap-1 font-medium hover:text-slate-900 transition-colors"
             onClick={() => {
               if (onSortChange) {
-                // If already sorting by date, toggle order. Otherwise sort desc by default
                 if (isSorted) {
                   onSortChange('transactionDate', isDesc ? 'asc' : 'desc');
                 } else {

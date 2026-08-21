@@ -27,11 +27,7 @@ export function clearAuthTokens(): void {
 
 function logout(): void {
   clearAuthTokens();
-  if (
-    typeof window !== 'undefined' &&
-    !['/login', '/'].includes(window.location.pathname) &&
-    !window.location.pathname.startsWith('/admin')
-  ) {
+  if (typeof window !== 'undefined' && !['/login', '/'].includes(window.location.pathname)) {
     window.location.href = '/login';
   }
 }

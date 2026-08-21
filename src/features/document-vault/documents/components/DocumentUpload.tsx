@@ -152,7 +152,6 @@ export function DocumentUpload({ document, onClose, onUpload, onUpdate }: Docume
       }
     } catch {
       setUploadStage('idle');
-      // Handled by mutation hook state
     }
   };
 
