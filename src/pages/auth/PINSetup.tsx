@@ -65,8 +65,13 @@ export const PINSetup: React.FC = () => {
             confirmPin,
             onboardingToken,
           });
-          alert('PIN set and confirmed successfully!');
-          navigate('/');
+          alert('PIN setup successful! Please login to continue.');
+          navigate('/login', {
+            state: {
+              email: locationState.email,
+              message: 'PIN created successfully! Please sign in.',
+            },
+          });
         }
       } catch (submitError) {
         setError(
