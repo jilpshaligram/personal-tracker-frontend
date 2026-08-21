@@ -38,12 +38,12 @@ export function TransactionModal({
   const [paymentMethod, setPaymentMethod] = useState<string>('');
   const [transactionDate, setTransactionDate] = useState<string>('');
   const [description, setDescription] = useState<string>('');
-  const [error, setError] = useState<string | null>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   // Custom Category State
   const [customCategoryName, setCustomCategoryName] = useState<string>('');
-  const [temporaryCategory, setTemporaryCategory] = useState<TransactionCategory | null>(null);
 
   useEffect(() => {
     if (open) {
@@ -60,7 +60,7 @@ export function TransactionModal({
         // Format date for datetime-local input
         const dateObj = new Date(initialData.transactionDate);
         if (!isNaN(dateObj.getTime())) {
-          setTransactionDate(dateObj.toISOString().slice(0, 16));
+          setTransactionDate(dateObj.toISOString().slice(0, 10));
         }
         setDescription(initialData.description || '');
       } else {
@@ -72,13 +72,13 @@ export function TransactionModal({
         setTransactionDate(
           new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000)
             .toISOString()
-            .slice(0, 16)
+            .slice(0, 10)
         );
         setDescription('');
       }
-      setError(null);
+      setErrors({});
+      setSubmitError(null);
       setCustomCategoryName('');
-      setTemporaryCategory(null);
     }
   }, [open, initialData]);
 
@@ -86,88 +86,107 @@ export function TransactionModal({
     setType(val as TransactionType);
     setCategoryId('');
     setCustomCategoryName('');
-    setTemporaryCategory(null);
   };
 
-  const handleCustomCategoryConfirm = (e?: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e && e.key !== 'Enter') return;
-    if (e) e.preventDefault();
-
-    const trimmedName = customCategoryName.trim();
-    if (!trimmedName) return;
-
-    const existingCategory = categories.find(
-      (c) => c.name.toLowerCase() === trimmedName.toLowerCase() && c.type === type
-    );
-
-    if (existingCategory) {
-      setError(`Category "${existingCategory.name}" already exists.`);
-      return;
+  const validate = () => {
+    const newErrors: Record<string, string> = {};
+    const amountNum = parseFloat(amount);
+    if (isNaN(amountNum) || amountNum <= 0) {
+      newErrors.amount = 'Valid positive amount is required';
+    } else if (amountNum > 1000000000) {
+      newErrors.amount = 'Amount exceeds maximum limit (1,000,000,000)';
     }
 
-    setError(null);
-    setTemporaryCategory({
-      id: 'temp-custom-id',
-      name: trimmedName,
-      type: type,
-    });
-    setCategoryId('temp-custom-id');
+    if (!categoryId) {
+      newErrors.categoryId = 'Category is required';
+    } else if (categoryId === 'other') {
+      const trimmed = customCategoryName.trim();
+      if (!trimmed) {
+        newErrors.customCategoryName = 'Category name is required';
+      } else if (trimmed.length < 3) {
+        newErrors.customCategoryName = 'Category name must be at least 3 characters';
+      } else if (trimmed.length > 20) {
+        newErrors.customCategoryName = 'Category name cannot exceed 20 characters';
+      } else if (/(.)\1{4,}/.test(trimmed)) {
+        newErrors.customCategoryName =
+          'Category name cannot contain excessive repeating characters';
+      }
+    }
+
+    if (!paymentMethod) {
+      newErrors.paymentMethod = 'Payment method is required';
+    }
+
+    if (!transactionDate) {
+      newErrors.transactionDate = 'Transaction date is required';
+    } else {
+      const selected = new Date(transactionDate);
+      const today = new Date();
+      selected.setHours(0, 0, 0, 0);
+      today.setHours(0, 0, 0, 0);
+      if (selected > today) {
+        newErrors.transactionDate = 'Transaction date cannot be in the future';
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
+    setSubmitError(null);
 
-    const amountNum = parseFloat(amount);
-    if (isNaN(amountNum) || amountNum <= 0) {
-      return setError('Amount must be greater than 0');
-    }
-    if (!categoryId) return setError('Category is required');
-    if (!paymentMethod) return setError('Payment method is required');
-    if (!transactionDate) return setError('Transaction date is required');
+    if (!validate()) return;
 
     setLoading(true);
 
     let finalCategoryId = categoryId;
-    const trimmedCustomName = customCategoryName.trim();
+    let trimmedCustomName = customCategoryName.trim();
 
-    // Handle Custom Category Creation
-    if (categoryId === 'temp-custom-id' || (categoryId === 'other' && trimmedCustomName)) {
-      // Prevent duplicates locally first
+    if (categoryId === 'other') {
+      trimmedCustomName =
+        trimmedCustomName.charAt(0).toUpperCase() + trimmedCustomName.slice(1).toLowerCase();
+
       const existingCategory = categories.find(
         (c) => c.name.toLowerCase() === trimmedCustomName.toLowerCase() && c.type === type
       );
 
       if (existingCategory) {
-        setLoading(false);
-        setError(
-          `Category "${existingCategory.name}" already exists. Please select it from the list.`
-        );
-        setCategoryId('other');
-        return;
-      }
-
-      try {
-        const newCat = await onCreateCategory({
-          name: trimmedCustomName,
-          type: type,
-        });
-        finalCategoryId = newCat.id || newCat._id || '';
-      } catch (err: any) {
-        setLoading(false);
-        setError(err.message || 'Failed to create custom category');
-        setCategoryId('other'); // Keep it open for them to fix
-        return;
+        finalCategoryId = existingCategory.id || existingCategory._id || '';
+      } else {
+        try {
+          const newCat = await onCreateCategory({
+            name: trimmedCustomName,
+            type: type,
+          });
+          finalCategoryId = newCat.id || newCat._id || '';
+        } catch (err: any) {
+          setLoading(false);
+          setSubmitError(err.message || 'Failed to create custom category');
+          return;
+        }
       }
     }
 
+    const [year, month, day] = transactionDate.split('-').map(Number);
+    const now = new Date();
+    const finalDate = new Date(
+      year,
+      month - 1,
+      day,
+      now.getHours(),
+      now.getMinutes(),
+      now.getSeconds()
+    );
+
     const success = await onSubmit({
       type,
-      amount: amountNum,
+      amount: parseFloat(amount),
       categoryId: finalCategoryId,
       paymentMethod,
       description,
-      transactionDate: new Date(transactionDate).toISOString(),
+      transactionDate: finalDate.toISOString(),
     });
     setLoading(false);
 
@@ -177,12 +196,6 @@ export function TransactionModal({
   };
 
   const filteredCategories = categories.filter((c) => c.type === type);
-  if (temporaryCategory && temporaryCategory.type === type) {
-    // Only add if it doesn't already exist somehow
-    if (!filteredCategories.find((c) => c.id === temporaryCategory.id)) {
-      filteredCategories.push(temporaryCategory);
-    }
-  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -191,8 +204,16 @@ export function TransactionModal({
           <DialogTitle>{initialData ? 'Edit Transaction' : 'Add Transaction'}</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} noValidate className="space-y-4 py-4">
-          {error && <div className="text-red-500 text-sm font-medium">{error}</div>}
+        <form
+          onSubmit={handleSubmit}
+          noValidate
+          className="space-y-4 py-4 max-h-[80vh] overflow-y-auto"
+        >
+          {submitError && (
+            <div className="text-rose-500 text-sm font-medium p-2 bg-rose-50 rounded-lg border border-rose-200">
+              {submitError}
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -213,17 +234,43 @@ export function TransactionModal({
               <Input
                 type="number"
                 step="0.01"
+                min="0.01"
+                max="1000000000"
                 placeholder="0.00"
                 value={amount}
-                onChange={(e) => setAmount(e.target.value)}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val && parseFloat(val) > 1000000000) return;
+                  setAmount(val);
+                  if (errors.amount) setErrors((p) => ({ ...p, amount: '' }));
+                }}
+                className={`w-full ${
+                  errors.amount
+                    ? 'border-rose-400 focus-visible:ring-rose-500/20'
+                    : 'border-slate-200 focus-visible:border-blue-500 focus-visible:ring-blue-500/20'
+                }`}
               />
+              {errors.amount && <p className="text-xs text-rose-500 mt-1">{errors.amount}</p>}
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Category</Label>
-              <Select value={categoryId} onValueChange={setCategoryId}>
+              <Label>
+                Category <span className="text-rose-500">*</span>
+              </Label>
+              <Select
+                value={categoryId}
+                onValueChange={(v) => {
+                  setCategoryId(v);
+                  if (errors.categoryId) setErrors((p) => ({ ...p, categoryId: '' }));
+                }}
+                className={
+                  errors.categoryId
+                    ? 'border-rose-400 focus:ring-rose-500/20'
+                    : 'border-slate-200 focus:border-blue-500 focus:ring-blue-500/20'
+                }
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
@@ -238,23 +285,49 @@ export function TransactionModal({
                   </SelectItem>
                 </SelectContent>
               </Select>
+              {errors.categoryId && (
+                <p className="text-xs text-rose-500 mt-1">{errors.categoryId}</p>
+              )}
               {categoryId === 'other' && (
                 <div className="mt-2 animate-in fade-in zoom-in-95 duration-200">
                   <Input
                     placeholder="Type category and press Enter..."
                     value={customCategoryName}
-                    onChange={(e) => setCustomCategoryName(e.target.value)}
-                    onKeyDown={handleCustomCategoryConfirm}
-                    onBlur={() => handleCustomCategoryConfirm()}
+                    onChange={(e) => {
+                      setCustomCategoryName(e.target.value);
+                      if (errors.customCategoryName)
+                        setErrors((p) => ({ ...p, customCategoryName: '' }));
+                    }}
+                    className={`w-full ${
+                      errors.customCategoryName
+                        ? 'border-rose-400 focus-visible:ring-rose-500/20'
+                        : 'border-slate-200 focus-visible:border-blue-500 focus-visible:ring-blue-500/20'
+                    }`}
                     autoFocus
                   />
+                  {errors.customCategoryName && (
+                    <p className="text-xs text-rose-500 mt-1">{errors.customCategoryName}</p>
+                  )}
                 </div>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label>Payment Method</Label>
-              <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+              <Label>
+                Payment Method <span className="text-rose-500">*</span>
+              </Label>
+              <Select
+                value={paymentMethod}
+                onValueChange={(v) => {
+                  setPaymentMethod(v);
+                  if (errors.paymentMethod) setErrors((p) => ({ ...p, paymentMethod: '' }));
+                }}
+                className={
+                  errors.paymentMethod
+                    ? 'border-rose-400 focus:ring-rose-500/20'
+                    : 'border-slate-200 focus:border-blue-500 focus:ring-blue-500/20'
+                }
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Method" />
                 </SelectTrigger>
@@ -266,16 +339,33 @@ export function TransactionModal({
                   ))}
                 </SelectContent>
               </Select>
+              {errors.paymentMethod && (
+                <p className="text-xs text-rose-500 mt-1">{errors.paymentMethod}</p>
+              )}
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label>Date & Time</Label>
+            <Label>
+              Date <span className="text-rose-500">*</span>
+            </Label>
             <Input
-              type="datetime-local"
-              value={transactionDate}
-              onChange={(e) => setTransactionDate(e.target.value)}
+              type="date"
+              max={new Date().toISOString().split('T')[0]}
+              value={transactionDate.split('T')[0]}
+              onChange={(e) => {
+                setTransactionDate(e.target.value);
+                if (errors.transactionDate) setErrors((p) => ({ ...p, transactionDate: '' }));
+              }}
+              className={`w-full ${
+                errors.transactionDate
+                  ? 'border-rose-400 focus-visible:ring-rose-500/20'
+                  : 'border-slate-200 focus-visible:border-blue-500 focus-visible:ring-blue-500/20'
+              }`}
             />
+            {errors.transactionDate && (
+              <p className="text-xs text-rose-500 mt-1">{errors.transactionDate}</p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -284,6 +374,7 @@ export function TransactionModal({
               placeholder="Optional description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
+              className="border-slate-200 focus-visible:border-blue-500 focus-visible:ring-blue-500/20"
             />
           </div>
 

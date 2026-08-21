@@ -136,7 +136,7 @@ export default function BillsPage() {
           <button
             type="button"
             onClick={handleOpenCreate}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700 active:scale-[0.98] transition-all shadow-sm"
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700 active:scale-[0.98] transition-all shadow-sm cursor-pointer"
           >
             <Plus className="w-4 h-4 stroke-[2.5]" />
             <span>Add Bill</span>
@@ -166,7 +166,7 @@ export default function BillsPage() {
                   setSearchTerm('');
                   handleFilterChange({ search: undefined });
                 }}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-200 transition-colors"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-200 transition-colors cursor-pointer"
                 title="Clear search"
               >
                 <X className="w-3.5 h-3.5" />
@@ -179,7 +179,7 @@ export default function BillsPage() {
             <select
               value={filters.status || ''}
               onChange={(e) => handleFilterChange({ status: e.target.value || undefined })}
-              className="px-3 py-2 text-sm rounded-lg bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-700 font-medium shadow-sm transition-all"
+              className="px-3 py-2 text-sm rounded-lg bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-700 font-medium shadow-sm transition-all cursor-pointer"
               aria-label="Filter by status"
             >
               <option value="">All Statuses</option>
@@ -192,7 +192,7 @@ export default function BillsPage() {
             <select
               value={filters.categoryId || ''}
               onChange={(e) => handleFilterChange({ categoryId: e.target.value || undefined })}
-              className="px-3 py-2 text-sm rounded-lg bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-700 font-medium shadow-sm transition-all max-w-[180px]"
+              className="px-3 py-2 text-sm rounded-lg bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-700 font-medium shadow-sm transition-all max-w-[180px] cursor-pointer"
               aria-label="Filter by category"
             >
               <option value="">All Categories</option>
@@ -218,7 +218,7 @@ export default function BillsPage() {
                   isRecurring: val === '' ? undefined : val === 'true',
                 });
               }}
-              className="px-3 py-2 text-sm rounded-lg bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-700 font-medium shadow-sm transition-all"
+              className="px-3 py-2 text-sm rounded-lg bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-700 font-medium shadow-sm transition-all cursor-pointer"
               aria-label="Filter by recurrence"
             >
               <option value="">All Types</option>
@@ -229,7 +229,7 @@ export default function BillsPage() {
             <button
               type="button"
               onClick={handleRefresh}
-              className="p-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200 bg-white shadow-sm shrink-0"
+              className="p-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200 bg-white shadow-sm shrink-0 cursor-pointer"
               title="Refresh bills and clear filters"
               aria-label="Refresh bills and clear filters"
             >
@@ -247,7 +247,7 @@ export default function BillsPage() {
             <button
               type="button"
               onClick={handleRefresh}
-              className="px-3 py-1 text-xs font-semibold rounded-lg bg-rose-100 hover:bg-rose-200 text-rose-800 transition-colors"
+              className="px-3 py-1 text-xs font-semibold rounded-lg bg-rose-100 hover:bg-rose-200 text-rose-800 transition-colors cursor-pointer"
             >
               Retry
             </button>
@@ -329,7 +329,7 @@ export default function BillsPage() {
                 <button
                   type="button"
                   onClick={() => setDeletingBill(null)}
-                  className="flex-1 px-4 py-2 text-sm font-semibold rounded-lg text-slate-600 hover:bg-slate-100 transition-colors"
+                  className="flex-1 px-4 py-2 text-sm font-semibold rounded-lg text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -337,7 +337,7 @@ export default function BillsPage() {
                   type="button"
                   onClick={handleConfirmDelete}
                   disabled={isSubmitting}
-                  className="flex-1 px-4 py-2 text-sm font-semibold rounded-lg bg-rose-600 text-white hover:bg-rose-700 disabled:opacity-50 transition-colors shadow-xs"
+                  className="flex-1 px-4 py-2 text-sm font-semibold rounded-lg bg-rose-600 text-white hover:bg-rose-700 disabled:opacity-50 transition-colors shadow-xs cursor-pointer"
                 >
                   {isSubmitting ? 'Deleting...' : 'Delete'}
                 </button>

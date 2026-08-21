@@ -41,7 +41,7 @@ export default function SavingTransactionForm({
     const remaining = goal.targetAmount - goal.savedAmount;
     if (depositAmount > remaining) {
       setErrorMsg(
-        `You only need ${new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(remaining)} more to complete this goal.`
+        `You only need ${new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 }).format(remaining)} more to complete this goal.`
       );
       return;
     }
@@ -75,13 +75,13 @@ export default function SavingTransactionForm({
                   {new Intl.NumberFormat('en-IN', {
                     style: 'currency',
                     currency: 'INR',
-                    maximumFractionDigits: 0,
+                    maximumFractionDigits: 2,
                   }).format(goal.targetAmount - goal.savedAmount)}{' '}
                   of{' '}
                   {new Intl.NumberFormat('en-IN', {
                     style: 'currency',
                     currency: 'INR',
-                    maximumFractionDigits: 0,
+                    maximumFractionDigits: 2,
                   }).format(goal.targetAmount)}
                 </p>
               </div>
@@ -99,7 +99,9 @@ export default function SavingTransactionForm({
               id="deposit-amount"
               type="number"
               required
-              min="1"
+              step="0.01"
+              min="0.01"
+              max="1000000000"
               placeholder="e.g. 500"
               value={amount}
               onChange={(e) => {

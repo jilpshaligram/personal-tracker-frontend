@@ -150,7 +150,7 @@ export function DataTable<TData extends RowData>({
                 <select
                   value={pageSize}
                   onChange={(e) => onPageSizeChange(Number(e.target.value))}
-                  className="px-2 py-1 text-xs font-medium rounded border border-slate-200 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 text-slate-700"
+                  className="px-2 py-1 text-xs font-medium rounded border border-slate-200 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 text-slate-700 cursor-pointer"
                   aria-label="Rows per page"
                 >
                   <option value={5}>5</option>
@@ -168,7 +168,7 @@ export function DataTable<TData extends RowData>({
                 type="button"
                 onClick={() => onPageChange(currentPage - 1)}
                 disabled={currentPage <= 1}
-                className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
                 title="Previous page"
               >
                 <ChevronLeft className="w-3.5 h-3.5" />
@@ -179,7 +179,7 @@ export function DataTable<TData extends RowData>({
                 type="button"
                 onClick={() => onPageChange(currentPage + 1)}
                 disabled={currentPage >= totalPages}
-                className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
                 title="Next page"
               >
                 Next

@@ -21,8 +21,22 @@ export function GlobalBudgetSummary({ budgets, loading }: GlobalBudgetSummaryPro
     );
   }
 
-  const totalBudgeted = budgets.reduce((sum, b) => sum + b.amount, 0);
-  const totalSpent = budgets.reduce((sum, b) => sum + b.spent, 0);
+  const periodWeight = {
+    YEARLY: 4,
+    MONTHLY: 3,
+    WEEKLY: 2,
+    DAILY: 1,
+  };
+
+  const highestBudget =
+    budgets.length > 0
+      ? budgets.reduce((prev, current) =>
+          periodWeight[current.period] > periodWeight[prev.period] ? current : prev
+        )
+      : null;
+
+  const totalBudgeted = highestBudget ? highestBudget.amount : 0;
+  const totalSpent = highestBudget ? highestBudget.spent : 0;
   const totalRemaining = totalBudgeted - totalSpent;
   const overallUsage = totalBudgeted === 0 ? 0 : (totalSpent / totalBudgeted) * 100;
 

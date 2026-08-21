@@ -5,9 +5,10 @@ interface SelectProps {
   value?: string;
   onValueChange?: (value: string) => void;
   children?: ReactNode;
+  className?: string;
 }
 
-export const Select = ({ value, onValueChange, children }: SelectProps) => {
+export const Select = ({ value, onValueChange, children, className = '' }: SelectProps) => {
   let options: ReactNode = null;
   let placeholder: string | null = null;
 
@@ -32,7 +33,9 @@ export const Select = ({ value, onValueChange, children }: SelectProps) => {
     <select
       value={value}
       onChange={(e) => onValueChange?.(e.target.value)}
-      className="flex h-10 w-full items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+      className={`flex h-10 w-full items-center justify-between rounded-md border bg-white px-3 py-2 text-sm ring-offset-white focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50 ${
+        className || 'border-slate-200 focus:border-blue-500 focus:ring-blue-500/20'
+      }`}
     >
       {placeholder && (
         <option value="" disabled>

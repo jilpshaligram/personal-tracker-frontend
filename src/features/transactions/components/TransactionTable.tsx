@@ -8,6 +8,8 @@ import {
   ArrowDown,
   Calendar,
   CreditCard,
+  Edit2,
+  Trash2,
 } from 'lucide-react';
 import { Badge } from '../../../components/ui/badge';
 import { DataTable } from '../../../components/ui/data-table';
@@ -24,6 +26,8 @@ interface TransactionTableProps {
   currentSort?: { field: string; order: 'asc' | 'desc' };
   onSortChange?: (field: string, order: 'asc' | 'desc') => void;
   onLimitChange?: (limit: number) => void;
+  onEdit?: (transaction: Transaction) => void;
+  onDelete?: (transaction: Transaction) => void;
 }
 
 const columnHelper = createColumnHelper<typeof stockFeatures, Transaction>();
@@ -39,6 +43,8 @@ export function TransactionTable({
   currentSort,
   onSortChange,
   onLimitChange,
+  onEdit,
+  onDelete,
 }: TransactionTableProps) {
   const renderSortableHeader = (field: string, label: string, alignRight = false) => {
     const isSorted = currentSort?.field === field;
@@ -229,6 +235,30 @@ export function TransactionTable({
           </span>
         );
       },
+    }),
+    columnHelper.display({
+      id: 'actions',
+      header: () => <div className="text-right pr-4">Actions</div>,
+      cell: (info) => (
+        <div className="flex items-center justify-end gap-2 pr-4">
+          <button
+            type="button"
+            onClick={() => onEdit && onEdit(info.row.original)}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+            title="Edit Transaction"
+          >
+            <Edit2 className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => onDelete && onDelete(info.row.original)}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+            title="Delete Transaction"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      ),
     }),
   ];
 
