@@ -16,6 +16,7 @@ const PUBLIC_AUTH_PATHS = new Set([
   '/login',
   '/register',
   '/verify-otp',
+  '/verify-email',
   '/pin-setup',
   '/verify-pin',
   '/forgot-password',

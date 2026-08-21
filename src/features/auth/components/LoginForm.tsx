@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { login } from '../services/authService';
-import { GoogleIcon } from './GoogleIcon';
 import { AuthLoadingOverlay } from './AuthLoadingOverlay';
 import {
   authEyebrowClass,
@@ -18,12 +17,16 @@ import {
 
 export const LoginForm: React.FC = () => {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
+  const location = useLocation();
+  const locationState = (location.state as { email?: string; message?: string } | null) || {};
+
+  const [email, setEmail] = useState(locationState.email || '');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
   const [focused, setFocused] = useState<string | null>(null);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState(locationState.message || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -52,9 +55,28 @@ export const LoginForm: React.FC = () => {
     try {
       setIsSubmitting(true);
       setError('');
-      await login({ email: email.trim(), password });
+      setSuccessMessage('');
+      const response = await login({ email: email.trim(), password });
       sessionStorage.setItem('verifyPinAccess', 'true');
-      navigate('/verify-pin', { state: { email: email.trim(), flow: 'login' } });
+
+      const nextStep = response.data?.nextStep || response.nextStep;
+      const emailVerified = response.data?.emailVerified ?? response.emailVerified;
+
+      if (nextStep === 'EMAIL_VERIFICATION' || emailVerified === false) {
+        navigate('/verify-email', {
+          state: {
+            email: email.trim(),
+            flow: 'verify-email',
+          },
+        });
+      } else {
+        navigate('/verify-pin', {
+          state: {
+            email: email.trim(),
+            flow: 'login',
+          },
+        });
+      }
     } catch (submitError) {
       setError(
         submitError instanceof Error ? submitError.message : 'Unable to sign in. Please try again.'
@@ -91,6 +113,12 @@ export const LoginForm: React.FC = () => {
         {error && (
           <div className="mb-5 rounded-[10px] border border-[#F6C9C9] bg-[#FDECEC] px-3 py-2.5 text-center text-[13px] font-medium text-[#9A2E2E]">
             {error}
+          </div>
+        )}
+
+        {successMessage && !error && (
+          <div className="mb-5 rounded-[10px] border border-[#BDE4CE] bg-[#EDF8F2] px-3 py-2.5 text-center text-[13px] font-medium text-[#1A7F48]">
+            {successMessage}
           </div>
         )}
 
@@ -158,17 +186,6 @@ export const LoginForm: React.FC = () => {
             {isSubmitting ? 'Signing in...' : 'Sign in'}
           </button>
         </form>
-
-        <div className="my-[22px] flex items-center gap-3 text-xs text-[#6B7280]">
-          <div className="h-px flex-1 bg-[#E5E9F2]" />
-          or continue with
-          <div className="h-px flex-1 bg-[#E5E9F2]" />
-        </div>
-
-        <button className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-[10px] border border-[#E5E9F2] bg-white px-3 py-[11px] text-sm font-semibold text-[#16274F]">
-          <GoogleIcon />
-          Sign in with Google
-        </button>
 
         <p className="mt-6 text-center text-[13.5px] text-[#6B7280]">
           New to VaultSaaS?{' '}
