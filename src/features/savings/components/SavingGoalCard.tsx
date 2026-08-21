@@ -5,6 +5,7 @@ import type { SavingGoal } from '../types/savingGoal';
 interface SavingGoalCardProps {
   goal: SavingGoal;
   onAddFunds: (goal: SavingGoal) => void;
+  onWithdraw: (goal: SavingGoal) => void;
   onEdit: (goal: SavingGoal) => void;
   onDelete: (id: string) => void;
 }
@@ -12,6 +13,7 @@ interface SavingGoalCardProps {
 export default function SavingGoalCard({
   goal,
   onAddFunds,
+  onWithdraw,
   onEdit,
   onDelete,
 }: SavingGoalCardProps) {
@@ -114,6 +116,22 @@ export default function SavingGoalCard({
                 <Edit2 className="w-3.5 h-3.5 text-slate-400" />
                 <span>Edit Goal</span>
               </button>
+              {goal.savedAmount > 0 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onWithdraw(goal);
+                    setIsMenuOpen(false);
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50 transition-colors text-left"
+                >
+                  {/* Using a simple text icon or another icon for withdrawal */}
+                  <span className="w-3.5 h-3.5 flex items-center justify-center font-bold text-slate-400">
+                    -
+                  </span>
+                  <span>Withdraw Funds</span>
+                </button>
+              )}
               <div className="my-1 border-t border-slate-100" />
               <button
                 type="button"

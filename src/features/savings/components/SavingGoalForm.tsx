@@ -20,6 +20,9 @@ export default function SavingGoalForm({ isOpen, onClose, onSubmit, goal }: Savi
   const [description, setDescription] = useState('');
   const [targetAmount, setTargetAmount] = useState('');
   const [targetDate, setTargetDate] = useState('');
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const today = new Date().toISOString().split('T')[0];
 
   useEffect(() => {
     /* eslint-disable react-hooks/set-state-in-effect */
@@ -41,18 +44,55 @@ export default function SavingGoalForm({ isOpen, onClose, onSubmit, goal }: Savi
       } else {
         setTargetDate('');
       }
-    } else {
       setTitle('');
       setDescription('');
       setTargetAmount('');
       setTargetDate('');
+      setErrors({});
     }
     /* eslint-enable react-hooks/set-state-in-effect */
   }, [goal, isOpen]);
 
+  const validate = () => {
+    const newErrors: Record<string, string> = {};
+    const amountNum = parseFloat(targetAmount);
+
+    const trimmedTitle = title.trim();
+    if (!trimmedTitle) {
+      newErrors.title = 'Goal name is required';
+    } else if (trimmedTitle.length < 3) {
+      newErrors.title = 'Goal name must be at least 3 characters long';
+    } else if (trimmedTitle.length > 20) {
+      newErrors.title = 'Goal name cannot exceed 20 characters';
+    } else if (/(.)\1{4,}/.test(trimmedTitle)) {
+      newErrors.title = 'Goal name cannot contain excessive repeating characters';
+    } else if (/\s{3,}/.test(trimmedTitle)) {
+      newErrors.title = 'Goal name cannot contain excessive spaces';
+    }
+
+    if (isNaN(amountNum) || amountNum <= 0) {
+      newErrors.targetAmount = 'Valid positive amount is required';
+    } else if (amountNum > 1000000000) {
+      newErrors.targetAmount = 'Amount exceeds maximum limit 1,000,000,000';
+    }
+
+    if (targetDate) {
+      const selected = new Date(targetDate);
+      const todayDate = new Date();
+      selected.setHours(0, 0, 0, 0);
+      todayDate.setHours(0, 0, 0, 0);
+      if (selected < todayDate) {
+        newErrors.targetDate = 'Target date cannot be in the past';
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title || !targetAmount) return;
+    if (!validate()) return;
 
     onSubmit({
       title,
@@ -79,11 +119,17 @@ export default function SavingGoalForm({ isOpen, onClose, onSubmit, goal }: Savi
               id="goal-title"
               type="text"
               required
+              maxLength={20}
               placeholder="e.g. Europe Trip, Emergency Fund"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={`w-full px-3 py-2 text-sm rounded-lg border bg-white focus:outline-none focus:ring-2 ${
+                errors.title
+                  ? 'border-rose-400 focus:ring-rose-500/20'
+                  : 'border-slate-200 focus:ring-blue-500/20 focus:border-blue-500'
+              }`}
             />
+            {errors.title && <p className="text-xs text-rose-500 mt-1">{errors.title}</p>}
           </div>
 
           <div>
@@ -96,7 +142,7 @@ export default function SavingGoalForm({ isOpen, onClose, onSubmit, goal }: Savi
               placeholder="e.g. Travel Fund, Safety Net"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
             />
           </div>
 
@@ -109,11 +155,19 @@ export default function SavingGoalForm({ isOpen, onClose, onSubmit, goal }: Savi
               type="number"
               required
               min="1"
+              max="1000000000"
               placeholder="e.g. 5000"
               value={targetAmount}
               onChange={(e) => setTargetAmount(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={`w-full px-3 py-2 text-sm rounded-lg border bg-white focus:outline-none focus:ring-2 ${
+                errors.targetAmount
+                  ? 'border-rose-400 focus:ring-rose-500/20'
+                  : 'border-slate-200 focus:ring-blue-500/20 focus:border-blue-500'
+              }`}
             />
+            {errors.targetAmount && (
+              <p className="text-xs text-rose-500 mt-1">{errors.targetAmount}</p>
+            )}
           </div>
 
           <div>
@@ -123,10 +177,16 @@ export default function SavingGoalForm({ isOpen, onClose, onSubmit, goal }: Savi
             <input
               id="goal-date"
               type="date"
+              min={today}
               value={targetDate}
               onChange={(e) => setTargetDate(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={`w-full px-3 py-2 text-sm rounded-lg border bg-white focus:outline-none focus:ring-2 ${
+                errors.targetDate
+                  ? 'border-rose-400 focus:ring-rose-500/20'
+                  : 'border-slate-200 focus:ring-blue-500/20 focus:border-blue-500'
+              }`}
             />
+            {errors.targetDate && <p className="text-xs text-rose-500 mt-1">{errors.targetDate}</p>}
           </div>
 
           <div className="flex justify-end gap-2.5 pt-2">

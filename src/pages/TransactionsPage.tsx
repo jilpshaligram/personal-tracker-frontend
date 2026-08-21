@@ -103,7 +103,6 @@ export default function TransactionsPage() {
   return (
     <div className="w-full flex justify-center px-4 sm:px-6 lg:px-8 py-6">
       <div className="flex flex-col gap-6 w-full max-w-[1600px] 2xl:max-w-[1800px]">
-        {/* Heading Section */}
         <div className="shrink-0 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
@@ -125,9 +124,7 @@ export default function TransactionsPage() {
           </button>
         </div>
 
-        {/* Filters Section */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          {/* Left: Search */}
           <div className="relative w-full sm:max-w-[280px] shrink-0">
             <Search
               className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none"
@@ -156,7 +153,6 @@ export default function TransactionsPage() {
             )}
           </div>
 
-          {/* Right: Filters and Actions */}
           <div className="flex flex-wrap items-center lg:justify-end gap-3 w-full lg:w-auto">
             <select
               value={filters.type || ''}
@@ -171,6 +167,8 @@ export default function TransactionsPage() {
               <option value="">All Types</option>
               <option value="INCOME">Income</option>
               <option value="EXPENSE">Expense</option>
+              <option value="TRANSFER_TO_SAVING">Transfer to Saving</option>
+              <option value="TRANSFER_FROM_SAVING">Transfer from Saving</option>
             </select>
 
             <select

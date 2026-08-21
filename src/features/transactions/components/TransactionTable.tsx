@@ -239,26 +239,48 @@ export function TransactionTable({
     columnHelper.display({
       id: 'actions',
       header: () => <div className="text-right pr-4">Actions</div>,
-      cell: (info) => (
-        <div className="flex items-center justify-end gap-2 pr-4">
-          <button
-            type="button"
-            onClick={() => onEdit && onEdit(info.row.original)}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
-            title="Edit Transaction"
-          >
-            <Edit2 className="w-4 h-4" />
-          </button>
-          <button
-            type="button"
-            onClick={() => onDelete && onDelete(info.row.original)}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
-            title="Delete Transaction"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
-        </div>
-      ),
+      cell: (info) => {
+        const isSystemGenerated = !!info.row.original.savingGoalId || !!info.row.original.billId;
+
+        return (
+          <div className="flex items-center justify-end gap-2 pr-4">
+            <button
+              type="button"
+              onClick={() => !isSystemGenerated && onEdit && onEdit(info.row.original)}
+              disabled={isSystemGenerated}
+              className={`p-1.5 rounded-lg transition-colors ${
+                isSystemGenerated
+                  ? 'text-slate-300 cursor-not-allowed'
+                  : 'text-slate-400 hover:text-blue-600 hover:bg-blue-50 cursor-pointer'
+              }`}
+              title={
+                isSystemGenerated
+                  ? 'System generated transaction cannot be edited'
+                  : 'Edit Transaction'
+              }
+            >
+              <Edit2 className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => !isSystemGenerated && onDelete && onDelete(info.row.original)}
+              disabled={isSystemGenerated}
+              className={`p-1.5 rounded-lg transition-colors ${
+                isSystemGenerated
+                  ? 'text-slate-300 cursor-not-allowed'
+                  : 'text-slate-400 hover:text-rose-600 hover:bg-rose-50 cursor-pointer'
+              }`}
+              title={
+                isSystemGenerated
+                  ? 'System generated transaction cannot be deleted'
+                  : 'Delete Transaction'
+              }
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
+        );
+      },
     }),
   ];
 

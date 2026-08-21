@@ -30,7 +30,6 @@ export const SuperAdminDashboardPage: React.FC = () => {
         }
       />
 
-      {/* 4 Top Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
         <AdminStatCard label="Total users" value="1,284" icon={Users} sub="Across all plans" />
         <AdminStatCard
@@ -56,7 +55,6 @@ export const SuperAdminDashboardPage: React.FC = () => {
         />
       </div>
 
-      {/* Growth Chart & Alerts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3.5">
         <div className="lg:col-span-2">
           <AdminGrowthChart data={growth} currentCount={947} />
@@ -66,10 +64,8 @@ export const SuperAdminDashboardPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Latency Chart */}
       <AdminLatencyChart data={latency} />
 
-      {/* Recent Activity & Incidents */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3.5">
         <div className="lg:col-span-2">
           <AdminRecentActivityCard logs={recentLogs} />

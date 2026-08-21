@@ -51,9 +51,11 @@ export function TransactionModal({
         setType(initialData.type);
         setAmount(initialData.amount.toString());
         setCategoryId(
-          typeof initialData.categoryId === 'string'
-            ? initialData.categoryId
-            : ((initialData.categoryId.id || initialData.categoryId._id) as string)
+          !initialData.categoryId
+            ? ''
+            : typeof initialData.categoryId === 'string'
+              ? initialData.categoryId
+              : ((initialData.categoryId.id || initialData.categoryId._id) as string)
         );
         setPaymentMethod(initialData.paymentMethod);
 
@@ -97,9 +99,10 @@ export function TransactionModal({
       newErrors.amount = 'Amount exceeds maximum limit (1,000,000,000)';
     }
 
-    if (!categoryId) {
+    const isTransfer = type.startsWith('TRANSFER') || type === 'OPENING_BALANCE';
+    if (!categoryId && !isTransfer) {
       newErrors.categoryId = 'Category is required';
-    } else if (categoryId === 'other') {
+    } else if (categoryId === 'other' && !isTransfer) {
       const trimmed = customCategoryName.trim();
       if (!trimmed) {
         newErrors.customCategoryName = 'Category name is required';
@@ -180,19 +183,23 @@ export function TransactionModal({
       now.getSeconds()
     );
 
-    const success = await onSubmit({
+    const isTransfer = type.startsWith('TRANSFER') || type === 'OPENING_BALANCE';
+
+    const payload: Partial<Transaction> = {
       type,
       amount: parseFloat(amount),
-      categoryId: finalCategoryId,
       paymentMethod,
       description,
       transactionDate: finalDate.toISOString(),
-    });
-    setLoading(false);
+    };
 
-    if (success) {
-      onOpenChange(false);
+    if (!isTransfer) {
+      payload.categoryId = finalCategoryId;
     }
+
+    await onSubmit(payload);
+    setLoading(false);
+    onOpenChange(false);
   };
 
   const filteredCategories = categories.filter((c) => c.type === type);
@@ -218,15 +225,23 @@ export function TransactionModal({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Type</Label>
-              <Select value={type} onValueChange={handleTypeChange}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="INCOME">Income</SelectItem>
-                  <SelectItem value="EXPENSE">Expense</SelectItem>
-                </SelectContent>
-              </Select>
+              {type.startsWith('TRANSFER') || type === 'OPENING_BALANCE' ? (
+                <Input
+                  value={type.replace(/_/g, ' ')}
+                  disabled
+                  className="bg-slate-50 text-slate-500 cursor-not-allowed capitalize"
+                />
+              ) : (
+                <Select value={type} onValueChange={handleTypeChange}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="INCOME">Income</SelectItem>
+                    <SelectItem value="EXPENSE">Expense</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -259,56 +274,66 @@ export function TransactionModal({
               <Label>
                 Category <span className="text-rose-500">*</span>
               </Label>
-              <Select
-                value={categoryId}
-                onValueChange={(v) => {
-                  setCategoryId(v);
-                  if (errors.categoryId) setErrors((p) => ({ ...p, categoryId: '' }));
-                }}
-                className={
-                  errors.categoryId
-                    ? 'border-rose-400 focus:ring-rose-500/20'
-                    : 'border-slate-200 focus:border-blue-500 focus:ring-blue-500/20'
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {filteredCategories.map((c) => (
-                    <SelectItem key={c.id || c._id} value={(c.id || c._id) as string}>
-                      {c.name}
-                    </SelectItem>
-                  ))}
-                  <SelectItem value="other" className="font-semibold text-blue-600">
-                    + Other (Add Custom)
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-              {errors.categoryId && (
-                <p className="text-xs text-rose-500 mt-1">{errors.categoryId}</p>
-              )}
-              {categoryId === 'other' && (
-                <div className="mt-2 animate-in fade-in zoom-in-95 duration-200">
-                  <Input
-                    placeholder="Type category and press Enter..."
-                    value={customCategoryName}
-                    onChange={(e) => {
-                      setCustomCategoryName(e.target.value);
-                      if (errors.customCategoryName)
-                        setErrors((p) => ({ ...p, customCategoryName: '' }));
+              {type.startsWith('TRANSFER') || type === 'OPENING_BALANCE' ? (
+                <Input
+                  value="N/A"
+                  disabled
+                  className="bg-slate-50 text-slate-500 cursor-not-allowed"
+                />
+              ) : (
+                <>
+                  <Select
+                    value={categoryId}
+                    onValueChange={(v) => {
+                      setCategoryId(v);
+                      if (errors.categoryId) setErrors((p) => ({ ...p, categoryId: '' }));
                     }}
-                    className={`w-full ${
-                      errors.customCategoryName
-                        ? 'border-rose-400 focus-visible:ring-rose-500/20'
-                        : 'border-slate-200 focus-visible:border-blue-500 focus-visible:ring-blue-500/20'
-                    }`}
-                    autoFocus
-                  />
-                  {errors.customCategoryName && (
-                    <p className="text-xs text-rose-500 mt-1">{errors.customCategoryName}</p>
+                    className={
+                      errors.categoryId
+                        ? 'border-rose-400 focus:ring-rose-500/20'
+                        : 'border-slate-200 focus:border-blue-500 focus:ring-blue-500/20'
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {filteredCategories.map((c) => (
+                        <SelectItem key={c.id || c._id} value={(c.id || c._id) as string}>
+                          {c.name}
+                        </SelectItem>
+                      ))}
+                      <SelectItem value="other" className="font-semibold text-blue-600">
+                        + Other (Add Custom)
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {errors.categoryId && (
+                    <p className="text-xs text-rose-500 mt-1">{errors.categoryId}</p>
                   )}
-                </div>
+                  {categoryId === 'other' && (
+                    <div className="mt-2 animate-in fade-in zoom-in-95 duration-200">
+                      <Input
+                        placeholder="Type category and press Enter..."
+                        value={customCategoryName}
+                        onChange={(e) => {
+                          setCustomCategoryName(e.target.value);
+                          if (errors.customCategoryName)
+                            setErrors((p) => ({ ...p, customCategoryName: '' }));
+                        }}
+                        className={`w-full ${
+                          errors.customCategoryName
+                            ? 'border-rose-400 focus-visible:ring-rose-500/20'
+                            : 'border-slate-200 focus-visible:border-blue-500 focus-visible:ring-blue-500/20'
+                        }`}
+                        autoFocus
+                      />
+                      {errors.customCategoryName && (
+                        <p className="text-xs text-rose-500 mt-1">{errors.customCategoryName}</p>
+                      )}
+                    </div>
+                  )}
+                </>
               )}
             </div>
 
@@ -316,31 +341,41 @@ export function TransactionModal({
               <Label>
                 Payment Method <span className="text-rose-500">*</span>
               </Label>
-              <Select
-                value={paymentMethod}
-                onValueChange={(v) => {
-                  setPaymentMethod(v);
-                  if (errors.paymentMethod) setErrors((p) => ({ ...p, paymentMethod: '' }));
-                }}
-                className={
-                  errors.paymentMethod
-                    ? 'border-rose-400 focus:ring-rose-500/20'
-                    : 'border-slate-200 focus:border-blue-500 focus:ring-blue-500/20'
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Method" />
-                </SelectTrigger>
-                <SelectContent>
-                  {PAYMENT_METHODS.map((pm) => (
-                    <SelectItem key={pm} value={pm}>
-                      {pm.replace('_', ' ')}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.paymentMethod && (
-                <p className="text-xs text-rose-500 mt-1">{errors.paymentMethod}</p>
+              {type.startsWith('TRANSFER') || type === 'OPENING_BALANCE' ? (
+                <Input
+                  value={paymentMethod ? paymentMethod.replace('_', ' ') : 'N/A'}
+                  disabled
+                  className="bg-slate-50 text-slate-500 cursor-not-allowed"
+                />
+              ) : (
+                <>
+                  <Select
+                    value={paymentMethod}
+                    onValueChange={(v) => {
+                      setPaymentMethod(v);
+                      if (errors.paymentMethod) setErrors((p) => ({ ...p, paymentMethod: '' }));
+                    }}
+                    className={
+                      errors.paymentMethod
+                        ? 'border-rose-400 focus:ring-rose-500/20'
+                        : 'border-slate-200 focus:border-blue-500 focus:ring-blue-500/20'
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Method" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PAYMENT_METHODS.map((pm) => (
+                        <SelectItem key={pm} value={pm}>
+                          {pm.replace('_', ' ')}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.paymentMethod && (
+                    <p className="text-xs text-rose-500 mt-1">{errors.paymentMethod}</p>
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -368,21 +403,27 @@ export function TransactionModal({
             )}
           </div>
 
-          <div className="space-y-2">
-            <Label>Description</Label>
-            <Textarea
-              placeholder="Optional description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="border-slate-200 focus-visible:border-blue-500 focus-visible:ring-blue-500/20"
-            />
-          </div>
+          {!(type.startsWith('TRANSFER') || type === 'OPENING_BALANCE') && (
+            <div className="space-y-2">
+              <Label>Description</Label>
+              <Textarea
+                placeholder="Optional description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="border-slate-200 focus-visible:border-blue-500 focus-visible:ring-blue-500/20"
+              />
+            </div>
+          )}
 
           <div className="flex justify-end gap-2 pt-4">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={loading}>
+            <Button
+              type="submit"
+              disabled={loading}
+              className="cursor-pointer disabled:cursor-not-allowed"
+            >
               {loading ? 'Saving...' : 'Save Transaction'}
             </Button>
           </div>
