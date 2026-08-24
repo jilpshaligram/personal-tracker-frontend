@@ -8,8 +8,6 @@ interface DashboardStatsProps {
 }
 
 export function DashboardStats({ stats, loading, period }: DashboardStatsProps) {
-  // We keep them pending/empty as instructed, but we lay them out.
-
   const formatCurrency = (val: number) =>
     new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(val);
 

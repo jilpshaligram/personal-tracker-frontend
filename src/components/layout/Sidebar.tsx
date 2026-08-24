@@ -8,6 +8,7 @@ import {
   PiggyBank,
   Settings,
   X,
+  Wallet,
 } from 'lucide-react';
 
 interface NavItem {
@@ -18,6 +19,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { path: '/wallet', label: 'Wallet', icon: Wallet },
   { path: '/documents', label: 'Documents', icon: FileText },
   { path: '/transactions', label: 'Transactions', icon: ArrowLeftRight },
   { path: '/budgets', label: 'Budgets', icon: WalletCards },

@@ -118,6 +118,8 @@ export default function BillsPage() {
     }
   };
 
+  const todayStr = new Date().toISOString().split('T')[0];
+
   return (
     <div className="w-full flex justify-center px-4 sm:px-6 lg:px-8 py-6">
       <div className="flex flex-col gap-6 w-full max-w-[1600px] 2xl:max-w-[1800px]">
@@ -221,6 +223,29 @@ export default function BillsPage() {
               <option value="true">Recurring Only</option>
               <option value="false">One-Time Only</option>
             </select>
+
+            <div className="flex items-center gap-2">
+              <input
+                type="date"
+                max={filters.endDate || todayStr}
+                value={filters.startDate || ''}
+                onChange={(e) => handleFilterChange({ startDate: e.target.value || undefined })}
+                className="px-3 py-2 text-sm rounded-lg bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-700 font-medium shadow-sm transition-all cursor-pointer"
+                aria-label="Start date"
+                title="Start Date"
+              />
+              <span className="text-slate-400 font-medium text-sm">to</span>
+              <input
+                type="date"
+                min={filters.startDate || undefined}
+                max={todayStr}
+                value={filters.endDate || ''}
+                onChange={(e) => handleFilterChange({ endDate: e.target.value || undefined })}
+                className="px-3 py-2 text-sm rounded-lg bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-700 font-medium shadow-sm transition-all cursor-pointer"
+                aria-label="End date"
+                title="End Date"
+              />
+            </div>
 
             <button
               type="button"

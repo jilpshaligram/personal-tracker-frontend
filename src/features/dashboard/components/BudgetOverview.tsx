@@ -86,7 +86,7 @@ export function BudgetOverview({ data, loading }: BudgetOverviewProps) {
         stack: 'total',
         barWidth: 24,
         itemStyle: {
-          color: data.percentageConsumed > 90 ? '#ef4444' : '#3b82f6', // Red if >90%, else blue
+          color: data.percentageConsumed > 90 ? '#ef4444' : '#3b82f6',
           borderRadius: 0,
         },
         data: [data.totalSpent],
@@ -97,7 +97,7 @@ export function BudgetOverview({ data, loading }: BudgetOverviewProps) {
         stack: 'total',
         barWidth: 32,
         itemStyle: {
-          color: '#e2e8f0', // slate-200
+          color: '#e2e8f0',
           borderRadius: 0,
         },
         data: [data.remainingAmount > 0 ? data.remainingAmount : 0],

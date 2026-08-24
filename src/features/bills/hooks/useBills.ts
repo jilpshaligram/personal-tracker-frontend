@@ -21,11 +21,9 @@ export const useBills = () => {
   const [filters, setFilters] = useState<BillFilters>({});
   const [reloadKey, setReloadKey] = useState(0);
 
-  // Sorting State
   const [sortField, setSortField] = useState<BillSortField | null>('dueDate');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
 
-  // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
@@ -75,7 +73,6 @@ export const useBills = () => {
           const res = billsResult.value;
           let items = res.data || [];
 
-          // Recurrence filter (Handles true, false, and string variants)
           if (filters.isRecurring !== undefined) {
             if (filters.isRecurring === true) {
               items = items.filter(
@@ -92,7 +89,6 @@ export const useBills = () => {
             }
           }
 
-          // Category filter fallback
           if (filters.categoryId) {
             items = items.filter((b) => {
               const catId =
@@ -103,14 +99,12 @@ export const useBills = () => {
             });
           }
 
-          // Status filter fallback
           if (filters.status) {
             items = items.filter(
               (b) => (b.status || '').toUpperCase() === (filters.status || '').toUpperCase()
             );
           }
 
-          // Search filter fallback
           if (filters.search) {
             const q = filters.search.toLowerCase();
             items = items.filter(
@@ -166,7 +160,6 @@ export const useBills = () => {
     };
   }, [filters, currentPage, pageSize, sortField, sortOrder, reloadKey]);
 
-  // Statistics calculation based on active bill records
   const stats = useMemo(() => {
     let totalDue = 0;
     let totalPaid = 0;
@@ -272,8 +265,7 @@ export const useBills = () => {
       (Object.keys(merged) as (keyof BillFilters)[]).forEach((key) => {
         const val = merged[key];
         if (val !== undefined && val !== null && val !== '') {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (cleaned as any)[key] = val;
+          (cleaned as Record<string, unknown>)[key] = val;
         }
       });
       return cleaned;
@@ -289,17 +281,14 @@ export const useBills = () => {
     error,
     filters,
     stats,
-    // Sorting
     sortField,
     sortOrder,
     handleSort,
-    // Pagination
     currentPage,
     pageSize,
     totalPages,
     handlePageChange,
     handlePageSizeChange,
-    // Actions
     handleCreateBill,
     handleUpdateBill,
     handleDeleteBill,

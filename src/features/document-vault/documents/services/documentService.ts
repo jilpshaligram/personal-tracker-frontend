@@ -121,7 +121,6 @@ export const documentService = {
     return null as unknown as Document;
   },
 
-  // ─── Step 1: Get a signed upload URL from the backend ──────────────────────
   getUploadSignature: async (
     categoryId: string
   ): Promise<{
@@ -144,7 +143,6 @@ export const documentService = {
     return response.data.data;
   },
 
-  // ─── Step 2: Upload file directly to Cloudinary ────────────────────────────
   uploadToCloudinaryDirect: async (
     file: File,
     signatureData: {

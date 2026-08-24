@@ -39,6 +39,8 @@ export default function TransactionsPage() {
       search: undefined,
       type: undefined,
       categoryId: undefined,
+      startDate: undefined,
+      endDate: undefined,
       page: 1,
     });
     refetch();
@@ -100,6 +102,8 @@ export default function TransactionsPage() {
     ? categories.filter((c) => c.type === filters.type)
     : categories;
 
+  const todayStr = new Date().toISOString().split('T')[0];
+
   return (
     <div className="w-full flex justify-center px-4 sm:px-6 lg:px-8 py-6">
       <div className="flex flex-col gap-6 w-full max-w-[1600px] 2xl:max-w-[1800px]">
@@ -125,7 +129,7 @@ export default function TransactionsPage() {
         </div>
 
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          <div className="relative w-full sm:max-w-[280px] shrink-0">
+          <div className="relative w-full sm:max-w-70 shrink-0">
             <Search
               className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none"
               aria-hidden="true"
@@ -167,6 +171,7 @@ export default function TransactionsPage() {
               <option value="">All Types</option>
               <option value="INCOME">Income</option>
               <option value="EXPENSE">Expense</option>
+              <option value="OPENING_BALANCE">Opening Balance</option>
               <option value="TRANSFER_TO_SAVING">Transfer to Saving</option>
               <option value="TRANSFER_FROM_SAVING">Transfer from Saving</option>
             </select>
@@ -174,7 +179,7 @@ export default function TransactionsPage() {
             <select
               value={filters.categoryId || ''}
               onChange={(e) => updateFilters({ categoryId: e.target.value || undefined })}
-              className="px-3 py-2 text-sm rounded-lg bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-700 font-medium shadow-sm transition-all max-w-[200px] cursor-pointer"
+              className="px-3 py-2 text-sm rounded-lg bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-700 font-medium shadow-sm transition-all max-w-50 cursor-pointer"
               aria-label="Filter by category"
             >
               <option value="">All Categories</option>
@@ -187,6 +192,29 @@ export default function TransactionsPage() {
                 );
               })}
             </select>
+
+            <div className="flex items-center gap-2">
+              <input
+                type="date"
+                max={filters.endDate || todayStr}
+                value={filters.startDate || ''}
+                onChange={(e) => updateFilters({ startDate: e.target.value || undefined })}
+                className="px-3 py-2 text-sm rounded-lg bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-700 font-medium shadow-sm transition-all cursor-pointer"
+                aria-label="Start date"
+                title="Start Date"
+              />
+              <span className="text-slate-400 font-medium text-sm">to</span>
+              <input
+                type="date"
+                min={filters.startDate || undefined}
+                max={todayStr}
+                value={filters.endDate || ''}
+                onChange={(e) => updateFilters({ endDate: e.target.value || undefined })}
+                className="px-3 py-2 text-sm rounded-lg bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-700 font-medium shadow-sm transition-all cursor-pointer"
+                aria-label="End date"
+                title="End Date"
+              />
+            </div>
 
             <button
               type="button"

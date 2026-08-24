@@ -115,13 +115,15 @@ export function TransactionTable({
         }
 
         if (!categoryName || categoryName.trim() === '') {
-          if (typeof savingGoal === 'object' && savingGoal !== null) {
+          if (info.row.original.type === 'OPENING_BALANCE') {
+            categoryName = 'Wallet Balance';
+          } else if (typeof savingGoal === 'object' && savingGoal !== null) {
             categoryName =
               (savingGoal as { name?: string; title?: string }).name ||
               (savingGoal as { title?: string }).title ||
               '';
           } else if (typeof savingGoal === 'string' && savingGoal.trim() !== '') {
-            categoryName = 'Savings Transfer'; // Fallback if it's just an unpopulated ID
+            categoryName = 'Savings Transfer';
           }
         }
 
@@ -141,7 +143,7 @@ export function TransactionTable({
         let Icon = ArrowRightLeft;
         let colorClass = 'bg-slate-100 text-slate-700';
 
-        if (type === 'INCOME') {
+        if (type === 'INCOME' || type === 'OPENING_BALANCE') {
           Icon = ArrowDownCircle;
           colorClass = 'bg-emerald-50 text-emerald-700 border-emerald-200/60';
         } else if (type === 'EXPENSE') {
@@ -189,7 +191,7 @@ export function TransactionTable({
         let colorClass = 'text-slate-900';
         let sign = '';
 
-        if (type === 'INCOME') {
+        if (type === 'INCOME' || type === 'OPENING_BALANCE') {
           colorClass = 'text-emerald-600';
           sign = '+';
         } else if (type === 'EXPENSE') {
@@ -214,9 +216,9 @@ export function TransactionTable({
         const totalAmount = info.table.getRowModel().rows.reduce((sum, row) => {
           const type = row.original.type;
           const amount = row.original.amount;
-          if (type === 'INCOME') return sum + amount;
+          if (type === 'INCOME' || type === 'OPENING_BALANCE') return sum + amount;
           if (type === 'EXPENSE') return sum - amount;
-          return sum; // TRANSFER types don't affect net total
+          return sum;
         }, 0);
 
         const isPositive = totalAmount >= 0;

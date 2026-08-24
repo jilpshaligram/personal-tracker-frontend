@@ -14,19 +14,14 @@ const PALETTE = [
   '#d946ef', // fuchsia-500
 ];
 
-/**
- * Generates a deterministic color from a given string (e.g. category name).
- * This ensures that 'Food' always gets the same color across different users or periods.
- */
 export function getCategoryColor(categoryName: string): string {
-  if (!categoryName) return '#94a3b8'; // slate-400 fallback
+  if (!categoryName) return '#94a3b8';
 
   let hash = 0;
   for (let i = 0; i < categoryName.length; i++) {
     hash = categoryName.charCodeAt(i) + ((hash << 5) - hash);
   }
 
-  // Convert negative hash to positive
   hash = Math.abs(hash);
 
   return PALETTE[hash % PALETTE.length];

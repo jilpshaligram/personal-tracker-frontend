@@ -15,7 +15,6 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({ profile, isOpen, onClo
   const [phone, setPhone] = useState(profile.phone || '');
   const [gender, setGender] = useState<GenderType>(profile.gender || 'OTHER');
 
-  // Format Date ISO string to YYYY-MM-DD for date inputs
   const initialBirthDate = profile.dateOfBirth
     ? new Date(profile.dateOfBirth).toISOString().split('T')[0]
     : '';

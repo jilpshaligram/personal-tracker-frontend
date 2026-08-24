@@ -41,8 +41,8 @@ export function useNotifications() {
     try {
       const count = await fetchUnreadCount();
       setUnreadCount(count);
-    } catch {
-      // silent
+    } catch (e) {
+      console.debug('Failed to fetch unread count', e);
     }
   }, [setUnreadCount]);
 
@@ -127,7 +127,6 @@ export function useNotifications() {
     });
 
     eventSource.onmessage = () => {
-      // Refresh list and unread count immediately on new notification
       void loadNotifications();
       void refreshUnreadCount();
     };
@@ -139,8 +138,7 @@ export function useNotifications() {
     return () => {
       eventSource.close();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [loadNotifications, refreshUnreadCount]);
 
   return {
     notifications,

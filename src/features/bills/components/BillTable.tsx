@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Calendar,
   Repeat,
@@ -16,6 +16,27 @@ import { createColumnHelper, stockFeatures, type ColumnDef } from '@tanstack/rea
 import { BillStatusBadge } from './BillStatusBadge';
 import { DataTable } from '../../../components/ui/data-table';
 import type { Bill, BillCategory, BillSortField, BillTableProps } from '../types';
+
+const formatCurrency = (amount: number, currency = 'INR') => {
+  return new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: currency || 'INR',
+    maximumFractionDigits: 2,
+  }).format(amount);
+};
+
+const formatDate = (dateStr: string) => {
+  if (!dateStr) return '-';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return dateStr;
+  return new Intl.DateTimeFormat('en-IN', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  }).format(d);
+};
+
+const columnHelper = createColumnHelper<typeof stockFeatures, Bill>();
 
 export const BillTable: React.FC<BillTableProps> = ({
   bills,
@@ -66,68 +87,56 @@ export const BillTable: React.FC<BillTableProps> = ({
     };
   }, [activeMenu]);
 
-  const handleToggleMenu = (e: React.MouseEvent<HTMLButtonElement>, billId: string) => {
-    e.stopPropagation();
-    if (activeMenu?.id === billId) {
-      setActiveMenu(null);
-      return;
-    }
+  const handleToggleMenu = useCallback(
+    (e: React.MouseEvent<HTMLButtonElement>, billId: string) => {
+      e.stopPropagation();
+      if (activeMenu?.id === billId) {
+        setActiveMenu(null);
+        return;
+      }
 
-    const rect = e.currentTarget.getBoundingClientRect();
-    const menuHeight = 120;
-    const menuWidth = 144;
-    const spaceBelow = window.innerHeight - rect.bottom;
-    const shouldOpenUpward = spaceBelow < menuHeight && rect.top > menuHeight;
+      const rect = e.currentTarget.getBoundingClientRect();
+      const menuHeight = 120;
+      const menuWidth = 144;
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const shouldOpenUpward = spaceBelow < menuHeight && rect.top > menuHeight;
 
-    const top = shouldOpenUpward ? rect.top - menuHeight - 4 : rect.bottom + 4;
-    const left = Math.max(8, rect.right - menuWidth);
+      const top = shouldOpenUpward ? rect.top - menuHeight - 4 : rect.bottom + 4;
+      const left = Math.max(8, rect.right - menuWidth);
 
-    setActiveMenu({
-      id: billId,
-      top,
-      left,
-    });
-  };
+      setActiveMenu({
+        id: billId,
+        top,
+        left,
+      });
+    },
+    [activeMenu]
+  );
 
-  const getCategoryName = (categoryId: string, categoryObj?: BillCategory | string) => {
-    if (typeof categoryObj === 'object' && categoryObj?.name) return categoryObj.name;
-    const found = categories.find((c) => (c.id || c._id) === categoryId);
-    return found ? found.name : 'General';
-  };
+  const getCategoryName = useCallback(
+    (categoryId: string, categoryObj?: BillCategory | string) => {
+      if (typeof categoryObj === 'object' && categoryObj?.name) return categoryObj.name;
+      const found = categories.find((c) => (c.id || c._id) === categoryId);
+      return found ? found.name : 'General';
+    },
+    [categories]
+  );
 
-  const formatCurrency = (amount: number, currency = 'INR') => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: currency || 'INR',
-      maximumFractionDigits: 2,
-    }).format(amount);
-  };
-
-  const formatDate = (dateStr: string) => {
-    if (!dateStr) return '-';
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return dateStr;
-    return new Intl.DateTimeFormat('en-IN', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-    }).format(d);
-  };
-
-  const renderSortIcon = (field: BillSortField) => {
-    if (sortField !== field) {
-      return (
-        <ArrowUpDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600 transition-colors" />
+  const renderSortIcon = useCallback(
+    (field: BillSortField) => {
+      if (sortField !== field) {
+        return (
+          <ArrowUpDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600 transition-colors" />
+        );
+      }
+      return sortOrder === 'asc' ? (
+        <ArrowUp className="w-3.5 h-3.5 text-blue-600" />
+      ) : (
+        <ArrowDown className="w-3.5 h-3.5 text-blue-600" />
       );
-    }
-    return sortOrder === 'asc' ? (
-      <ArrowUp className="w-3.5 h-3.5 text-blue-600" />
-    ) : (
-      <ArrowDown className="w-3.5 h-3.5 text-blue-600" />
-    );
-  };
-
-  const columnHelper = createColumnHelper<typeof stockFeatures, Bill>();
+    },
+    [sortField, sortOrder]
+  );
 
   const columns = useMemo(
     () =>
@@ -308,8 +317,7 @@ export const BillTable: React.FC<BillTableProps> = ({
           },
         }),
       ] as unknown as ColumnDef<typeof stockFeatures, Bill, unknown>[],
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [sortField, sortOrder, categories]
+    [onSort, onMarkAsPaid, getCategoryName, handleToggleMenu, renderSortIcon]
   );
 
   const emptyState = (

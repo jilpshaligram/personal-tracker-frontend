@@ -1,23 +1,11 @@
 import { useState, useEffect } from 'react';
-import {
-  ShieldCheck,
-  ShieldAlert,
-  // Palette,
-  Grid3X3,
-  CheckCircle2,
-  Mail,
-  Phone,
-  Lock,
-} from 'lucide-react';
+import { ShieldCheck, ShieldAlert, Grid3X3, CheckCircle2, Mail, Phone, Lock } from 'lucide-react';
 import { useAuth } from '../context';
 import { apiClient } from '../api/client';
-
-// type ThemeType = 'light' | 'dark' | 'system';
 
 export default function SettingsPage() {
   const { user, verifyAuth } = useAuth();
   const [requirePin, setRequirePin] = useState(user?.isPinCreated || false);
-  // const [theme, setTheme] = useState<ThemeType>('system');
   const [newPin, setNewPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
   const [isPinUpdating, setIsPinUpdating] = useState(false);

@@ -56,7 +56,6 @@ async function verifyToken(): Promise<User | null> {
       const baseUser = res.data.user ?? res.data.data?.user ?? null;
       if (!baseUser) return null;
 
-      // Fetch full profile to get firstName, lastName, etc.
       const profile = await fetchUserProfile();
       if (profile) {
         return { ...baseUser, ...profile } as User;
@@ -149,8 +148,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             return true;
           }
         }
-      } catch {
-        // Refresh token invalid or expired
+      } catch (e) {
+        console.debug('Refresh token failed', e);
       }
 
       if (typeof window !== 'undefined') {

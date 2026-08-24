@@ -42,7 +42,6 @@ export function TransactionModal({
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Custom Category State
   const [customCategoryName, setCustomCategoryName] = useState<string>('');
 
   useEffect(() => {
@@ -59,7 +58,6 @@ export function TransactionModal({
         );
         setPaymentMethod(initialData.paymentMethod);
 
-        // Format date for datetime-local input
         const dateObj = new Date(initialData.transactionDate);
         if (!isNaN(dateObj.getTime())) {
           setTransactionDate(dateObj.toISOString().slice(0, 10));
@@ -70,7 +68,6 @@ export function TransactionModal({
         setAmount('');
         setCategoryId('');
         setPaymentMethod('');
-        // Current local date/time
         setTransactionDate(
           new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000)
             .toISOString()

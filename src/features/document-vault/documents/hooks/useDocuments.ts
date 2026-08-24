@@ -13,7 +13,8 @@ export const useDocuments = (filters?: DocumentFilters) => {
     setIsLoading(true);
     setError(null);
     try {
-      const result = await documentService.getDocuments(filters);
+      const parsedFilters = filterString ? JSON.parse(filterString) : undefined;
+      const result = await documentService.getDocuments(parsedFilters);
       setData(result);
       return result;
     } catch (err) {
@@ -21,7 +22,6 @@ export const useDocuments = (filters?: DocumentFilters) => {
     } finally {
       setIsLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterString]);
 
   useEffect(() => {

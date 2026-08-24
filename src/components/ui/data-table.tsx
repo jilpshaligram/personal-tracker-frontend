@@ -18,7 +18,6 @@ interface DataTableProps<TData extends RowData> {
   isLoading?: boolean;
   emptyState?: React.ReactNode;
 
-  // Optional pagination props
   currentPage?: number;
   pageSize?: number;
   totalRecords?: number;
@@ -163,27 +162,48 @@ export function DataTable<TData extends RowData>({
           </div>
 
           {totalPages && totalPages > 1 && onPageChange && currentPage && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
               <button
                 type="button"
                 onClick={() => onPageChange(currentPage - 1)}
                 disabled={currentPage <= 1}
-                className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                className="flex items-center justify-center w-7 h-7 rounded border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
                 title="Previous page"
               >
-                <ChevronLeft className="w-3.5 h-3.5" />
-                Previous
+                <ChevronLeft className="w-4 h-4" />
               </button>
+
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                let startPage = Math.max(1, currentPage - 2);
+                if (startPage + 4 > totalPages) {
+                  startPage = Math.max(1, totalPages - 4);
+                }
+                const pageNum = startPage + i;
+
+                return (
+                  <button
+                    key={pageNum}
+                    type="button"
+                    onClick={() => onPageChange(pageNum)}
+                    className={`flex items-center justify-center w-7 h-7 rounded text-xs font-medium transition-colors cursor-pointer ${
+                      currentPage === pageNum
+                        ? 'bg-blue-600 text-white shadow-sm border border-transparent'
+                        : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-100'
+                    }`}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              })}
 
               <button
                 type="button"
                 onClick={() => onPageChange(currentPage + 1)}
                 disabled={currentPage >= totalPages}
-                className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                className="flex items-center justify-center w-7 h-7 rounded border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
                 title="Next page"
               >
-                Next
-                <ChevronRight className="w-3.5 h-3.5" />
+                <ChevronRight className="w-4 h-4" />
               </button>
             </div>
           )}
