@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { getWallet, type WalletResponseDto } from '../../api/wallet';
 import { Wallet as WalletIcon, Lock, CheckCircle2, Plus } from 'lucide-react';
