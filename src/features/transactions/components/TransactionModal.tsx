@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../../components/ui/dialog';
 import { Input } from '../../../components/ui/input';
 import {
@@ -23,23 +23,6 @@ interface TransactionModalProps {
   onCreateCategory: (data: Partial<TransactionCategory>) => Promise<TransactionCategory>;
 }
 
-function getInitialDate(initialData?: Transaction | null): string {
-  if (initialData) {
-    const dateObj = new Date(initialData.transactionDate);
-    if (!isNaN(dateObj.getTime())) return dateObj.toISOString().slice(0, 16);
-  }
-  return new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000)
-    .toISOString()
-    .slice(0, 16);
-}
-
-function getInitialCategoryId(initialData?: Transaction | null): string {
-  if (!initialData) return '';
-  return typeof initialData.categoryId === 'string'
-    ? initialData.categoryId
-    : ((initialData.categoryId.id || initialData.categoryId._id) as string);
-}
-
 export function TransactionModal({
   open,
   onOpenChange,
@@ -61,6 +44,7 @@ export function TransactionModal({
   const [customCategoryName, setCustomCategoryName] = useState<string>('');
 
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect */
     if (open) {
       if (initialData) {
         setType(initialData.type);
@@ -95,6 +79,7 @@ export function TransactionModal({
       setSubmitError(null);
       setCustomCategoryName('');
     }
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [open, initialData]);
 
   const handleTypeChange = (val: string) => {
@@ -177,9 +162,10 @@ export function TransactionModal({
             type: type,
           });
           finalCategoryId = newCat.id || newCat._id || '';
-        } catch (err: any) {
+        } catch (err: unknown) {
           setLoading(false);
-          setSubmitError(err.message || 'Failed to create custom category');
+          const errorMsg = err instanceof Error ? err.message : 'Failed to create custom category';
+          setSubmitError(errorMsg);
           return;
         }
       }
