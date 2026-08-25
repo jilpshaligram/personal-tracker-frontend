@@ -1,6 +1,20 @@
 import React from 'react';
-import { Users } from 'lucide-react';
-import { AdminViewHeader, AdminStatCard, useSuperAdminDashboard } from '../../features/super-admin';
+import { Users, Activity, AlertTriangle } from 'lucide-react';
+import {
+  AdminViewHeader,
+  AdminStatCard,
+  useSuperAdminDashboard,
+  AdminGrowthChart,
+  AdminAlertsCard,
+  AdminLatencyChart,
+  AdminRecentActivityCard,
+  AdminIncidentsCard,
+  growthData,
+  mockAlerts,
+  latencyData,
+  mockAuditLogs,
+  mockIncidents,
+} from '../../features/super-admin';
 
 export const SuperAdminDashboardPage: React.FC = () => {
   const { totalUsers } = useSuperAdminDashboard();
@@ -38,21 +52,21 @@ export const SuperAdminDashboardPage: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3.5">
         <div className="lg:col-span-2">
-          <AdminGrowthChart data={growth} currentCount={947} />
+          <AdminGrowthChart data={growthData} currentCount={947} />
         </div>
         <div className="lg:col-span-1">
-          <AdminAlertsCard alerts={alerts} />
+          <AdminAlertsCard alerts={mockAlerts} />
         </div>
       </div>
 
-      <AdminLatencyChart data={latency} />
+      <AdminLatencyChart data={latencyData} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3.5">
         <div className="lg:col-span-2">
-          <AdminRecentActivityCard logs={recentLogs} />
+          <AdminRecentActivityCard logs={mockAuditLogs} />
         </div>
         <div className="lg:col-span-1">
-          <AdminIncidentsCard incidents={incidents} />
+          <AdminIncidentsCard incidents={mockIncidents} />
         </div>
       </div>
     </div>
