@@ -11,9 +11,9 @@ import SavingsPage from '../pages/SavingsPage';
 import SettingsPage from '../pages/SettingsPage';
 import ProfilePage from '../pages/ProfilePage';
 
-import SuperAdminDashboardPage from '../pages/super-admin/SuperAdminDashboardPage';
-import SuperAdminUsersPage from '../pages/super-admin/SuperAdminUsersPage';
-import SuperAdminAuditLogsPage from '../pages/super-admin/SuperAdminAuditLogsPage';
+import AdminDashboardPage from '../pages/super-admin/AdminDashboardPage';
+import AdminUsersPage from '../pages/super-admin/AdminUsersPage';
+import AdminAuditLogsPage from '../pages/super-admin/AdminAuditLogsPage';
 
 import { Login } from '../pages/auth/Login';
 import { Register } from '../pages/auth/Register';
@@ -91,9 +91,9 @@ const router = createBrowserRouter([
     ),
     children: [
       { index: true, element: <Navigate to="/admin/dashboard" replace /> },
-      { path: 'dashboard', element: <SuperAdminDashboardPage /> },
-      { path: 'users', element: <SuperAdminUsersPage /> },
-      { path: 'audit-logs', element: <SuperAdminAuditLogsPage /> },
+      { path: 'dashboard', element: <AdminDashboardPage /> },
+      { path: 'users', element: <AdminUsersPage /> },
+      { path: 'audit-logs', element: <AdminAuditLogsPage /> },
       { path: 'profile', element: <ProfilePage /> },
     ],
   },

@@ -1,28 +1,20 @@
-import { useDocumentCategories } from '../hooks/useDocumentCategories';
 import type { DocumentCategory } from '../types/documentCategory';
 
 interface DocumentCategoryListProps {
-  categories?: DocumentCategory[];
+  categories: DocumentCategory[] | undefined;
   selectedCategoryId: string;
   onSelectCategory: (categoryId: string) => void;
-  isLoading?: boolean;
-  error?: Error | null;
+  isLoading: boolean;
+  error: Error | null;
 }
 
 export function DocumentCategoryList({
-  categories: passedCategories,
+  categories: dataToUse = [],
   selectedCategoryId,
   onSelectCategory,
-  isLoading: passedIsLoading,
-  error: passedError,
+  isLoading,
+  error,
 }: DocumentCategoryListProps) {
-  const hasProps = passedCategories !== undefined;
-  const { data = [], isLoading: loading, error: hookError } = useDocumentCategories();
-
-  const dataToUse = hasProps ? passedCategories : data;
-  const isLoading = hasProps ? passedIsLoading : loading;
-  const error = hasProps ? passedError : hookError;
-
   const categories = (() => {
     if (!dataToUse || dataToUse.length === 0) return [];
 
@@ -48,15 +40,38 @@ export function DocumentCategoryList({
   })();
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <aside className="w-48 bg-white border-r border-slate-200 flex flex-col shrink-0">
+        <div className="p-4 border-b border-slate-100">
+          <h2 className="text-sm font-semibold text-slate-700">Categories</h2>
+        </div>
+        <div className="flex-1 flex items-center justify-center p-4">
+          <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+        </div>
+      </aside>
+    );
   }
 
   if (error) {
-    return <div className="px-3 py-4 text-sm text-red-500">Error: {error.message}</div>;
+    return (
+      <aside className="w-48 bg-white border-r border-slate-200 flex flex-col shrink-0">
+        <div className="p-4 border-b border-slate-100">
+          <h2 className="text-sm font-semibold text-slate-700">Categories</h2>
+        </div>
+        <div className="p-4 text-xs text-red-500">Error: {error.message}</div>
+      </aside>
+    );
   }
 
   if (categories.length === 0) {
-    return <div className="px-3 py-4 text-sm text-slate-500">No categories found.</div>;
+    return (
+      <aside className="w-48 bg-white border-r border-slate-200 flex flex-col shrink-0">
+        <div className="p-4 border-b border-slate-100">
+          <h2 className="text-sm font-semibold text-slate-700">Categories</h2>
+        </div>
+        <div className="p-4 text-xs text-slate-400">No categories found.</div>
+      </aside>
+    );
   }
 
   return (

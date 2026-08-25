@@ -35,7 +35,12 @@ export default function DocumentVault() {
     categoryId: selectedCategoryId !== 'all' ? selectedCategoryId : undefined,
   });
 
-  const { data: apiCategories, refetch: refetchCategories } = useDocumentCategories();
+  const {
+    data: apiCategories,
+    isLoading: isCategoriesLoading,
+    error: categoriesError,
+    refetch: refetchCategories,
+  } = useDocumentCategories();
   const selectedCategory = apiCategories?.find((cat) => (cat._id || cat.id) === selectedCategoryId);
   const selectedCategoryName = selectedCategory?.name;
 
@@ -138,6 +143,8 @@ export default function DocumentVault() {
         categories={apiCategories}
         selectedCategoryId={selectedCategoryId}
         onSelectCategory={setSelectedCategoryId}
+        isLoading={isCategoriesLoading}
+        error={categoriesError}
       />
 
       <div className="flex-1 flex flex-col overflow-hidden">

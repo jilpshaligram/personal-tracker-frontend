@@ -1,5 +1,5 @@
 import React from 'react';
-import type { AdminUserStatus, AuditLogSeverity } from '../../types/superAdmin';
+import type { AdminUserStatus, AuditLogSeverity } from '../../types/admin';
 
 type StatusType = AdminUserStatus | AuditLogSeverity | 'healthy' | 'critical' | 'warning';
 

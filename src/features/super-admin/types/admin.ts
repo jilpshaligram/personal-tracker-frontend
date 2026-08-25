@@ -22,32 +22,6 @@ export interface AuditLogItem {
   severity: AuditLogSeverity;
 }
 
-export interface GrowthDataPoint {
-  d: string;
-  users: number;
-}
-
-export interface LatencyDataPoint {
-  t: string;
-  ms: number;
-}
-
-export type IncidentStatus = 'investigating' | 'resolved' | 'monitoring';
-export type IncidentSeverity = 'critical' | 'warning' | 'info';
-
-export interface IncidentItem {
-  date: string;
-  title: string;
-  status: IncidentStatus;
-  severity: IncidentSeverity;
-}
-
-export interface AlertItem {
-  title: string;
-  subtitle: string;
-  severity: 'critical' | 'warning' | 'info';
-}
-
 export interface PaginationMeta {
   total: number;
   page: number;

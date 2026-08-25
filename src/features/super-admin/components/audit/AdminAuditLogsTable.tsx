@@ -11,7 +11,7 @@ import { AdminCard } from '../common/AdminCard';
 import { AdminBadge } from '../common/AdminBadge';
 import { AdminViewHeader } from '../common/AdminViewHeader';
 import type { AdminBadgeTone } from '../common/AdminBadge';
-import type { AuditLogItem, AuditLogSeverity } from '../../types/superAdmin';
+import type { AuditLogItem, AuditLogSeverity } from '../../types/admin';
 
 interface AdminAuditLogsTableProps {
   logs: AuditLogItem[];
@@ -157,7 +157,6 @@ export const AdminAuditLogsTable: React.FC<AdminAuditLogsTableProps> = ({
         </div>
       </AdminCard>
 
-      {/* Pagination Controls */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-4">
         <div className="flex items-center gap-4 text-xs text-slate-500">
           <div className="flex items-center gap-2">
@@ -205,7 +204,7 @@ export const AdminAuditLogsTable: React.FC<AdminAuditLogsTableProps> = ({
       <div className="flex items-center gap-1.5 text-xs text-[#9AA2B1] mt-3">
         <Lock className="w-3 h-3 shrink-0" />
         <span>
-          Log entries are append-only and cannot be edited or deleted, including by super admins.
+          Log entries are append-only and cannot be edited or deleted, including by admins.
         </span>
       </div>
     </div>

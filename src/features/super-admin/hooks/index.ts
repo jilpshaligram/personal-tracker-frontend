@@ -1,3 +1,3 @@
-export * from './useSuperAdminDashboard';
+export * from './useAdminDashboard';
 export * from './useAdminUsers';
 export * from './useAdminAuditLogs';

@@ -1,5 +1,17 @@
-import { useState, useRef } from 'react';
-import { X, UploadCloud, FileText, CheckCircle2, Upload, Hash, AlignLeft } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import {
+  X,
+  UploadCloud,
+  FileText,
+  CheckCircle2,
+  Upload,
+  Hash,
+  AlignLeft,
+  Trash2,
+  ExternalLink,
+  Eye,
+  RefreshCw,
+} from 'lucide-react';
 import { useUploadDocument, useUpdateDocument } from '../hooks/useDocuments';
 import { useDocumentCategories } from '../../categories/hooks/useDocumentCategories';
 import type { Document } from '../types/document';
@@ -55,6 +67,58 @@ export function DocumentUpload({ document, onClose, onUpload, onUpdate }: Docume
   const [validationError, setValidationError] = useState<string | null>(null);
   const [uploadStage, setUploadStage] = useState<'idle' | 'uploading' | 'saving'>('idle');
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [previewUrl, setPreviewUrl] = useState<string>('');
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
+
+  const handleFileSelect = (selectedFile: File | null) => {
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+      setPreviewUrl('');
+    }
+
+    if (selectedFile) {
+      const url = URL.createObjectURL(selectedFile);
+      setPreviewUrl(url);
+    }
+
+    setFormData((prev) => {
+      const nextName = prev.name
+        ? prev.name
+        : selectedFile
+          ? selectedFile.name.substring(0, selectedFile.name.lastIndexOf('.')) || selectedFile.name
+          : '';
+      return {
+        ...prev,
+        file: selectedFile,
+        name: nextName,
+      };
+    });
+  };
+
+  const fileUrl = previewUrl || document?.url;
+  const isPDF = formData.file
+    ? formData.file.type === 'application/pdf'
+    : document?.type === 'PDF' || (document?.url && document.url.toLowerCase().endsWith('.pdf'));
+  const isImage = formData.file
+    ? formData.file.type.startsWith('image/')
+    : document?.type === 'JPEG' ||
+      document?.type === 'PNG' ||
+      (document?.url &&
+        (document.url.toLowerCase().endsWith('.jpg') ||
+          document.url.toLowerCase().endsWith('.jpeg') ||
+          document.url.toLowerCase().endsWith('.png')));
+
+  const handleClearFile = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    handleFileSelect(null);
+  };
 
   const categories = apiCategories || [];
   const isLoading = isUploading || isUpdating;
@@ -80,22 +144,10 @@ export function DocumentUpload({ document, onClose, onUpload, onUpdate }: Docume
       const selectedFile = e.dataTransfer.files[0];
       if (selectedFile.size > 10 * 1024 * 1024) {
         setValidationError('You cannot upload files greater than 10 MB.');
-        setFormData((prev) => ({
-          ...prev,
-          file: null,
-        }));
+        handleFileSelect(null);
         return;
       }
-      setFormData((prev) => {
-        const nextName = prev.name
-          ? prev.name
-          : selectedFile.name.substring(0, selectedFile.name.lastIndexOf('.')) || selectedFile.name;
-        return {
-          ...prev,
-          file: selectedFile,
-          name: nextName,
-        };
-      });
+      handleFileSelect(selectedFile);
       setValidationError(null);
     }
   };
@@ -195,94 +247,169 @@ export function DocumentUpload({ document, onClose, onUpload, onUpdate }: Docume
               </span>
             </div>
           )}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
+            className="hidden"
+            disabled={isLoading}
+            onChange={(e) => {
+              if (e.target.files && e.target.files[0]) {
+                const selectedFile = e.target.files[0];
+                if (selectedFile.size > 10 * 1024 * 1024) {
+                  setValidationError('You cannot upload files greater than 10 MB.');
+                  handleFileSelect(null);
+                  return;
+                }
+                handleFileSelect(selectedFile);
+                setValidationError(null);
+              }
+            }}
+          />
+
           <div className="grid grid-cols-2 gap-6">
-            <div
-              onDragEnter={handleDrag}
-              onDragLeave={handleDrag}
-              onDragOver={handleDrag}
-              onDrop={handleDrop}
-              onClick={() => !isLoading && fileInputRef.current?.click()}
-              className={[
-                'col-span-2 md:col-span-1 border-2 border-dashed rounded-xl p-8 text-center transition-colors',
-                isLoading
-                  ? 'opacity-60 cursor-not-allowed border-slate-200 bg-slate-100'
-                  : 'cursor-pointer',
-                dragActive
-                  ? 'border-blue-500 bg-blue-50'
-                  : 'border-slate-300 bg-slate-50 hover:border-slate-400',
-              ].join(' ')}
-            >
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
-                className="hidden"
-                disabled={isLoading}
-                onChange={(e) => {
-                  if (e.target.files && e.target.files[0]) {
-                    const selectedFile = e.target.files[0];
-                    if (selectedFile.size > 10 * 1024 * 1024) {
-                      setValidationError('You cannot upload files greater than 10 MB.');
-                      setFormData((prev) => ({
-                        ...prev,
-                        file: null,
-                      }));
-                      return;
-                    }
-                    setFormData((prev) => {
-                      const nextName = prev.name
-                        ? prev.name
-                        : selectedFile.name.substring(0, selectedFile.name.lastIndexOf('.')) ||
-                          selectedFile.name;
-                      return {
-                        ...prev,
-                        file: selectedFile,
-                        name: nextName,
-                      };
-                    });
-                    setValidationError(null);
-                  }
-                }}
-              />
-              <div className="flex flex-col items-center gap-3">
-                <div className="flex items-center justify-center w-16 h-16 bg-white rounded-full shadow-sm">
-                  <UploadCloud className="w-8 h-8 text-slate-400" />
+            {fileUrl ? (
+              <div className="col-span-2 md:col-span-1 border border-slate-200 rounded-xl bg-slate-50 flex flex-col justify-between overflow-hidden min-h-[340px]">
+                <div className="flex items-center justify-between p-3 border-b border-slate-200 bg-white">
+                  <span className="text-xs font-semibold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                    <Eye className="w-3.5 h-3.5 text-blue-500" />
+                    File Preview
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors cursor-pointer"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" />
+                      Replace
+                    </button>
+                    {formData.file && (
+                      <button
+                        type="button"
+                        onClick={handleClearFile}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-red-600 hover:text-red-700 hover:bg-red-50 rounded transition-colors cursor-pointer"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        Clear
+                      </button>
+                    )}
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-slate-700">
-                    {formData.file
-                      ? formData.file.name
-                      : document
-                        ? 'Replace current file'
-                        : 'Drag and drop file here'}
-                  </p>
-                  <p className="text-xs text-slate-500 mt-1">
+
+                <div className="flex-1 flex items-center justify-center p-4 min-h-[220px]">
+                  {isImage ? (
+                    <div className="relative group max-w-full max-h-[220px] flex items-center justify-center overflow-hidden rounded-lg shadow-sm border border-slate-200 bg-white">
+                      <img
+                        src={fileUrl}
+                        alt="Preview"
+                        className="object-contain max-h-[220px] max-w-full"
+                      />
+                      <a
+                        href={fileUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white text-xs font-medium gap-1"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                        Open Original
+                      </a>
+                    </div>
+                  ) : isPDF ? (
+                    <div className="w-full h-full min-h-[220px] flex flex-col gap-2">
+                      <iframe
+                        src={fileUrl}
+                        className="w-full h-[180px] rounded-lg border border-slate-200 bg-white"
+                        title="Document PDF Preview"
+                      />
+                      <a
+                        href={fileUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center justify-center gap-1.5 text-xs text-blue-600 hover:underline mt-1"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                        Open PDF in new tab
+                      </a>
+                    </div>
+                  ) : (
+                    <div className="text-center p-6 bg-white rounded-lg border border-slate-200 shadow-sm w-full max-w-xs flex flex-col items-center">
+                      <FileText className="w-12 h-12 text-slate-300 mb-2" />
+                      <p className="text-sm font-medium text-slate-700 truncate w-full">
+                        {formData.file?.name || document?.name}
+                      </p>
+                      <p className="text-xs text-slate-500 mt-1">
+                        {formData.file
+                          ? `${(formData.file.size / 1024 / 1024).toFixed(2)} MB`
+                          : document?.size || 'Unknown size'}
+                      </p>
+                      <span className="mt-3 inline-block px-2.5 py-1 bg-slate-100 text-slate-600 rounded text-xs font-medium uppercase">
+                        {formData.file
+                          ? formData.file.name.split('.').pop() || 'File'
+                          : document?.type || 'File'}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="bg-slate-100 p-2.5 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
+                  <span className="truncate max-w-[180px]">
+                    {formData.file?.name || document?.name}
+                  </span>
+                  <span>
                     {formData.file
                       ? `${(formData.file.size / 1024 / 1024).toFixed(2)} MB`
-                      : document
-                        ? 'or click to replace (optional)'
-                        : 'or click to browse from your computer'}
+                      : document?.size || ''}
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <div
+                onDragEnter={handleDrag}
+                onDragLeave={handleDrag}
+                onDragOver={handleDrag}
+                onDrop={handleDrop}
+                onClick={() => !isLoading && fileInputRef.current?.click()}
+                className={[
+                  'col-span-2 md:col-span-1 border-2 border-dashed rounded-xl p-8 text-center transition-colors',
+                  isLoading
+                    ? 'opacity-60 cursor-not-allowed border-slate-200 bg-slate-100'
+                    : 'cursor-pointer',
+                  dragActive
+                    ? 'border-blue-500 bg-blue-50'
+                    : 'border-slate-300 bg-slate-50 hover:border-slate-400',
+                ].join(' ')}
+              >
+                <div className="flex flex-col items-center gap-3">
+                  <div className="flex items-center justify-center w-16 h-16 bg-white rounded-full shadow-sm">
+                    <UploadCloud className="w-8 h-8 text-slate-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-slate-700">Drag and drop file here</p>
+                    <p className="text-xs text-slate-500 mt-1">
+                      or click to browse from your computer
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 mt-2">
+                    <div className="flex items-center gap-1 px-2 py-1 bg-white rounded border border-slate-200">
+                      <FileText className="w-3 h-3 text-slate-400" />
+                      <span className="text-xs text-slate-600">PDF</span>
+                    </div>
+                    <div className="flex items-center gap-1 px-2 py-1 bg-white rounded border border-slate-200">
+                      <FileText className="w-3 h-3 text-slate-400" />
+                      <span className="text-xs text-slate-600">JPG</span>
+                    </div>
+                    <div className="flex items-center gap-1 px-2 py-1 bg-white rounded border border-slate-200">
+                      <FileText className="w-3 h-3 text-slate-400" />
+                      <span className="text-xs text-slate-600">PNG</span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-slate-400 mt-2">
+                    Maximum file size: 10MB. All uploads are end-to-end encrypted.
                   </p>
                 </div>
-                <div className="flex items-center gap-2 mt-2">
-                  <div className="flex items-center gap-1 px-2 py-1 bg-white rounded border border-slate-200">
-                    <FileText className="w-3 h-3 text-slate-400" />
-                    <span className="text-xs text-slate-600">PDF</span>
-                  </div>
-                  <div className="flex items-center gap-1 px-2 py-1 bg-white rounded border border-slate-200">
-                    <FileText className="w-3 h-3 text-slate-400" />
-                    <span className="text-xs text-slate-600">JPG</span>
-                  </div>
-                  <div className="flex items-center gap-1 px-2 py-1 bg-white rounded border border-slate-200">
-                    <FileText className="w-3 h-3 text-slate-400" />
-                    <span className="text-xs text-slate-600">PNG</span>
-                  </div>
-                </div>
-                <p className="text-xs text-slate-400 mt-2">
-                  Maximum file size: 10MB. All uploads are end-to-end encrypted.
-                </p>
               </div>
-            </div>
+            )}
 
             <div className="col-span-2 md:col-span-1 space-y-4">
               <div>

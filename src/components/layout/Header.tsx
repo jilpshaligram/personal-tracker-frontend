@@ -18,7 +18,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
   const isAdminRoute = location.pathname.startsWith('/admin');
 
   const getInitials = () => {
-    if (isAdminRoute && !user) return 'SA';
+    if (isAdminRoute && !user) return 'A';
     if (!user) return 'U';
     const first = user.firstName?.[0] || '';
     const last = user.lastName?.[0] || '';
@@ -27,7 +27,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
 
   const displayName =
     isAdminRoute && !user
-      ? 'Super Admin'
+      ? 'Admin'
       : user
         ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email || 'User'
         : 'User';

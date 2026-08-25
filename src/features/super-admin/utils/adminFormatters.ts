@@ -1,5 +1,5 @@
 import type { AdminBadgeTone } from '../components/common/AdminBadge';
-import type { AdminUserStatus, AuditLogSeverity } from '../types/superAdmin';
+import type { AdminUserStatus, AuditLogSeverity } from '../types/admin';
 
 export const getStatusTone = (status: AdminUserStatus): AdminBadgeTone => {
   switch (status) {

@@ -63,9 +63,7 @@ export default function ProfilePage() {
       })
     : 'Not Specified';
 
-  const formattedGender = profile.gender
-    ? profile.gender.charAt(0).toUpperCase() + profile.gender.slice(1).toLowerCase()
-    : 'Not Specified';
+  const formattedGender = profile.gender === 'FEMALE' ? 'Female' : 'Male';
 
   return (
     <div className="p-6 sm:p-10 max-w-5xl mx-auto">

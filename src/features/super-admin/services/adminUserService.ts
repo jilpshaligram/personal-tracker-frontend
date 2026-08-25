@@ -1,10 +1,5 @@
 import { apiClient } from '../../../api/client';
-import type {
-  AdminUser,
-  AdminUserStatus,
-  AdminUserPlan,
-  PaginationMeta,
-} from '../types/superAdmin';
+import type { AdminUser, AdminUserStatus, AdminUserPlan, PaginationMeta } from '../types/admin';
 
 interface BackendAdminUser {
   id?: string;
@@ -64,5 +59,9 @@ export const adminUserService = {
     });
 
     return { items: formatted, meta };
+  },
+
+  deleteUser: async (id: string): Promise<void> => {
+    await apiClient.delete(`/admin/users/${id}`);
   },
 };

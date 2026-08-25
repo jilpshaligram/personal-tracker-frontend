@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { adminUserService } from '../services/adminUserService';
 
-export const useSuperAdminDashboard = () => {
+export const useAdminDashboard = () => {
   const [totalUsers, setTotalUsers] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
 

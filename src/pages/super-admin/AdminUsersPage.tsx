@@ -1,9 +1,9 @@
 import React from 'react';
-import { AdminAuditLogsTable, useAdminAuditLogs } from '../../features/super-admin';
+import { AdminUsersTable, useAdminUsers } from '../../features/super-admin';
 
-export const SuperAdminAuditLogsPage: React.FC = () => {
+export const AdminUsersPage: React.FC = () => {
   const {
-    logs,
+    users,
     isLoading,
     page,
     setPage,
@@ -12,12 +12,13 @@ export const SuperAdminAuditLogsPage: React.FC = () => {
     searchQuery,
     setSearchQuery,
     totalRows,
-  } = useAdminAuditLogs();
+    deleteUser,
+  } = useAdminUsers();
 
   return (
     <div className="p-5 sm:p-7 max-w-7xl mx-auto">
-      <AdminAuditLogsTable
-        logs={logs}
+      <AdminUsersTable
+        users={users}
         loading={isLoading}
         page={page}
         limit={limit}
@@ -26,9 +27,10 @@ export const SuperAdminAuditLogsPage: React.FC = () => {
         onLimitChange={setLimit}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
+        onDeleteUser={deleteUser}
       />
     </div>
   );
 };
 
-export default SuperAdminAuditLogsPage;
+export default AdminUsersPage;
