@@ -2,13 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context';
 
-const hasSessionToken = (): boolean => {
-  const cookieMatch = document.cookie.match(
-    /(?:^|;\s*)(refreshToken|accessToken|sessionId)=([^;]+)/
-  );
-  return Boolean(cookieMatch);
-};
-
 const hasAllowedVerifyPinFlow = (locationState?: Record<string, unknown>): boolean => {
   const flow = locationState?.flow;
   const hasEmail = Boolean(locationState?.email);
@@ -45,8 +38,7 @@ export const AuthGuard: React.FC<{ children: React.ReactNode }> = ({ children })
   }
 
   if (!isAuthenticated) {
-    const isExplicitLogout =
-      typeof window !== 'undefined' && sessionStorage.getItem('explicitLogout') === 'true';
+    const isExplicitLogout = sessionStorage.getItem('explicitLogout') === 'true';
 
     if (isExplicitLogout) {
       sessionStorage.removeItem('explicitLogout');
@@ -97,18 +89,14 @@ export const VerifyPinGuard: React.FC<{ children: React.ReactNode }> = ({ childr
       const sessionMarker = sessionStorage.getItem('verifyPinAccess') === 'true';
       const allowedFlow = hasAllowedVerifyPinFlow(state);
 
-      if (isAuthenticated || hasSessionToken() || sessionMarker || allowedFlow) {
+      if (isAuthenticated || sessionMarker || allowedFlow) {
         setIsEligible(true);
         return;
       }
 
       const verified = await verifyAuth();
       if (!active) return;
-      setIsEligible(
-        Boolean(
-          verified || hasSessionToken() || sessionStorage.getItem('verifyPinAccess') === 'true'
-        )
-      );
+      setIsEligible(Boolean(verified || sessionStorage.getItem('verifyPinAccess') === 'true'));
     };
 
     checkAccess();

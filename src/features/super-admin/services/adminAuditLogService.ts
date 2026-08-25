@@ -1,5 +1,5 @@
 import { apiClient } from '../../../api/client';
-import type { AuditLogItem, AuditLogSeverity, PaginationMeta } from '../types/superAdmin';
+import type { AuditLogItem, AuditLogSeverity, PaginationMeta } from '../types/admin';
 
 interface BackendAuditLog {
   id?: string;

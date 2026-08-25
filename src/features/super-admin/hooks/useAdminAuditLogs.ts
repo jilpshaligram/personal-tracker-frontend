@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { adminAuditLogService } from '../services/adminAuditLogService';
 import { adminUserService } from '../services/adminUserService';
-import type { AuditLogItem } from '../types/superAdmin';
+import type { AuditLogItem } from '../types/admin';
 
 export const useAdminAuditLogs = () => {
   const [rawLogs, setRawLogs] = useState<AuditLogItem[]>([]);

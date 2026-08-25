@@ -13,7 +13,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({ profile, isOpen, onClo
   const [firstName, setFirstName] = useState(profile.firstName || '');
   const [lastName, setLastName] = useState(profile.lastName || '');
   const [phone, setPhone] = useState(profile.phone || '');
-  const [gender, setGender] = useState<GenderType>(profile.gender || 'OTHER');
+  const [gender, setGender] = useState<GenderType>(profile.gender === 'FEMALE' ? 'FEMALE' : 'MALE');
 
   const initialBirthDate = profile.dateOfBirth
     ? new Date(profile.dateOfBirth).toISOString().split('T')[0]

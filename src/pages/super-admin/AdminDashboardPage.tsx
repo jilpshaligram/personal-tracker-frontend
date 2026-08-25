@@ -1,9 +1,9 @@
 import React from 'react';
 import { Users } from 'lucide-react';
-import { AdminViewHeader, AdminStatCard, useSuperAdminDashboard } from '../../features/super-admin';
+import { AdminViewHeader, AdminStatCard, useAdminDashboard } from '../../features/super-admin';
 
-export const SuperAdminDashboardPage: React.FC = () => {
-  const { totalUsers } = useSuperAdminDashboard();
+export const AdminDashboardPage: React.FC = () => {
+  const { totalUsers } = useAdminDashboard();
 
   return (
     <div className="p-5 sm:p-7 max-w-7xl mx-auto space-y-4">
@@ -24,4 +24,4 @@ export const SuperAdminDashboardPage: React.FC = () => {
   );
 };
 
-export default SuperAdminDashboardPage;
+export default AdminDashboardPage;

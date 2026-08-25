@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { adminUserService } from '../services/adminUserService';
-import type { AdminUser } from '../types/superAdmin';
+import type { AdminUser } from '../types/admin';
 
 export const useAdminUsers = () => {
   const [users, setUsers] = useState<AdminUser[]>([]);
@@ -9,6 +9,7 @@ export const useAdminUsers = () => {
   const [limit, setLimit] = useState(10);
   const [searchQuery, setSearchQuery] = useState('');
   const [totalRows, setTotalRows] = useState(0);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const handleSearchChange = (val: string) => {
     setSearchQuery(val);
@@ -42,7 +43,12 @@ export const useAdminUsers = () => {
     return () => {
       active = false;
     };
-  }, [page, limit, searchQuery]);
+  }, [page, limit, searchQuery, refreshKey]);
+
+  const deleteUser = async (id: string) => {
+    await adminUserService.deleteUser(id);
+    setRefreshKey((k) => k + 1);
+  };
 
   return {
     users,
@@ -54,5 +60,6 @@ export const useAdminUsers = () => {
     searchQuery,
     setSearchQuery: handleSearchChange,
     totalRows,
+    deleteUser,
   };
 };
