@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type {
   Period,
   BudgetOverview,
@@ -52,6 +52,12 @@ export function useDashboard() {
       setLoading(false);
     }
   }, [period]);
+
+  const fetchRef = useRef(fetchDashboardData);
+
+  useEffect(() => {
+    fetchRef.current = fetchDashboardData;
+  });
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect

@@ -48,7 +48,6 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({ profile, isOpen, onClo
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-[2px] p-4">
       <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-        {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
           <h2 className="text-lg font-bold text-slate-800">Edit Profile Details</h2>
           <button
@@ -61,7 +60,6 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({ profile, isOpen, onClo
           </button>
         </div>
 
-        {/* Form Body */}
         <form onSubmit={handleSubmit} noValidate className="p-6 space-y-4">
           {error && (
             <div className="p-3 rounded-lg bg-red-50 text-xs font-semibold text-red-600 border border-red-100">
@@ -154,7 +152,6 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({ profile, isOpen, onClo
             </div>
           </div>
 
-          {/* Footer Actions */}
           <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
             <button
               type="button"

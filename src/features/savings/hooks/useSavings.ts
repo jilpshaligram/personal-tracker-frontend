@@ -107,10 +107,30 @@ export function useSavings(initialFilter: SavingGoalFilter = { page: 1, limit: 1
   );
 
   useEffect(() => {
-    /* eslint-disable react-hooks/set-state-in-effect */
-    void loadGoals();
-    /* eslint-enable react-hooks/set-state-in-effect */
-  }, [loadGoals]);
+    let active = true;
+    const run = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await fetchSavingGoals(filter);
+        if (active) {
+          setGoals(response.data || []);
+          setTotal(response.meta?.total || 0);
+        }
+      } catch (err) {
+        if (active) {
+          setError('Failed to fetch savings goals.');
+          console.error(err);
+        }
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+    run();
+    return () => {
+      active = false;
+    };
+  }, [filter]);
 
   return {
     goals,

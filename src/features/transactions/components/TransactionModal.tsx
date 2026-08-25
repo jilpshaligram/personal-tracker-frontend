@@ -1,5 +1,4 @@
-/* eslint-disable */
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../../components/ui/dialog';
 import { Input } from '../../../components/ui/input';
 import {
@@ -22,6 +21,23 @@ interface TransactionModalProps {
   initialData?: Transaction | null;
   categories: TransactionCategory[];
   onCreateCategory: (data: Partial<TransactionCategory>) => Promise<TransactionCategory>;
+}
+
+function getInitialDate(initialData?: Transaction | null): string {
+  if (initialData) {
+    const dateObj = new Date(initialData.transactionDate);
+    if (!isNaN(dateObj.getTime())) return dateObj.toISOString().slice(0, 16);
+  }
+  return new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000)
+    .toISOString()
+    .slice(0, 16);
+}
+
+function getInitialCategoryId(initialData?: Transaction | null): string {
+  if (!initialData) return '';
+  return typeof initialData.categoryId === 'string'
+    ? initialData.categoryId
+    : ((initialData.categoryId.id || initialData.categoryId._id) as string);
 }
 
 export function TransactionModal({

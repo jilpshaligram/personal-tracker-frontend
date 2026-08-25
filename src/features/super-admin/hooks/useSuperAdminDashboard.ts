@@ -1,55 +1,28 @@
 import { useState, useEffect } from 'react';
-import { superAdminService } from '../services/superAdminService';
-import type {
-  AlertItem,
-  AuditLogItem,
-  GrowthDataPoint,
-  IncidentItem,
-  LatencyDataPoint,
-} from '../types/superAdmin';
+import { adminUserService } from '../services/adminUserService';
 
 export const useSuperAdminDashboard = () => {
-  const [range, setRange] = useState('Weekly');
-  const [growth, setGrowth] = useState<GrowthDataPoint[]>([]);
-  const [latency, setLatency] = useState<LatencyDataPoint[]>([]);
-  const [alerts, setAlerts] = useState<AlertItem[]>([]);
-  const [recentLogs, setRecentLogs] = useState<AuditLogItem[]>([]);
-  const [incidents, setIncidents] = useState<IncidentItem[]>([]);
+  const [totalUsers, setTotalUsers] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const [growthRes, latencyRes, alertsRes, activityRes, incidentsRes] = await Promise.all([
-          superAdminService.getGrowthData(),
-          superAdminService.getLatencyData(),
-          superAdminService.getAlerts(),
-          superAdminService.getRecentActivity(),
-          superAdminService.getIncidents(),
-        ]);
-
-        setGrowth(growthRes);
-        setLatency(latencyRes);
-        setAlerts(alertsRes);
-        setRecentLogs(activityRes);
-        setIncidents(incidentsRes);
+        const statsRes = await adminUserService.getTotalUsers();
+        setTotalUsers(statsRes.totalUsers);
+      } catch (err) {
+        console.error('Failed to fetch dashboard data:', err);
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchData();
-  }, [range]);
+  }, []);
 
   return {
-    range,
-    setRange,
-    growth,
-    latency,
-    alerts,
-    recentLogs,
-    incidents,
+    totalUsers,
     isLoading,
   };
 };

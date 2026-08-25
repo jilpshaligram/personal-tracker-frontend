@@ -263,6 +263,7 @@ export default function TransactionsPage() {
         />
 
         <TransactionModal
+          key={`${isModalOpen}-${editingTransaction?.id ?? 'new'}`}
           open={isModalOpen}
           onOpenChange={setIsModalOpen}
           onSubmit={handleSubmit}

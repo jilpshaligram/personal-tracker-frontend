@@ -16,6 +16,7 @@ const PUBLIC_AUTH_PATHS = new Set([
   '/login',
   '/register',
   '/verify-otp',
+  '/verify-email',
   '/pin-setup',
   '/verify-pin',
   '/forgot-password',
@@ -102,11 +103,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUserState(null);
       setIsAuthenticated(false);
       setError(null);
-      if (
-        typeof window !== 'undefined' &&
-        !['/login', '/'].includes(window.location.pathname) &&
-        !window.location.pathname.startsWith('/admin')
-      ) {
+      if (typeof window !== 'undefined' && !['/login', '/'].includes(window.location.pathname)) {
         window.location.href = '/login';
       }
     }
@@ -174,11 +171,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const checkAuth = async () => {
       const path = typeof window !== 'undefined' ? window.location.pathname : '';
-
-      if (path.startsWith('/admin')) {
-        setIsLoading(false);
-        return;
-      }
 
       const isLoggedOut =
         typeof window !== 'undefined' &&

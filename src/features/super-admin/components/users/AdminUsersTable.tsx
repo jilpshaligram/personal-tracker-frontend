@@ -1,5 +1,12 @@
-import React, { useState, useMemo } from 'react';
-import { Search, Filter, Download, MoreVertical } from 'lucide-react';
+import React, { useMemo } from 'react';
+import {
+  useTable,
+  flexRender,
+  createColumnHelper,
+  stockFeatures,
+  type ColumnDef,
+} from '@tanstack/react-table';
+import { Search, MoreVertical } from 'lucide-react';
 import { AdminCard } from '../common/AdminCard';
 import { AdminBadge } from '../common/AdminBadge';
 import { AdminStatusDot } from '../common/AdminStatusDot';
@@ -9,6 +16,14 @@ import type { AdminUser, AdminUserStatus } from '../../types/superAdmin';
 
 interface AdminUsersTableProps {
   users: AdminUser[];
+  loading: boolean;
+  page: number;
+  limit: number;
+  totalRows: number;
+  onPageChange: (page: number) => void;
+  onLimitChange: (limit: number) => void;
+  searchQuery: string;
+  onSearchChange: (search: string) => void;
 }
 
 const STATUS_TONE_MAP: Record<AdminUserStatus, AdminBadgeTone> = {
@@ -17,43 +32,99 @@ const STATUS_TONE_MAP: Record<AdminUserStatus, AdminBadgeTone> = {
   inactive: 'neutral',
 };
 
-export const AdminUsersTable: React.FC<AdminUsersTableProps> = ({ users }) => {
-  const [searchQuery, setSearchQuery] = useState('');
+const columnHelper = createColumnHelper<typeof stockFeatures, AdminUser>();
 
-  const filteredUsers = useMemo(() => {
-    const q = searchQuery.toLowerCase().trim();
-    if (!q) return users;
-    return users.filter(
-      (user) =>
-        user.name.toLowerCase().includes(q) ||
-        user.email.toLowerCase().includes(q) ||
-        user.id.toLowerCase().includes(q)
-    );
-  }, [users, searchQuery]);
+export const AdminUsersTable: React.FC<AdminUsersTableProps> = ({
+  users,
+  loading,
+  page,
+  limit,
+  totalRows,
+  onPageChange,
+  onLimitChange,
+  searchQuery,
+  onSearchChange,
+}) => {
+  const columns = useMemo(
+    () => [
+      columnHelper.accessor('name', {
+        header: 'User',
+        cell: (info) => {
+          const user = info.row.original;
+          return (
+            <div>
+              <div className="text-[13px] font-medium text-[#151A26]">{user.name}</div>
+              <div className="text-xs text-[#9AA2B1]">{user.email}</div>
+            </div>
+          );
+        },
+      }),
+      columnHelper.accessor('id', {
+        header: 'ID',
+        cell: (info) => <span className="font-mono text-xs text-[#6B7280]">{info.getValue()}</span>,
+      }),
+      columnHelper.accessor('status', {
+        header: 'Status',
+        cell: (info) => {
+          const status = info.getValue();
+          return (
+            <AdminBadge tone={STATUS_TONE_MAP[status]}>
+              <AdminStatusDot status={status} size={6} />
+              {status}
+            </AdminBadge>
+          );
+        },
+      }),
+      columnHelper.accessor('plan', {
+        header: 'Plan',
+        cell: (info) => (
+          <span className="text-xs font-medium text-[#6B7280]">{info.getValue()}</span>
+        ),
+      }),
+      columnHelper.accessor('joined', {
+        header: 'Joined',
+        cell: (info) => <span className="text-xs text-[#6B7280]">{info.getValue()}</span>,
+      }),
+      columnHelper.accessor('lastSeen', {
+        header: 'Last seen',
+        cell: (info) => <span className="text-xs text-[#6B7280]">{info.getValue()}</span>,
+      }),
+      columnHelper.display({
+        id: 'actions',
+        cell: (info) => {
+          const user = info.row.original;
+          return (
+            <div className="text-right">
+              <button
+                type="button"
+                className="text-[#9AA2B1] hover:text-[#151A26] p-1 rounded-md transition-colors"
+                aria-label={`Actions for ${user.name}`}
+              >
+                <MoreVertical className="w-4 h-4" />
+              </button>
+            </div>
+          );
+        },
+      }),
+    ],
+    []
+  );
+
+  const table = useTable({
+    features: stockFeatures,
+    data: users,
+    columns: columns as unknown as ColumnDef<typeof stockFeatures, AdminUser, unknown>[],
+    manualPagination: true,
+    pageCount: Math.ceil(totalRows / limit),
+  });
+
+  const totalPages = Math.ceil(totalRows / limit);
 
   return (
     <div>
       <AdminViewHeader
         title="User management"
         subtitle="Search, review, and manage every account."
-        right={
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-[#E7E9F0] bg-white px-3.5 py-2 text-xs font-semibold text-[#151A26] hover:bg-slate-50 transition-colors"
-            >
-              <Filter className="w-3.5 h-3.5" />
-              Filter
-            </button>
-            <button
-              type="button"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-[#E7E9F0] bg-white px-3.5 py-2 text-xs font-semibold text-[#151A26] hover:bg-slate-50 transition-colors"
-            >
-              <Download className="w-3.5 h-3.5" />
-              Export
-            </button>
-          </div>
-        }
       />
 
       <div className="relative mb-4 max-w-sm">
@@ -61,7 +132,7 @@ export const AdminUsersTable: React.FC<AdminUsersTableProps> = ({ users }) => {
         <input
           type="text"
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          onChange={(e) => onSearchChange(e.target.value)}
           placeholder="Search by name or email"
           className="w-full rounded-lg border border-[#E7E9F0] bg-[#F1F3F8] py-2 pl-9 pr-3.5 text-xs text-[#151A26] placeholder-[#9AA2B1] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#2F63EB]"
         />
@@ -71,56 +142,91 @@ export const AdminUsersTable: React.FC<AdminUsersTableProps> = ({ users }) => {
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-left">
             <thead>
-              <tr className="border-b border-[#E7E9F0] bg-[#F9FAFC]">
-                {['User', 'ID', 'Status', 'Plan', 'Joined', 'Last seen', ''].map((header) => (
-                  <th
-                    key={header}
-                    className="px-4.5 py-3 text-[11px] font-semibold text-[#9AA2B1] uppercase tracking-wider"
-                  >
-                    {header}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#E7E9F0]">
-              {filteredUsers.map((user) => (
-                <tr key={user.id} className="hover:bg-slate-50/60 transition-colors">
-                  <td className="px-4.5 py-3.5">
-                    <div className="text-[13px] font-medium text-[#151A26]">{user.name}</div>
-                    <div className="text-xs text-[#9AA2B1]">{user.email}</div>
-                  </td>
-                  <td className="px-4.5 py-3.5 text-xs font-mono text-[#6B7280]">{user.id}</td>
-                  <td className="px-4.5 py-3.5">
-                    <AdminBadge tone={STATUS_TONE_MAP[user.status]}>
-                      <AdminStatusDot status={user.status} size={6} />
-                      {user.status}
-                    </AdminBadge>
-                  </td>
-                  <td className="px-4.5 py-3.5 text-xs font-medium text-[#6B7280]">{user.plan}</td>
-                  <td className="px-4.5 py-3.5 text-xs text-[#6B7280]">{user.joined}</td>
-                  <td className="px-4.5 py-3.5 text-xs text-[#6B7280]">{user.lastSeen}</td>
-                  <td className="px-4.5 py-3.5 text-right">
-                    <button
-                      type="button"
-                      className="text-[#9AA2B1] hover:text-[#151A26] p-1 rounded-md transition-colors"
-                      aria-label={`Actions for ${user.name}`}
+              {table.getHeaderGroups().map((headerGroup) => (
+                <tr key={headerGroup.id} className="border-b border-[#E7E9F0] bg-[#F9FAFC]">
+                  {headerGroup.headers.map((header) => (
+                    <th
+                      key={header.id}
+                      className="px-4.5 py-3 text-[11px] font-semibold text-[#9AA2B1] uppercase tracking-wider"
                     >
-                      <MoreVertical className="w-4 h-4" />
-                    </button>
-                  </td>
+                      {flexRender(header.column.columnDef.header, header.getContext())}
+                    </th>
+                  ))}
                 </tr>
               ))}
-              {filteredUsers.length === 0 && (
+            </thead>
+            <tbody className="divide-y divide-[#E7E9F0]">
+              {loading ? (
+                <tr>
+                  <td colSpan={7} className="text-center py-8 text-xs text-[#9AA2B1]">
+                    Loading users...
+                  </td>
+                </tr>
+              ) : table.getRowModel().rows.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="text-center py-8 text-xs text-[#9AA2B1]">
                     No users matching &quot;{searchQuery}&quot; found.
                   </td>
                 </tr>
+              ) : (
+                table.getRowModel().rows.map((row) => (
+                  <tr key={row.id} className="hover:bg-slate-50/60 transition-colors">
+                    {row.getVisibleCells().map((cell) => (
+                      <td key={cell.id} className="px-4.5 py-3.5">
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </td>
+                    ))}
+                  </tr>
+                ))
               )}
             </tbody>
           </table>
         </div>
       </AdminCard>
+
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-4">
+        <div className="flex items-center gap-4 text-xs text-slate-500">
+          <div className="flex items-center gap-2">
+            <span>Rows per page:</span>
+            <select
+              className="border border-slate-200 rounded-md text-xs py-1 px-2 bg-white focus:outline-none"
+              value={limit}
+              onChange={(e) => onLimitChange(Number(e.target.value))}
+            >
+              {[10, 25, 50, 100].map((size) => (
+                <option key={size} value={size}>
+                  {size}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            Showing {users.length > 0 ? (page - 1) * limit + 1 : 0} to{' '}
+            {Math.min(page * limit, totalRows)} of {totalRows} users
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-[#E7E9F0] bg-white px-3 py-1.5 text-xs font-semibold text-[#151A26] hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            onClick={() => onPageChange(page - 1)}
+            disabled={page <= 1 || loading}
+          >
+            Previous
+          </button>
+          <span className="text-xs font-medium text-slate-600">
+            Page {page} of {totalPages || 1}
+          </span>
+          <button
+            type="button"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-[#E7E9F0] bg-white px-3 py-1.5 text-xs font-semibold text-[#151A26] hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            onClick={() => onPageChange(page + 1)}
+            disabled={page >= totalPages || loading}
+          >
+            Next
+          </button>
+        </div>
+      </div>
     </div>
   );
 };

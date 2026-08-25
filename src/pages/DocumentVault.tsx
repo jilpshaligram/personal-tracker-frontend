@@ -53,6 +53,11 @@ export default function DocumentVault() {
     setShowDocumentDetails(true);
   };
 
+  const handleEditClick = (document: Document) => {
+    setSelectedDocument(document);
+    setShowEditModal(true);
+  };
+
   const handleUpload = () => {
     refetch();
     refetchCategories?.();
@@ -160,11 +165,22 @@ export default function DocumentVault() {
           ) : viewMode === 'grid' ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {filteredDocuments.map((doc) => (
-                <DocumentCard key={doc.id} document={doc} onClick={handleDocumentClick} />
+                <DocumentCard
+                  key={doc.id}
+                  document={doc}
+                  onClick={handleDocumentClick}
+                  onEdit={handleEditClick}
+                  onDelete={handleDelete}
+                />
               ))}
             </div>
           ) : (
-            <DocumentTable documents={filteredDocuments} onDocumentClick={handleDocumentClick} />
+            <DocumentTable
+              documents={filteredDocuments}
+              onDocumentClick={handleDocumentClick}
+              onEdit={handleEditClick}
+              onDelete={handleDelete}
+            />
           )}
         </div>
       </div>

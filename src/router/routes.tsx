@@ -24,6 +24,8 @@ import { ForgotPassword } from '../pages/auth/ForgotPassword';
 import { ResetPassword } from '../pages/auth/ResetPassword';
 
 import AuthGuard, { PublicOnlyGuard, VerifyPinGuard } from '../components/guards/AuthGuard';
+import RoleGuard from '../components/guards/RoleGuard';
+import RootRedirect from '../components/guards/RootRedirect';
 
 const router = createBrowserRouter([
   {
@@ -44,6 +46,10 @@ const router = createBrowserRouter([
   },
   {
     path: '/verify-otp',
+    element: <VerifyOTP />,
+  },
+  {
+    path: '/verify-email',
     element: <VerifyOTP />,
   },
   {
@@ -76,12 +82,19 @@ const router = createBrowserRouter([
   },
   {
     path: '/admin',
-    element: <AppLayout />,
+    element: (
+      <AuthGuard>
+        <RoleGuard allowedRoles={['ADMIN']}>
+          <AppLayout />
+        </RoleGuard>
+      </AuthGuard>
+    ),
     children: [
       { index: true, element: <Navigate to="/admin/dashboard" replace /> },
       { path: 'dashboard', element: <SuperAdminDashboardPage /> },
       { path: 'users', element: <SuperAdminUsersPage /> },
       { path: 'audit-logs', element: <SuperAdminAuditLogsPage /> },
+      { path: 'profile', element: <ProfilePage /> },
     ],
   },
   {
@@ -92,7 +105,7 @@ const router = createBrowserRouter([
       </AuthGuard>
     ),
     children: [
-      { index: true, element: <Navigate to="/dashboard" replace /> },
+      { index: true, element: <RootRedirect /> },
       { path: 'dashboard', element: <DashboardPage /> },
       { path: 'wallet', element: <Wallet /> },
       { path: 'documents', element: <DocumentVault /> },
