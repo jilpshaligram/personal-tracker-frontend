@@ -1,4 +1,5 @@
-export type TransactionType = 'INCOME' | 'EXPENSE';
+export type TransactionType =
+  'INCOME' | 'EXPENSE' | 'TRANSFER_TO_SAVING' | 'TRANSFER_FROM_SAVING' | 'OPENING_BALANCE';
 
 export interface TransactionCategory {
   id: string;

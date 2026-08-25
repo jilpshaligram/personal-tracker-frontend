@@ -8,6 +8,7 @@ interface SavingTransactionFormProps {
   onClose: () => void;
   onSubmit: (amount: number) => void;
   goal: SavingGoal | null;
+  mode?: 'deposit' | 'withdraw';
 }
 
 export default function SavingTransactionForm({
@@ -15,6 +16,7 @@ export default function SavingTransactionForm({
   onClose,
   onSubmit,
   goal,
+  mode = 'deposit',
 }: SavingTransactionFormProps) {
   const [amount, setAmount] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
@@ -23,21 +25,30 @@ export default function SavingTransactionForm({
     e.preventDefault();
     if (!goal || !amount) return;
 
-    const depositAmount = parseFloat(amount);
-    if (isNaN(depositAmount) || depositAmount <= 0) {
+    const transactionAmount = parseFloat(amount);
+    if (isNaN(transactionAmount) || transactionAmount <= 0) {
       setErrorMsg('Please enter a valid amount greater than 0.');
       return;
     }
 
-    const remaining = goal.targetAmount - goal.savedAmount;
-    if (depositAmount > remaining) {
-      setErrorMsg(
-        `You only need ${new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(remaining)} more to complete this goal.`
-      );
-      return;
+    if (mode === 'deposit') {
+      const remaining = goal.targetAmount - goal.savedAmount;
+      if (transactionAmount > remaining) {
+        setErrorMsg(
+          `You only need ${new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 }).format(remaining)} more to complete this goal.`
+        );
+        return;
+      }
+    } else {
+      if (transactionAmount > goal.savedAmount) {
+        setErrorMsg(
+          `You only have ${new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 }).format(goal.savedAmount)} available to withdraw.`
+        );
+        return;
+      }
     }
 
-    onSubmit(depositAmount);
+    onSubmit(transactionAmount);
     onClose();
   };
 
@@ -45,7 +56,10 @@ export default function SavingTransactionForm({
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-[480px]">
         <DialogHeader>
-          <DialogTitle>Add Funds to {goal?.title || 'Goal'}</DialogTitle>
+          <DialogTitle>
+            {mode === 'deposit' ? 'Add Funds to ' : 'Withdraw Funds from '}
+            {goal?.title || 'Goal'}
+          </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} noValidate className="space-y-4">
           {goal && (
@@ -66,13 +80,13 @@ export default function SavingTransactionForm({
                   {new Intl.NumberFormat('en-IN', {
                     style: 'currency',
                     currency: 'INR',
-                    maximumFractionDigits: 0,
+                    maximumFractionDigits: 2,
                   }).format(goal.targetAmount - goal.savedAmount)}{' '}
                   of{' '}
                   {new Intl.NumberFormat('en-IN', {
                     style: 'currency',
                     currency: 'INR',
-                    maximumFractionDigits: 0,
+                    maximumFractionDigits: 2,
                   }).format(goal.targetAmount)}
                 </p>
               </div>
@@ -81,37 +95,40 @@ export default function SavingTransactionForm({
 
           <div>
             <label
-              htmlFor="deposit-amount"
+              htmlFor="transaction-amount"
               className="block text-sm font-medium text-slate-700 mb-1"
             >
-              Deposit Amount (₹)
+              {mode === 'deposit' ? 'Deposit Amount (₹)' : 'Withdrawal Amount (₹)'}
             </label>
             <input
-              id="deposit-amount"
+              id="transaction-amount"
               type="number"
               required
-              min="1"
+              step="0.01"
+              min="0.01"
+              max="1000000000"
               placeholder="e.g. 500"
               value={amount}
               onChange={(e) => {
                 setAmount(e.target.value);
                 setErrorMsg('');
               }}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={`w-full px-3 py-2 text-sm rounded-lg border bg-white focus:outline-none focus:ring-2 ${
+                errorMsg
+                  ? 'border-rose-400 focus:ring-rose-500/20'
+                  : 'border-slate-200 focus:ring-blue-500/20 focus:border-blue-500'
+              }`}
             />
+            {errorMsg && <p className="text-xs text-rose-500 mt-1">{errorMsg}</p>}
           </div>
-
-          {errorMsg && (
-            <p className="text-xs font-semibold text-red-500 leading-normal bg-red-50 p-2.5 rounded-lg">
-              {errorMsg}
-            </p>
-          )}
 
           <div className="flex justify-end gap-2.5 pt-2">
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>
-            <Button type="submit">Confirm Deposit</Button>
+            <Button type="submit">
+              {mode === 'deposit' ? 'Confirm Deposit' : 'Confirm Withdrawal'}
+            </Button>
           </div>
         </form>
       </DialogContent>

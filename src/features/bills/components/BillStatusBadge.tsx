@@ -15,14 +15,13 @@ export const BillStatusBadge: React.FC<BillStatusBadgeProps> = ({ status, classN
           Paid
         </span>
       );
-    case 'PARTIALLY_PAID':
     case 'PARTIAL':
       return (
         <span
           className={`inline-flex items-center gap-1.5 rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-semibold text-indigo-700 border border-indigo-200/60 ${className}`}
         >
           <Clock className="w-3.5 h-3.5" />
-          Partially Paid
+          Partial
         </span>
       );
     case 'OVERDUE':
@@ -32,15 +31,6 @@ export const BillStatusBadge: React.FC<BillStatusBadgeProps> = ({ status, classN
         >
           <AlertTriangle className="w-3.5 h-3.5" />
           Overdue
-        </span>
-      );
-    case 'UPCOMING':
-      return (
-        <span
-          className={`inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-700 border border-blue-200/60 ${className}`}
-        >
-          <Clock className="w-3.5 h-3.5" />
-          Upcoming
         </span>
       );
     case 'PENDING':

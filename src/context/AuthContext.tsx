@@ -145,8 +145,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             return true;
           }
         }
-      } catch {
-        // Refresh token invalid or expired
+      } catch (e) {
+        console.debug('Refresh token failed', e);
       }
 
       if (typeof window !== 'undefined') {

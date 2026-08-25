@@ -8,6 +8,7 @@ import {
   PiggyBank,
   Settings,
   X,
+  Wallet,
   Users,
   ClipboardList,
 } from 'lucide-react';
@@ -36,6 +37,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     : [
         { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
         { path: '/documents', label: 'Documents', icon: FileText },
+        { path: '/wallet', label: 'Wallet', icon: Wallet },
         { path: '/transactions', label: 'Transactions', icon: ArrowLeftRight },
         { path: '/budgets', label: 'Budgets', icon: WalletCards },
         { path: '/bills', label: 'Bills', icon: Receipt },

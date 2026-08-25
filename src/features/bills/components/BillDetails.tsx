@@ -54,7 +54,7 @@ export const BillDetails: React.FC<BillDetailsProps> = ({
     return () => {
       active = false;
     };
-  }, [bill, isOpen]);
+  }, [bill, isOpen, prevBillId]);
 
   const effectiveBill = detailedBill || bill;
 
@@ -124,7 +124,7 @@ export const BillDetails: React.FC<BillDetailsProps> = ({
     return cleanUrl.endsWith('.pdf') || cleanUrl.startsWith('data:application/pdf');
   };
 
-  const computedStatus = isFullyPaid ? 'PAID' : isPartiallyPaid ? 'PARTIALLY_PAID' : bill.status;
+  const computedStatus = isFullyPaid ? 'PAID' : isPartiallyPaid ? 'PARTIAL' : bill.status;
 
   return (
     <>
@@ -414,21 +414,27 @@ export const BillDetails: React.FC<BillDetailsProps> = ({
               >
                 Close
               </button>
-              {!isFullyPaid && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    onClose();
-                    onPay(bill, remainingAmount > 0 ? remainingAmount : bill.amount);
-                  }}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-lg bg-emerald-600 text-white shadow-sm hover:bg-emerald-700 transition-colors"
-                >
-                  <CheckCircle className="w-4 h-4" />
-                  {isPartiallyPaid
+              <button
+                type="button"
+                onClick={() => {
+                  if (isFullyPaid) return;
+                  onClose();
+                  onPay(bill, remainingAmount > 0 ? remainingAmount : bill.amount);
+                }}
+                disabled={isFullyPaid}
+                className={`inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-lg shadow-sm transition-colors ${
+                  isFullyPaid
+                    ? 'bg-emerald-50 text-emerald-400 cursor-not-allowed border border-emerald-100'
+                    : 'bg-emerald-600 text-white hover:bg-emerald-700'
+                }`}
+              >
+                <CheckCircle className="w-4 h-4" />
+                {isFullyPaid
+                  ? 'Fully Paid'
+                  : isPartiallyPaid
                     ? `Pay Remaining (${formatCurrency(remainingAmount, bill.currency)})`
                     : 'Mark as Paid'}
-                </button>
-              )}
+              </button>
             </div>
           </div>
         </div>

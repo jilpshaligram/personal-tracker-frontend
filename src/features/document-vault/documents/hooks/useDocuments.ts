@@ -13,9 +13,8 @@ export const useDocuments = (filters?: DocumentFilters) => {
     setIsLoading(true);
     setError(null);
     try {
-      const result = await documentService.getDocuments(
-        JSON.parse(filterString) as DocumentFilters
-      );
+      const parsedFilters = filterString ? JSON.parse(filterString) : undefined;
+      const result = await documentService.getDocuments(parsedFilters);
       setData(result);
       return result;
     } catch (err) {

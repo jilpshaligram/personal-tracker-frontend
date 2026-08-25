@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Landmark, Plus, RefreshCw } from 'lucide-react';
+import { Landmark, Plus, RefreshCw, AlertCircle } from 'lucide-react';
 import SavingGoalCard from './SavingGoalCard';
 import type { SavingGoal } from '../types/savingGoal';
 import SavingGoalForm from './SavingGoalForm';
@@ -8,12 +8,22 @@ import { Button } from '../../../components/ui/button';
 import { useSavings } from '../hooks/useSavings';
 
 export default function SavingGoalList() {
-  const { goals, loading, error, createGoal, updateGoal, deleteGoal, depositFunds, loadGoals } =
-    useSavings();
+  const {
+    goals,
+    loading,
+    error,
+    createGoal,
+    updateGoal,
+    deleteGoal,
+    depositFunds,
+    withdrawFunds,
+    loadGoals,
+  } = useSavings();
 
   const [activeTab, setActiveTab] = useState<'ACTIVE' | 'COMPLETED'>('ACTIVE');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isTransactionOpen, setIsTransactionOpen] = useState(false);
+  const [transactionMode, setTransactionMode] = useState<'deposit' | 'withdraw'>('deposit');
   const [selectedGoal, setSelectedGoal] = useState<SavingGoal | null>(null);
 
   const displayedGoals = goals.filter((g) => {
@@ -55,6 +65,16 @@ export default function SavingGoalList() {
       await depositFunds(selectedGoal.id, amount);
     } catch {
       alert('Failed to deposit funds. Please try again.');
+    }
+    setSelectedGoal(null);
+  };
+
+  const handleWithdrawFundsSubmit = async (amount: number) => {
+    if (!selectedGoal) return;
+    try {
+      await withdrawFunds(selectedGoal.id, amount);
+    } catch {
+      alert('Failed to withdraw funds. Please try again.');
     }
     setSelectedGoal(null);
   };
@@ -159,8 +179,9 @@ export default function SavingGoalList() {
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-100 rounded-2xl p-4 text-center text-sm font-medium text-red-700">
-          {error}
+        <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 flex items-start gap-2 text-rose-700 text-sm">
+          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+          <div>{error}</div>
         </div>
       )}
 
@@ -184,6 +205,12 @@ export default function SavingGoalList() {
               goal={goal}
               onAddFunds={(g) => {
                 setSelectedGoal(g);
+                setTransactionMode('deposit');
+                setIsTransactionOpen(true);
+              }}
+              onWithdraw={(g) => {
+                setSelectedGoal(g);
+                setTransactionMode('withdraw');
                 setIsTransactionOpen(true);
               }}
               onEdit={(g) => {
@@ -214,8 +241,9 @@ export default function SavingGoalList() {
           setIsTransactionOpen(false);
           setSelectedGoal(null);
         }}
-        onSubmit={handleAddFundsSubmit}
+        onSubmit={transactionMode === 'deposit' ? handleAddFundsSubmit : handleWithdrawFundsSubmit}
         goal={selectedGoal}
+        mode={transactionMode}
       />
     </div>
   );
