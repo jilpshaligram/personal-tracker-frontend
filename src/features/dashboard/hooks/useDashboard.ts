@@ -23,6 +23,7 @@ export function useDashboard() {
   const [recentTransactions, setRecentTransactions] = useState<RecentTransaction[]>([]);
 
   const fetchDashboardData = useCallback(async () => {
+    await Promise.resolve();
     setLoading(true);
     setError(null);
     try {
@@ -59,8 +60,9 @@ export function useDashboard() {
   });
 
   useEffect(() => {
-    fetchRef.current();
-  }, [period]);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void fetchDashboardData();
+  }, [fetchDashboardData]);
 
   return {
     period,

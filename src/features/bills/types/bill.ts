@@ -2,7 +2,7 @@ import type { TransactionType } from '../../transactions/types/transaction.types
 
 export type RecurringType = 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY';
 
-export type BillStatus = 'PENDING' | 'PAID' | 'PARTIALLY_PAID' | 'OVERDUE' | 'UPCOMING';
+export type BillStatus = 'PENDING' | 'PAID' | 'PARTIAL' | 'OVERDUE';
 
 export type PaymentMethod = 'BANK_TRANSFER' | 'CARD' | 'CASH' | 'UPI';
 
@@ -21,7 +21,7 @@ export interface Bill {
   categoryId: string;
   category?: BillCategory | string;
   title: string;
-  description?: string;
+
   amount: number;
   currency: string;
   dueDate: string;
@@ -46,7 +46,7 @@ export interface Bill {
 export interface CreateBillPayload {
   categoryId: string;
   title: string;
-  description?: string;
+
   amount: number;
   currency: string;
   dueDate: string;

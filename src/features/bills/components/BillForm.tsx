@@ -50,16 +50,40 @@ export const BillForm: React.FC<BillFormProps> = ({
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
-    if (!title.trim()) newErrors.title = 'Title is required';
+    if (!title.trim()) {
+      newErrors.title = 'Title is required';
+    } else if (title.trim().length < 3) {
+      newErrors.title = 'Title must be at least 3 characters long';
+    } else if (title.trim().length > 20) {
+      newErrors.title = 'Title cannot exceed 20 characters';
+    } else if (/(.)\1{4,}/.test(title.trim())) {
+      newErrors.title = 'Title cannot contain excessive repeating characters';
+    } else if (/\s{3,}/.test(title.trim())) {
+      newErrors.title = 'Title cannot contain excessive spaces';
+    }
     if (!categoryId) {
       newErrors.categoryId = 'Category is required';
     } else if (categoryId === 'OTHER_CUSTOM') {
-      if (!customCategoryName.trim()) {
+      const trimmed = customCategoryName.trim();
+      if (!trimmed) {
         newErrors.customCategoryName = 'Category name is required';
+      } else if (trimmed.length < 3) {
+        newErrors.customCategoryName = 'Category name must be at least 3 characters';
+      } else if (trimmed.length > 20) {
+        newErrors.customCategoryName = 'Category name cannot exceed 20 characters';
+      } else if (/(.)\1{4,}/.test(trimmed)) {
+        newErrors.customCategoryName =
+          'Category name cannot contain excessive repeating characters';
       }
     }
-    if (amount === '' || Number(amount) <= 0)
+    if (amount === '' || Number(amount) <= 0) {
       newErrors.amount = 'Valid positive amount is required';
+    } else if (Number(amount) > 1000000000) {
+      newErrors.amount = 'Amount exceeds maximum limit (1,000,000,000)';
+    }
+    if (reminderDaysBefore !== '' && Number(reminderDaysBefore) < 0) {
+      newErrors.reminderDaysBefore = 'Reminder days cannot be negative';
+    }
     if (!dueDate) {
       newErrors.dueDate = 'Due date is required';
     } else {
@@ -82,7 +106,9 @@ export const BillForm: React.FC<BillFormProps> = ({
 
     let finalCategoryId = categoryId;
     if (categoryId === 'OTHER_CUSTOM') {
-      const trimmedName = customCategoryName.trim();
+      let trimmedName = customCategoryName.trim();
+      trimmedName = trimmedName.charAt(0).toUpperCase() + trimmedName.slice(1).toLowerCase();
+
       const existingCategory = expenseCategories.find(
         (c) => c.name.toLowerCase() === trimmedName.toLowerCase()
       );
@@ -131,7 +157,6 @@ export const BillForm: React.FC<BillFormProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
       <div className="bg-white rounded-2xl border border-slate-200 shadow-xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-        {/* Header */}
         <div className="flex items-center justify-between px-6 py-4.5 border-b border-slate-100 bg-slate-50/50">
           <h2 className="text-base font-bold text-slate-800">
             {initialData ? 'Edit Bill' : 'Create New Bill'}
@@ -145,7 +170,6 @@ export const BillForm: React.FC<BillFormProps> = ({
           </button>
         </div>
 
-        {/* Error Banner */}
         {submitError && (
           <div className="mx-6 mt-4 p-3 rounded-xl bg-rose-50 border border-rose-200 flex items-start gap-2 text-rose-700 text-xs">
             <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
@@ -153,13 +177,11 @@ export const BillForm: React.FC<BillFormProps> = ({
           </div>
         )}
 
-        {/* Form */}
         <form
           onSubmit={handleSubmit}
           noValidate
           className="p-6 space-y-4 max-h-[80vh] overflow-y-auto"
         >
-          {/* Title */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1">
               Bill Title <span className="text-rose-500">*</span>
@@ -178,7 +200,6 @@ export const BillForm: React.FC<BillFormProps> = ({
             {errors.title && <p className="text-xs text-rose-500 mt-1">{errors.title}</p>}
           </div>
 
-          {/* Category */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1">
               Category <span className="text-rose-500">*</span>
@@ -218,7 +239,6 @@ export const BillForm: React.FC<BillFormProps> = ({
             </div>
             {errors.categoryId && <p className="text-xs text-rose-500 mt-1">{errors.categoryId}</p>}
 
-            {/* Custom Category Input */}
             {categoryId === 'OTHER_CUSTOM' && (
               <div className="mt-2.5">
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
@@ -247,7 +267,6 @@ export const BillForm: React.FC<BillFormProps> = ({
             )}
           </div>
 
-          {/* Amount & Currency */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">
@@ -257,9 +276,18 @@ export const BillForm: React.FC<BillFormProps> = ({
                 <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input
                   type="number"
-                  step="any"
+                  step="0.01"
+                  min="0.01"
+                  max="1000000000"
                   value={amount}
-                  onChange={(e) => setAmount(e.target.value === '' ? '' : Number(e.target.value))}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val && parseFloat(val) > 1000000000) return;
+                    setAmount(val === '' ? '' : Number(val));
+                    if (errors.amount) {
+                      setErrors((prev) => ({ ...prev, amount: '' }));
+                    }
+                  }}
                   placeholder="0.00"
                   className={`w-full pl-9 pr-3 py-2 text-sm rounded-lg border bg-white focus:outline-none focus:ring-2 ${
                     errors.amount
@@ -288,7 +316,6 @@ export const BillForm: React.FC<BillFormProps> = ({
             </div>
           </div>
 
-          {/* Due Date & Reminder */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">
@@ -326,13 +353,19 @@ export const BillForm: React.FC<BillFormProps> = ({
                     setReminderDaysBefore(e.target.value === '' ? '' : Number(e.target.value))
                   }
                   placeholder="0"
-                  className="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                  className={`w-full pl-9 pr-3 py-2 text-sm rounded-lg border bg-white focus:outline-none focus:ring-2 ${
+                    errors.reminderDaysBefore
+                      ? 'border-rose-400 focus:ring-rose-500/20'
+                      : 'border-slate-200 focus:ring-blue-500/20 focus:border-blue-500'
+                  }`}
                 />
               </div>
+              {errors.reminderDaysBefore && (
+                <p className="text-xs text-rose-500 mt-1">{errors.reminderDaysBefore}</p>
+              )}
             </div>
           </div>
 
-          {/* Recurring Switch & Period */}
           <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-3">
             <div className="flex items-center justify-between">
               <div>
@@ -369,7 +402,6 @@ export const BillForm: React.FC<BillFormProps> = ({
             )}
           </div>
 
-          {/* Attachment (multipart/form-data) */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1">
               Attachment (Optional Bill / Invoice PDF or Image)
@@ -385,7 +417,6 @@ export const BillForm: React.FC<BillFormProps> = ({
             </div>
           </div>
 
-          {/* Notes */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1">
               Personal Notes (Optional)
@@ -399,7 +430,6 @@ export const BillForm: React.FC<BillFormProps> = ({
             />
           </div>
 
-          {/* Action Buttons */}
           <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
             <button
               type="button"

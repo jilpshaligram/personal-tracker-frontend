@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import AppLayout from '../components/layout/AppLayout';
 import DashboardPage from '../pages/DashboardPage';
+import Wallet from '../pages/wallet/Wallet';
 import DocumentVault from '../pages/DocumentVault';
 import TransactionsPage from '../pages/TransactionsPage';
 import BudgetsPage from '../pages/BudgetsPage';
@@ -106,6 +107,7 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <RootRedirect /> },
       { path: 'dashboard', element: <DashboardPage /> },
+      { path: 'wallet', element: <Wallet /> },
       { path: 'documents', element: <DocumentVault /> },
       { path: 'transactions', element: <TransactionsPage /> },
       { path: 'budgets', element: <BudgetsPage /> },

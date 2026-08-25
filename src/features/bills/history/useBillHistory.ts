@@ -22,6 +22,7 @@ export const useBillHistory = (bill: Bill | null, enabled = true): UseBillHistor
     let active = true;
 
     const fetchHistory = async () => {
+      setHistory([]);
       setIsLoading(true);
       setError(null);
       try {

@@ -8,8 +8,7 @@ import {
   PiggyBank,
   Settings,
   X,
-  Users,
-  ClipboardList,
+  Wallet,
 } from 'lucide-react';
 
 interface NavItem {
@@ -17,6 +16,17 @@ interface NavItem {
   label: string;
   icon: React.ElementType;
 }
+
+const navItems: NavItem[] = [
+  { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { path: '/wallet', label: 'Wallet', icon: Wallet },
+  { path: '/documents', label: 'Documents', icon: FileText },
+  { path: '/transactions', label: 'Transactions', icon: ArrowLeftRight },
+  { path: '/budgets', label: 'Budgets', icon: WalletCards },
+  { path: '/bills', label: 'Bills', icon: Receipt },
+  { path: '/savings', label: 'Savings', icon: PiggyBank },
+  { path: '/settings', label: 'Settings', icon: Settings },
+];
 
 interface SidebarProps {
   isOpen: boolean;

@@ -27,6 +27,19 @@ export function BudgetCard({ budget, onEdit, onDelete }: BudgetCardProps) {
     badgeText = 'EXCEEDED';
   }
 
+  const renderDateRange = () => {
+    if (!budget.startDate) return '';
+    const startStr = formatDate(budget.startDate);
+    const endStr = budget.endDate ? formatDate(budget.endDate) : '';
+
+    if (startStr === endStr) {
+      const todayStr = formatDate(new Date().toISOString());
+      return startStr === todayStr ? 'Today' : startStr;
+    }
+
+    return `${startStr} ${endStr ? `→ ${endStr}` : ''}`;
+  };
+
   const periodLabel = budget.period.charAt(0) + budget.period.slice(1).toLowerCase();
 
   return (
@@ -62,10 +75,7 @@ export function BudgetCard({ budget, onEdit, onDelete }: BudgetCardProps) {
         </div>
       </div>
       <CardContent className="p-6 flex-1 flex flex-col">
-        <div className="text-sm text-slate-500 mb-6">
-          {budget.startDate ? formatDate(budget.startDate) : ''}{' '}
-          {budget.endDate ? `→ ${formatDate(budget.endDate)}` : ''}
-        </div>
+        <div className="text-sm text-slate-500 mb-6 font-medium">{renderDateRange()}</div>
 
         <div className="space-y-3 mb-6">
           <div className="flex justify-between text-sm">

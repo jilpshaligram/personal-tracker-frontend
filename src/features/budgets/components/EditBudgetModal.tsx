@@ -29,7 +29,7 @@ export function EditBudgetModal({
 }: EditBudgetModalProps) {
   const [amount, setAmount] = useState<string>('');
   const [period, setPeriod] = useState<'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY'>('MONTHLY');
-  const [validationError, setValidationError] = useState<string | null>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const [prevBudget, setPrevBudget] = useState<Budget | null>(budget);
   if (budget !== prevBudget) {
@@ -37,18 +37,27 @@ export function EditBudgetModal({
     if (budget) {
       setAmount(budget.amount.toString());
       setPeriod(budget.period);
-      setValidationError(null);
+      setErrors({});
     }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!budget) return;
-    setValidationError(null);
+    setErrors({});
 
+    const newErrors: Record<string, string> = {};
     const amountNum = parseFloat(amount);
+
     if (isNaN(amountNum) || amountNum <= 0) {
-      return setValidationError('Please enter a valid amount greater than 0');
+      newErrors.amount = 'Valid positive amount is required';
+    } else if (amountNum > 1000000000) {
+      newErrors.amount = 'Amount exceeds maximum limit (1,000,000,000)';
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
     }
 
     const success = await onSubmit(budget.id, {
@@ -61,8 +70,6 @@ export function EditBudgetModal({
     }
   };
 
-  const displayError = validationError || error;
-
   return (
     <Dialog open={!!budget} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
@@ -71,9 +78,9 @@ export function EditBudgetModal({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 py-4">
-          {displayError && (
-            <div className="text-red-500 text-sm font-medium p-3 bg-red-50 rounded-md">
-              {displayError}
+          {error && (
+            <div className="text-rose-500 text-sm font-medium p-3 bg-rose-50 rounded-md border border-rose-200">
+              {error}
             </div>
           )}
 
@@ -83,10 +90,21 @@ export function EditBudgetModal({
               id="edit-amount"
               type="number"
               step="0.01"
+              max="1000000000"
               value={amount}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAmount(e.target.value)}
-              required
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                const val = e.target.value;
+                if (val && parseFloat(val) > 1000000000) return;
+                setAmount(val);
+                if (errors.amount) setErrors((p) => ({ ...p, amount: '' }));
+              }}
+              className={`w-full ${
+                errors.amount
+                  ? 'border-rose-400 focus-visible:ring-rose-500/20'
+                  : 'border-slate-200 focus-visible:border-blue-500 focus-visible:ring-blue-500/20'
+              }`}
             />
+            {errors.amount && <p className="text-xs text-rose-500 mt-1">{errors.amount}</p>}
           </div>
 
           <div className="space-y-2">

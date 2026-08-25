@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ShieldCheck, ShieldAlert, Grid3X3 } from 'lucide-react';
+import { ShieldCheck, ShieldAlert, Grid3X3, CheckCircle2, Mail, Phone, Lock } from 'lucide-react';
 import { useAuth } from '../context';
 import { apiClient } from '../api/client';
 
